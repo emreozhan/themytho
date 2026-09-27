@@ -1,5 +1,4 @@
 import type { Chapter } from '../../../story/types';
-import { scene } from '../../../scenes/kalypso';
 
 export const kalypso: Chapter = {
   id: 'kalypso',
@@ -53,5 +52,5 @@ export const kalypso: Chapter = {
       text: 'Dört günde salını bitirir. Beşinci gün Kalypso’nun verdiği ekmek, şarap ve tatlı bir rüzgârla yola çıkar; geceleri Ülker’e ve Büyükayı’ya bakarak yön bulur.',
     },
   ],
-  scene,
+  load: () => import('../../../scenes/kalypso'),
 };

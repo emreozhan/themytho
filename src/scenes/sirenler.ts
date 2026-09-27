@@ -486,7 +486,8 @@ export const scene: SceneFactory = (ctx) => {
         for (let k = 0; k < crew.length; k++) {
           if (ctx.signal.aborted) return;
           const [ex, ey] = galley.ear(crew[k].fig);
-          const hit = s('rect', { x: (ex - 11).toFixed(1), y: (ey - 13).toFixed(1), width: 22, height: 26, fill: 'transparent', class: 'sir-hit' });
+          // Generous finger-sized target around the head (only one is live at a time).
+          const hit = s('rect', { x: (ex - 15).toFixed(1), y: (ey - 19).toFixed(1), width: 30, height: 36, fill: 'transparent', class: 'sir-hit' });
           galley.top.appendChild(hit);
           await ctx.tap(hit, { label: `Kürekçinin kulağını balmumuyla tıka (${k + 1}/${crew.length})` });
           hit.remove();
@@ -501,7 +502,7 @@ export const scene: SceneFactory = (ctx) => {
 
       if (i === 2) {
         // Tap the mast; the companions bind him standing, hands behind the mast.
-        const hit = s('rect', { x: galley.mastX - 9, y: galley.mastTop + 6, width: 18, height: -galley.mastTop - 58, fill: 'transparent' });
+        const hit = s('rect', { x: galley.mastX - 14, y: galley.mastTop + 4, width: 28, height: -galley.mastTop - 50, fill: 'transparent' });
         galley.top.appendChild(hit);
         await ctx.tap(hit, { label: 'Direğe dokun: Odysseus’u bağla' });
         hit.remove();

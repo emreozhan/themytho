@@ -1,5 +1,4 @@
 import type { Chapter } from '../../../story/types';
-import { scene } from '../../../scenes/avlis';
 
 export const avlis: Chapter = {
   id: 'avlis',
@@ -41,5 +40,5 @@ export const avlis: Chapter = {
       text: 'Sonunda rüzgâr döner, yelkenler şişer. Bin gemi Ege’nin karşı kıyısına, Troya’ya doğru yola çıkar.',
     },
   ],
-  scene,
+  load: () => import('../../../scenes/avlis'),
 };

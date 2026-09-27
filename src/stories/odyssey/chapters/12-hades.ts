@@ -1,5 +1,4 @@
 import type { Chapter } from '../../../story/types';
-import { scene } from '../../../scenes/hades';
 
 export const hades: Chapter = {
   id: 'hades',
@@ -58,5 +57,5 @@ export const hades: Chapter = {
       },
     },
   ],
-  scene,
+  load: () => import('../../../scenes/hades'),
 };

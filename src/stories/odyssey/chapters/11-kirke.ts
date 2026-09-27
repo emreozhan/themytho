@@ -1,5 +1,4 @@
 import type { Chapter } from '../../../story/types';
-import { scene } from '../../../scenes/kirke';
 
 export const kirke: Chapter = {
   id: 'kirke',
@@ -59,5 +58,5 @@ export const kirke: Chapter = {
       text: 'Bir yıl boyunca Kirke’nin sarayında şölenler içinde kalırlar. Sonunda Kirke yolu gösterir: eve dönüşü öğrenmek için Odysseus ölüler diyarına inip kâhin Teiresias’a danışmalıdır.',
     },
   ],
-  scene,
+  load: () => import('../../../scenes/kirke'),
 };

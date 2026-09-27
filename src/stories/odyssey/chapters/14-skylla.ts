@@ -1,5 +1,4 @@
 import type { Chapter } from '../../../story/types';
-import { scene } from '../../../scenes/skylla';
 
 export const skylla: Chapter = {
   id: 'skylla',
@@ -46,5 +45,5 @@ export const skylla: Chapter = {
       },
     },
   ],
-  scene,
+  load: () => import('../../../scenes/skylla'),
 };

@@ -1,5 +1,4 @@
 import type { Chapter } from '../../../story/types';
-import { scene } from '../../../scenes/laistrygonlar';
 
 export const laistrygonlar: Chapter = {
   id: 'laistrygonlar',
@@ -44,5 +43,5 @@ export const laistrygonlar: Chapter = {
       text: 'Limandaki on bir gemi tayfalarıyla birlikte yok olur. Yalnızca Odysseus’un gemisi, var gücüyle kürek çeken adamlarıyla açık denize kaçar.',
     },
   ],
-  scene,
+  load: () => import('../../../scenes/laistrygonlar'),
 };

@@ -205,7 +205,7 @@ export const scene: SceneFactory = (ctx) => {
   const ballG = s('g', { class: 'skh-ball', opacity: 0 });
   ballG.appendChild(theBall);
   tBin.appendChild(ballG);
-  const ballHit = s('circle', { r: 10, fill: 'transparent' });
+  const ballHit = s('circle', { r: 15, fill: 'transparent' });
   ballG.appendChild(ballHit);
   const ballPos = { x: 0, y: 0, held: true };
   // He sleeps through the night: a veil of night with stars and moon over the shore.

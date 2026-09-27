@@ -1,5 +1,4 @@
 import type { Chapter } from '../../../story/types';
-import { scene } from '../../../scenes/thrinakia';
 
 const CHARYBDIS: [number, number] = [15.62, 38.23];
 
@@ -61,5 +60,5 @@ export const thrinakia: Chapter = {
       },
     },
   ],
-  scene,
+  load: () => import('../../../scenes/thrinakia'),
 };

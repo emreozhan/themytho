@@ -1,5 +1,4 @@
 import type { Chapter } from '../../../story/types';
-import { scene } from '../../../scenes/malea';
 
 export const malea: Chapter = {
   id: 'malea',
@@ -43,5 +42,5 @@ export const malea: Chapter = {
       },
     },
   ],
-  scene,
+  load: () => import('../../../scenes/malea'),
 };

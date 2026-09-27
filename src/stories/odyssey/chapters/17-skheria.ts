@@ -1,5 +1,4 @@
 import type { Chapter } from '../../../story/types';
-import { scene } from '../../../scenes/skheria';
 
 export const skheria: Chapter = {
   id: 'skheria',
@@ -54,5 +53,5 @@ export const skheria: Chapter = {
       },
     },
   ],
-  scene,
+  load: () => import('../../../scenes/skheria'),
 };

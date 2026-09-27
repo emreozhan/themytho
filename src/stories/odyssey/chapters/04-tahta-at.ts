@@ -1,5 +1,4 @@
 import type { Chapter } from '../../../story/types';
-import { scene } from '../../../scenes/tahta-at';
 
 const TROY_BEACH: [number, number] = [26.13, 39.99];
 
@@ -55,5 +54,5 @@ export const tahtaAt: Chapter = {
       },
     },
   ],
-  scene,
+  load: () => import('../../../scenes/tahta-at'),
 };

@@ -1,5 +1,4 @@
 import type { Chapter } from '../../../story/types';
-import { scene } from '../../../scenes/aiolos';
 
 const AIOLIA: [number, number] = [14.78, 38.44];
 
@@ -75,5 +74,5 @@ export const aiolos: Chapter = {
       },
     },
   ],
-  scene,
+  load: () => import('../../../scenes/aiolos'),
 };

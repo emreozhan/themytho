@@ -1,5 +1,4 @@
 import type { Chapter } from '../../../story/types';
-import { scene } from '../../../scenes/kyklop';
 
 export const kyklop: Chapter = {
   id: 'kyklop',
@@ -56,5 +55,5 @@ export const kyklop: Chapter = {
       },
     },
   ],
-  scene,
+  load: () => import('../../../scenes/kyklop'),
 };
