@@ -118,6 +118,8 @@ export const POSES = {
 export class Figure {
   readonly g: SVGGElement;
   readonly style: Required<Pick<FigureStyle, 'head' | 'hat' | 'garment'>> & FigureStyle;
+  /** Whether render() has written a mirroring/scaling transform on `g`. */
+  private transformed = false;
   pose: Pose;
   /** The Cyclops after the stake: the eye is put out. */
   blind = false;
@@ -230,28 +232,44 @@ export class Figure {
     return this;
   }
 
-  /** Tween to another pose. Returns the GSAP tween. */
+  /**
+   * Tween to another pose. Returns the GSAP tween. Only the joints named in
+   * `target` move, starting from wherever they are when the tween *starts*,
+   * so pose tweens can be queued in a timeline or run side by side (legs
+   * walking while an arm waves) without jumping or fighting.
+   */
   to(target: Partial<Pose>, vars: gsap.TweenVars = {}): gsap.core.Tween {
-    const from = { ...this.pose, armF: [...this.pose.armF], armB: [...this.pose.armB], legF: [...this.pose.legF], legB: [...this.pose.legB] };
-    const flat = (p: Pose) => [
-      p.x, p.y, p.lean, p.head, p.armF[0], p.armF[1], p.armB[0], p.armB[1],
-      p.legF[0], p.legF[1], p.legB[0], p.legB[1], p.footF, p.footB, p.grip,
-    ];
-    const merged: Pose = { ...(from as Pose), ...target } as Pose;
-    const a = flat(from as Pose);
-    const b = flat(merged);
+    const keys = Object.keys(target) as (keyof Pose)[];
+    let from: Partial<Pose> | null = null;
+    const begin = () => {
+      const p = this.pose;
+      from = {};
+      for (const k of keys) {
+        const v = p[k];
+        (from as Record<string, unknown>)[k] = Array.isArray(v) ? [v[0], v[1]] : v;
+      }
+    };
     const proxy = { t: 0 };
     return gsap.to(proxy, {
       t: 1,
       duration: 0.6,
       ease: 'power2.inOut',
       ...vars,
+      onStart: () => {
+        begin();
+        (vars.onStart as (() => void) | undefined)?.();
+      },
       onUpdate: () => {
-        const v = a.map((x, i) => x + (b[i] - x) * proxy.t);
-        this.pose = {
-          x: v[0], y: v[1], lean: v[2], head: v[3], armF: [v[4], v[5]], armB: [v[6], v[7]],
-          legF: [v[8], v[9]], legB: [v[10], v[11]], footF: v[12], footB: v[13], grip: v[14],
-        };
+        if (!from) begin();
+        const t = proxy.t;
+        const next: Record<string, unknown> = { ...this.pose };
+        for (const k of keys) {
+          const a = (from as Record<string, unknown>)[k];
+          const b = target[k];
+          if (Array.isArray(a) && Array.isArray(b)) next[k] = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+          else if (typeof a === 'number' && typeof b === 'number') next[k] = a + (b - a) * t;
+        }
+        this.pose = next as unknown as Pose;
         this.render();
         (vars.onUpdate as (() => void) | undefined)?.();
       },
@@ -348,9 +366,22 @@ export class Figure {
     const sc = st.scale ?? 1;
     const f = st.facing ?? 1;
     const ox = p.x;
-    attr(this.g, {
-      transform: sc === 1 && f === 1 ? null : `translate(${f1(ox)} 0) scale(${f1(sc * f)} ${f1(sc)}) translate(${f1(-ox)} 0)`,
-    });
+    if (sc !== 1 || f !== 1) {
+      this.g.setAttribute('transform', `translate(${f1(ox)} 0) scale(${f1(sc * f)} ${f1(sc)}) translate(${f1(-ox)} 0)`);
+      this.transformed = true;
+    } else if (this.transformed) {
+      // Turned back to face right: drop our own mirroring. (A transform we never
+      // wrote, e.g. a scene's own translate, is left alone.)
+      this.g.removeAttribute('transform');
+      this.transformed = false;
+    }
+  }
+
+  /** Turn to face right (1) or left (-1); the pose stays the same. */
+  face(dir: 1 | -1): this {
+    this.style.facing = dir;
+    this.render();
+    return this;
   }
 
   private renderGarment(j: ReturnType<Figure['joints']>, female: boolean): void {

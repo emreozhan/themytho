@@ -61,7 +61,8 @@ export function askos(): Askos {
   g.appendChild(body);
   // Silver cord: turns round the neck, a knot and trailing ends.
   const knot = s('g', { class: 'askos__knot' });
-  knot.appendChild(s('circle', { cx: 12.4, cy: -17.8, r: 8, fill: '#000', opacity: 0 }));
+  // A generous invisible hit area round the knot (for fingers).
+  knot.appendChild(s('circle', { cx: 13.4, cy: -18.4, r: 12.5, fill: '#000', opacity: 0 }));
   knot.appendChild(s('path', { d: 'M8.6 -15.2L14.8 -17.4M9.2 -17L15.2 -19.2M9.8 -18.8L15.4 -20.8', stroke: WHITE, 'stroke-width': 1.3, 'stroke-linecap': 'round' }));
   knot.appendChild(s('path', { d: 'M15.4 -19C18.4 -21.6 20.6 -19.4 18.4 -17.6C17 -16.6 15.8 -17.8 15.4 -19ZM15.2 -18.6C17.4 -15.6 15.4 -13.2 14 -14.8C13.2 -15.8 14.2 -17.4 15.2 -18.6Z', fill: 'none', stroke: WHITE, 'stroke-width': 1.1 }));
   const endA = s('path', { d: 'M15.6 -18.4C18 -15 21 -13.8 23.6 -14.6', fill: 'none', stroke: WHITE, 'stroke-width': 1.1, 'stroke-linecap': 'round' });

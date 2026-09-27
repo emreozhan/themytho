@@ -15,11 +15,13 @@ import { waveRing } from '../art/ornaments';
 import { rng, range } from '../lib/random';
 import { clamp, lerp, smoothPath, type Vec } from '../lib/geometry';
 import { stage } from './tools';
-import { Galley, RollingSea, armTo, puppet, tondoFlash, shakeGroup } from './avlis.fleet';
+import { Galley, RollingSea, armTo, puppet, tondoFlash, shakeGroup, renderLoop, poser } from './avlis.fleet';
 import { windGod } from './malea.boreas';
 import type { SceneFactory } from '../story/types';
 
 const f1 = (v: number) => (Math.round(v * 10) / 10).toString();
+/** Fractional part in [0, 1). */
+const frac = (v: number) => ((v % 1) + 1) % 1;
 
 /** Waterline of Odysseus's ship. */
 const WL = 58;
@@ -32,12 +34,14 @@ function rainSheet(n: number, seed: number, slant = 0.32, width = 1): { g: SVGGE
   for (let i = 0; i < n; i++) {
     const x = range(rand, -260, 170);
     const L = 420;
+    // The dash period divides the (normalised) path length, so the fall loops seamlessly.
+    const period = 1 / Math.round(range(rand, 4, 6.49));
+    const dash = range(rand, 0.03, 0.06);
     const p = s('path', {
       d: `M${f1(x)} -210l${f1(L * slant)} ${L}`,
       'stroke-width': width,
       pathLength: 1,
-      'stroke-dasharray': `${range(rand, 0.03, 0.06).toFixed(3)} ${range(rand, 0.1, 0.2).toFixed(3)}`,
-      'stroke-dashoffset': range(rand, 0, 1).toFixed(3),
+      'stroke-dasharray': `${dash.toFixed(3)} ${(period - dash).toFixed(3)}`,
       opacity: range(rand, 0.45, 0.9).toFixed(2),
     });
     lines.push(p);
@@ -230,7 +234,8 @@ export const scene: SceneFactory = (ctx) => {
       sea.place();
     }
     // The ship pitches and rolls; the helmsman's grip steadies it.
-    const roll = Math.sin(t * 1.7) * (2 + k * 15 * steady) + k * 10 * steady * (S.wind < 0 ? 1 : 0.2) + S.heelKick + S.spin;
+    const roll = Math.sin(t * 1.7) * (2 + k * 15 * steady) + k * 10 * steady * (S.wind < 0 ? 1 : 0.2) + S.heelKick;
+    ship.yaw = S.spin;
     ship.x = S.shipX;
     ship.y = S.shipY;
     ship.scale = S.shipK;
@@ -246,21 +251,18 @@ export const scene: SceneFactory = (ctx) => {
       o.place();
       o.draw(t);
     }
-    // Label rides beside the stern.
-    const lp = ship.toParent([-58, -40]);
-    odyLabelG.setAttribute('transform', `translate(${f1(lp[0] + 6)} ${f1(lp[1])})`);
+    // His name is painted beside the stern (it follows the ship, not its pitching).
+    odyLabelG.setAttribute('transform', `translate(${f1(S.shipX + 98)} ${f1(WL - 112)})`);
     boreas.update(t, S.blow);
-    rainA.lines.forEach((p, i) => p.setAttribute('stroke-dashoffset', String(Math.round((((-t * (1.6 + (i % 5) * 0.12)) % 1) + 1) * 1000) / 1000 % 1)));
-    rainB.lines.forEach((p, i) => p.setAttribute('stroke-dashoffset', String(Math.round((((-t * (2.1 + (i % 4) * 0.15)) % 1) + 1) * 1000) / 1000 % 1)));
+    rainA.lines.forEach((p, i) => p.setAttribute('stroke-dashoffset', frac(-t * (1.6 + (i % 5) * 0.12) + i * 0.37).toFixed(3)));
+    rainB.lines.forEach((p, i) => p.setAttribute('stroke-dashoffset', frac(-t * (2.1 + (i % 4) * 0.15) + i * 0.53).toFixed(3)));
     rain.setAttribute('opacity', f1(S.rain));
     gulls.forEach((gl, i) => gl.wings.setAttribute('transform', `scale(1 ${f1(Math.sin(t * 6 + i * 2))})`));
     // Ocean's stream runs round the rim.
     if (oc.p.o > 0) ring.setAttribute('transform', `rotate(${f1((t * 3) % 360)})`);
   };
-  const clock = { t: 0 };
-  st.loop(gsap.to(clock, { t: 3600, duration: 3600, ease: 'none', repeat: -1, onUpdate: () => frame(clock.t) }));
-  frame(0);
-  const redraw = () => frame(clock.t);
+  const redraw = renderLoop(st, ctx.reduced, frame);
+  const move = poser(st, ctx.reduced);
   gulls.forEach((gl, i) => st.loop(gsap.to(gl.pp.p, { x: `+=${i % 2 ? -18 : 20}`, y: `+=${i % 2 ? 8 : -6}`, duration: 3 + i, ease: 'sine.inOut', yoyo: true, repeat: -1, onUpdate: gl.pp.apply })));
   st.loop(gsap.to(surf.children, { opacity: 0.25, duration: 0.9, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: 0.45 }));
   const rowing = st.loop(ship.row(1));
@@ -328,7 +330,7 @@ export const scene: SceneFactory = (ctx) => {
           .to(S, { heelKick: 0, hold: 0.25, duration: 1.2, ease: 'elastic.out(1, 0.5)' }, 0.25)
           .to(bolt, { opacity: 0, duration: 0.6 }, 0.35)
           .call(() => ctx.audio.sfx('storm'), [], 0.3);
-        helmsman.to({ ...helmPose(0.2), lean: 12, head: 10 }, { duration: 0.4, delay: 0.1 });
+        move(helmsman, { ...helmPose(0.2), lean: 12, head: 10 }, { duration: 0.4, delay: 0.1 });
         return st.play(tear);
       }
       if (i === 2) {
@@ -341,11 +343,11 @@ export const scene: SceneFactory = (ctx) => {
           .to(bor.p, { x: -210, y: -170, s: 0.8, o: 0, duration: 1.8, ease: 'power2.in', onUpdate: bor.apply }, 0)
           .to(borL.p, { o: 0, duration: 0.5, onUpdate: borL.apply }, 0)
           .to(clouds, { opacity: 0, duration: 1.4 }, 0.3)
-          .to([capeG, surf, title], { x: '-=60', opacity: 0, duration: 1.8, ease: 'power2.in' }, 0)
+          .to([capeG, surf], { x: -60, opacity: 0, duration: 1.8, ease: 'power2.in' }, 0)
           .to(othersG, { opacity: 0, duration: 0.8 }, 0)
           .to(S, { rain: 0.2, blow: 0, duration: 1.6 }, 0.4)
           .to(S, { shipK: 0.52, shipX: 44, shipY: 40, duration: 2.8, ease: 'power2.inOut', onUpdate: redraw }, 0)
-          .to(S, { spin: 360, duration: 2.8, ease: 'power2.inOut' }, 0)
+          .to(S, { spin: 720, duration: 3, ease: 'power1.inOut' }, 0)
           .to(S, { storm: 0.55, duration: 2.4 }, 0.4)
           .to(odyLabelG, { opacity: 0, duration: 0.6 }, 0)
           .to(oc.p, { o: 1, duration: 1.6, onUpdate: oc.apply }, 1.1)
@@ -358,6 +360,8 @@ export const scene: SceneFactory = (ctx) => {
 
     destroy() {
       st.destroy();
+      // The storm and mist belong to this tondo; the next voyage sets its own weather.
+      ctx.atlas.setWeather('none');
     },
   };
 };

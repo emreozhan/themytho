@@ -229,7 +229,11 @@ export class Engine {
     panel.hideChoices();
     const c = this.chapter;
     const to = c ? this.ui.atlas.camera.toScreen(project(c.at[0], c.at[1])) : undefined;
-    if (c) atlas.setMarker(c.marker ?? c.id, 'visited');
+    if (c) {
+      atlas.setMarker(c.marker ?? c.id, 'visited');
+      // Sail on under the chapter's declared closing sky, whatever the scene left.
+      this.setMood(c.end?.mood ?? c.mood ?? 'day');
+    }
     await Promise.all([panel.hide(), medallion.retreat(to as [number, number] | undefined)]);
     medallion.clear();
   }

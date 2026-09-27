@@ -70,6 +70,8 @@ export interface SirenOptions {
   scale?: number;
   facing?: 1 | -1;
   instrument?: 'lyre' | 'aulos' | 'none';
+  /** In flight: legs tucked back under the tail instead of gripping a rock. */
+  flying?: boolean;
 }
 
 export interface SirenPose {
@@ -101,8 +103,6 @@ export class Siren {
   /** The playing hand (plucks the lyre / fingers the pipes). */
   readonly hand: SVGGElement;
   readonly mouth: SVGCircleElement;
-  /** The lyre, when she plays one (it can be dropped). */
-  readonly lyre: SVGGElement | null = null;
   readonly instrument: 'lyre' | 'aulos' | 'none';
   readonly x: number;
   readonly y: number;
@@ -141,8 +141,20 @@ export class Siren {
         `M${fx + 0.4} -1.4C${fx - 1.6} -1.4 ${fx - 3.6} -0.4 ${fx - 4} 1.6C${fx - 2.6} 0.6 ${fx - 1.4} 0 ${fx} -0.2Z`;
       legs.appendChild(s('path', { d: thigh + shank + toes, fill: INK, ...inc, 'stroke-width': 0.6 }));
     };
-    leg(-4, -5);
-    leg(3, 3);
+    if (o.flying) {
+      // Tucked legs trailing under the tail, talons curled.
+      const tucked = (hx: number, dy: number) => {
+        const thigh = limb([hx, -17], [hx - 6, -12 + dy], [[0, 3.6, 3.6], [0.7, 2.3, 2.3], [1, 1.3, 1.3]]);
+        const shank = limb([hx - 6, -12 + dy], [hx - 15, -13 + dy], [[0, 1.1, 1.1], [1, 0.85, 0.85]]);
+        const claw = `M${hx - 15} ${-14 + dy}c-2 0.4 -3.4 1.6 -3.2 3.4c0.8 -1.2 1.8 -1.8 3.2 -1.8ZM${hx - 15} ${-12.4 + dy}c-1.4 1.2 -1.8 2.8 -1 4.2c0.2 -1.4 0.8 -2.4 1.8 -3Z`;
+        legs.appendChild(s('path', { d: thigh + shank + claw, fill: INK, ...inc, 'stroke-width': 0.6 }));
+      };
+      tucked(-2, 0);
+      tucked(3, 2.4);
+    } else {
+      leg(-4, -5);
+      leg(3, 3);
+    }
 
     // Tail: a long fan of feathers.
     this.tail = s('g', { class: 'siren__tail' });
@@ -228,7 +240,6 @@ export class Siren {
       // The lyre leans back against the breast, held by the far arm.
       const lyre = lyreShape();
       lyre.setAttribute('transform', 'translate(29.5 -15.5) rotate(-22) scale(1.25)');
-      this.lyre = lyre;
       front.appendChild(s('path', { d: upper([15.5, -33], [22.5, -31]) + fore([22.5, -31], [26.8, -34.2]), ...arm }));
       front.appendChild(lyre);
       front.appendChild(s('path', { d: upper([17, -30.5], [21, -22.5]), ...arm }));

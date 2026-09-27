@@ -14,7 +14,7 @@ import { Figure, POSES, pose, INK, CLAY, WHITE, PURPLE, shield } from '../art/fi
 import { exergue, inscription, fillers, flames, column, sun } from '../art/kit';
 import { clamp, lerp, type Vec } from '../lib/geometry';
 import { stage } from './tools';
-import { Galley, RollingSea, windPath, dolphin, armTo, headFrame, puppet, type GalleyOptions } from './avlis.fleet';
+import { Galley, RollingSea, windPath, dolphin, armTo, headFrame, puppet, renderLoop, poser, type GalleyOptions } from './avlis.fleet';
 import type { SceneFactory } from '../story/types';
 
 const f1 = (v: number) => (Math.round(v * 10) / 10).toString();
@@ -121,8 +121,13 @@ export const scene: SceneFactory = (ctx) => {
   A.appendChild(sunG);
   const title = inscription('ΑΥΛΙΣ', 20, -124, { size: 10, align: 'middle' });
   A.appendChild(title);
-  const birdsA = [flyingBird(52, -92, 0.9), flyingBird(84, -76, 0.7), flyingBird(-30, -104, 0.75)];
-  birdsA.forEach((b) => A.appendChild(b.g));
+  const birdsA = [flyingBird(52, -92, 0.9), flyingBird(84, -76, 0.7), flyingBird(-30, -104, 0.75)].map((b) => {
+    // A plain wrapper carries the drift (the bird itself is positioned by its transform).
+    const drift = s('g');
+    drift.appendChild(b.g);
+    A.appendChild(drift);
+    return { ...b, drift };
+  });
 
   // The wind (drawn in beat 2), behind the rigging.
   const windLayer = s('g', { class: 'avlis-wind', opacity: 0 });
@@ -137,7 +142,7 @@ export const scene: SceneFactory = (ctx) => {
   });
   A.appendChild(windLayer);
 
-  // The fleet: three ranks of black ships, sails brailed up to the yards.
+  // The fleet: two ranks of black ships, sails brailed up to the yards.
   const fleetG = s('g', { class: 'avlis-fleet' });
   A.appendChild(fleetG);
   const mk = (o: GalleyOptions) => new Galley({ y: WL, halo: true, rig: { furl: 1, fill: 0, breathe: 0.5, flag: 0.15 }, pennant: true, ...o });
@@ -167,9 +172,11 @@ export const scene: SceneFactory = (ctx) => {
     fleetG.appendChild(rg);
   });
 
-  // The sea runs in front of the hulls.
-  const sea = new RollingSea(WL - 3, { h: 10, ripples: 18, seed: 5 });
-  A.appendChild(sea.g);
+  // The dark water lies behind the hulls (oars are incised where they cross it);
+  // the crests run in front, washing over the hulls as the wind rises.
+  const sea = new RollingSea(WL - 1, { h: 10, ripples: 18, seed: 5, foam: true, incised: true });
+  A.insertBefore(sea.g, fleetG);
+  A.insertBefore(sea.front, fleetG.nextSibling);
 
   // Dolphins scratched into the dark water, swimming slowly.
   const swimmers = [
@@ -253,7 +260,7 @@ export const scene: SceneFactory = (ctx) => {
   Bf.append(maid1.g, maid2.g, achilles.g, ody.g, trumpetG, blast);
   const achLabel = inscription('ΑΧΙΛΛΕΥΣ', -30, -64, { size: 7, align: 'middle' });
   achLabel.style.opacity = '0';
-  const odyLabel = inscription('ΟΔΥΣΣΕΥΣ', 113, -30, { size: 5.8, angle: 90 });
+  const odyLabel = inscription('ΟΔΥΣΣΕΥΣ', 109, -30, { size: 5.8, angle: 90 });
   Bf.appendChild(odyLabel);
   B.appendChild(achLabel);
   // The disguise: a veil that flies off.
@@ -314,7 +321,6 @@ export const scene: SceneFactory = (ctx) => {
     heel: 0,
     flag: 0.15,
     flame: 0,
-    rowing: 0,
   };
   let lastT = 0;
   const frame = (t: number) => {
@@ -344,12 +350,10 @@ export const scene: SceneFactory = (ctx) => {
     alt.fire.setAttribute('transform', `translate(${ALTAR_X} ${SHORE - 29}) scale(0.62) skewX(${f1(S.flame * 28 + Math.sin(t * 9) * 3)})`);
     birdsA.forEach((b, i) => b.wings.setAttribute('transform', `scale(1 ${f1(Math.sin(t * 7 + i * 2) * 0.9)})`));
   };
-  const clock = { t: 0 };
-  st.loop(gsap.to(clock, { t: 3600, duration: 3600, ease: 'none', repeat: -1, onUpdate: () => frame(clock.t) }));
-  frame(0);
-  const redraw = () => frame(clock.t);
+  const redraw = renderLoop(st, ctx.reduced, frame);
+  const move = poser(st, ctx.reduced);
   // Drifting birds.
-  birdsA.forEach((b, i) => st.loop(gsap.to(b.g, { x: i % 2 ? '-=14' : '+=16', y: i % 2 ? '+=6' : '-=5', duration: 4 + i, ease: 'sine.inOut', yoyo: true, repeat: -1 })));
+  birdsA.forEach((b, i) => st.loop(gsap.to(b.drift, { x: i % 2 ? -14 : 16, y: i % 2 ? 6 : -5, duration: 4 + i, ease: 'sine.inOut', yoyo: true, repeat: -1 })));
   swimmers.forEach((sw, k) =>
     st.loop(gsap.to(sw.p, { y: '+=4', r: -3, x: '+=8', duration: 2.6 + k * 0.7, ease: 'sine.inOut', yoyo: true, repeat: -1, onUpdate: sw.apply })),
   );
@@ -376,7 +380,7 @@ export const scene: SceneFactory = (ctx) => {
     async beat(i) {
       if (i === 0) {
         // More ships row in to join the muster; Agamemnon lifts his hand over the fleet.
-        aga.to({ armF: [112, -30], head: -4 }, { duration: 1 });
+        move(aga, { armF: [112, -30], head: -4 }, { duration: 1 });
         const tl = st.timeline();
         latecomers.forEach((gl, k) => tl.to(gl, { x: gl.x - LATE, duration: 1.7, ease: 'power2.out' }, k * 0.14));
         tl.to(S, { flag: 0.45, duration: 1.2 }, 0.4);
@@ -388,7 +392,7 @@ export const scene: SceneFactory = (ctx) => {
         const tl = st.timeline();
         tl.call(() => {
           placeTrumpet();
-          ody.to(blowPose, { duration: 0.45, onUpdate: placeTrumpet });
+          move(ody, blowPose, { duration: 0.45, onUpdate: placeTrumpet });
         })
           .to(trumpetG, { opacity: 1, duration: 0.3 }, 0.05)
           .call(() => ctx.audio.sfx('arrive'), [], 0.5)
@@ -396,8 +400,8 @@ export const scene: SceneFactory = (ctx) => {
           .fromTo(blast.children, { scale: 0.4, transformOrigin: '0% 50%' }, { scale: 1.5, duration: 0.8, stagger: 0.12, ease: 'power2.out' }, 0.5)
           .to(blast, { opacity: 0, duration: 0.5 }, 1.3)
           .call(() => {
-            maid1.to({ lean: -12, head: -8, armF: [150, 30], armB: [135, 40] }, { duration: 0.5 });
-            maid2.to({ lean: -14, head: -14, armF: [160, 20], armB: [120, 50], legF: [16, 4] }, { duration: 0.5 });
+            move(maid1, { lean: -12, head: -8, armF: [150, 30], armB: [135, 40] }, { duration: 0.5 });
+            move(maid2, { lean: -14, head: -14, armF: [160, 20], armB: [120, 50], legF: [16, 4] }, { duration: 0.5 });
             // Off with the veil — it is a youth.
             const hf = headFrame(achilles);
             Object.assign(veil.p, { x: hf.c[0], y: hf.c[1], r: hf.a, o: 1 });
@@ -406,11 +410,31 @@ export const scene: SceneFactory = (ctx) => {
             achilles.render();
             st.to(veil.p, { x: hf.c[0] - 26, y: hf.c[1] - 30, r: hf.a - 70, o: 0, duration: 0.9, ease: 'power2.out', onUpdate: veil.apply });
             armed.on = 0.0001;
-            gsap.to(armed, { on: 1, duration: 0.6, ease: 'power2.inOut', onUpdate: placeArms });
-            achilles.to({ ...POSES.lunge(achX + 8, GB), lean: 8, head: -4, armF: [168, 14], armB: [78, 58] }, { duration: 0.6, onUpdate: placeArms });
+            st.to(armed, { on: 1, duration: 0.6, ease: 'power2.inOut', onUpdate: placeArms });
+            move(achilles, { ...POSES.lunge(achX + 8, GB), lean: 8, head: -4, armF: [166, 12], armB: [62, 34] }, { duration: 0.6, onUpdate: placeArms });
           }, [], 0.75)
           .to(achLabel, { opacity: 1, duration: 0.6 }, 1.4);
-        return st.play(tl);
+        await st.play(tl);
+        // Idle: the hero stands braced, breathing; the maidens start back.
+        const base = { a: { ...achilles.pose }, m1: { ...maid1.pose }, m2: { ...maid2.pose } };
+        const idle = { v: 0 };
+        st.loop(
+          gsap.to(idle, {
+            v: 1,
+            duration: 1.5,
+            ease: 'sine.inOut',
+            yoyo: true,
+            repeat: -1,
+            onUpdate: () => {
+              const v = idle.v;
+              achilles.set({ lean: base.a.lean + v * 2.4, armF: [base.a.armF[0] - v * 5, base.a.armF[1]] });
+              placeArms();
+              maid1.set({ head: base.m1.head + v * 5, armF: [base.m1.armF[0] + v * 4, base.m1.armF[1]] });
+              maid2.set({ head: base.m2.head - v * 4, armB: [base.m2.armB[0] - v * 5, base.m2.armB[1]] });
+            },
+          }),
+        );
+        return;
       }
       if (i === 2) {
         // Back at Aulis: the sails are let down, but they hang slack on a flat sea.
@@ -418,7 +442,7 @@ export const scene: SceneFactory = (ctx) => {
         tl.to(S, { furl: 0, duration: 1.1, ease: 'power2.inOut', onUpdate: redraw }, 0.9)
           .to(S, { amp: 0.28, speed: 2, flag: 0, duration: 1.2, onUpdate: redraw }, 0.6);
         // He lifts his hand to the sky in prayer to Artemis.
-        aga.to({ armF: [148, -24], head: -18, grip: 0 }, { duration: 0.9, delay: 1.2 });
+        move(aga, { armF: [148, -24], head: -18, grip: 0 }, { duration: 0.9, delay: 1.2 });
         await st.play(tl);
         let calm = true;
         await ctx.hold({
@@ -441,7 +465,7 @@ export const scene: SceneFactory = (ctx) => {
         });
         ctx.audio.sfx('depart');
         ships.forEach((gl) => st.loop(gl.row(1)));
-        aga.to({ armF: [112, -30], head: -4, grip: 1 }, { duration: 0.6 });
+        move(aga, { armF: [112, -30], head: -4, grip: 1 }, { duration: 0.6 });
         const done = st.timeline();
         done.to(S, { fill: 1, amp: 1.15, speed: 26, wind: 1, heel: 2.4, flag: 1, flame: 1, duration: 0.5, onUpdate: redraw });
         return st.play(done);

@@ -129,7 +129,8 @@ export function windGod(name: WindName, opts: { breath?: string; phase?: number;
     }
     let d = `M${f1(pts[0][0])} ${f1(pts[0][1])}`;
     for (let k = 1; k < pts.length; k++) d += `L${f1(pts[k][0])} ${f1(pts[k][1])}`;
-    const p = s('path', { d, 'stroke-width': i === 2 ? 1.8 : 1.2, pathLength: 1, 'stroke-dasharray': i % 2 ? '0.22 0.14' : '0.34 0.12' });
+    // Dash periods of 1/3 and 1/2 divide the path length, so the flow loops seamlessly.
+    const p = s('path', { d, 'stroke-width': i === 2 ? 1.8 : 1.2, pathLength: 1, 'stroke-dasharray': i % 2 ? '0.2 0.13333' : '0.36 0.14' });
     breathLines.push(p);
     breath.appendChild(p);
   }

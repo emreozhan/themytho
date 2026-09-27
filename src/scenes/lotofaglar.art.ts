@@ -14,7 +14,7 @@ import { INK, CLAY, WHITE, PURPLE } from '../art/figure';
 const f1 = (v: number) => (Math.round(v * 10) / 10).toString();
 
 /** A lotus flower in profile, base at the origin, opening upwards. */
-function lotusFlower(k = 1): SVGGElement {
+export function lotusFlower(k = 1): SVGGElement {
   const g = s('g', { class: 'lot-flower', transform: `scale(${k})` });
   // Outer sepals curling outwards.
   g.appendChild(s('path', { d: 'M-1.8 -5.6C-7 -6.6 -10.6 -11.6 -9.6 -19.4C-8.6 -15.4 -6.2 -11.4 -0.8 -9.4Z M1.8 -5.6C7 -6.6 10.6 -11.6 9.6 -19.4C8.6 -15.4 6.2 -11.4 0.8 -9.4Z', fill: INK }));
@@ -106,7 +106,7 @@ export interface PalmParts {
 }
 
 /** A date palm: scaled trunk, feathered fronds, hanging clusters of dates. */
-export function datePalm(x: number, groundY: number, h = 180, seed = 8): PalmParts {
+export function datePalm(x: number, groundY: number, h = 180, seed = 8, crownScale = 1): PalmParts {
   const rand = rng(seed);
   const g = s('g', { class: 'lot-palm', transform: `translate(${f1(x)} ${f1(groundY)})` });
   const spine: Vec[] = [[0, 0], [-3, -h * 0.3], [3, -h * 0.62], [8, -h]];
@@ -122,7 +122,7 @@ export function datePalm(x: number, groundY: number, h = 180, seed = 8): PalmPar
   }
   g.appendChild(s('path', { d: bark, fill: 'none', stroke: CLAY, 'stroke-width': 0.7, opacity: 0.85 }));
   const top: Vec = [8, -h];
-  const crown = s('g', { class: 'lot-palm__crown', transform: `translate(${f1(top[0])} ${f1(top[1])})` });
+  const crown = s('g', { class: 'lot-palm__crown', transform: `translate(${f1(top[0])} ${f1(top[1])}) scale(${crownScale})` });
   const sway = s('g', { class: 'lot-palm__sway' });
   crown.appendChild(sway);
   // Hanging dates under the crown.
@@ -204,6 +204,19 @@ export function kerykeion(len = 46): SVGGElement {
   const g = s('g', { class: 'lot-kerykeion' });
   g.appendChild(s('path', { d: `M0 ${len * 0.4}V${-len * 0.6}`, stroke: INK, 'stroke-width': 1.6, 'stroke-linecap': 'round' }));
   g.appendChild(s('path', { d: `M0 ${-len * 0.6}C-5 ${-len * 0.6 - 2} -5 ${-len * 0.6 - 8} 0 ${-len * 0.6 - 7}C5 ${-len * 0.6 - 8} 5 ${-len * 0.6 - 14} 0 ${-len * 0.6 - 14}`, fill: 'none', stroke: INK, 'stroke-width': 1.4 }));
+  return g;
+}
+
+/**
+ * A dolphin (facing +x, ~50 long). On black water it is painted in reserved
+ * clay with glaze details, as on the rims and seas of black-figure cups.
+ */
+export function dolphin(body = CLAY, detail = INK): SVGGElement {
+  const g = s('g', { class: 'lot-dolphin' });
+  g.appendChild(s('path', { d: 'M-24 3C-14 -7 6 -10 18 -4C21 -2.6 24 -1 27 0L20 1.6C13 5 1 7 -10 6C-15 6 -19 7 -22 10L-27 5L-32 7L-28 1Z', fill: body }));
+  g.appendChild(s('path', { d: 'M-4 -6.6Q1 -15 7 -6.4Z M5 3.6Q3 9.6 -2 10Q0 6 0 3.4Z', fill: body }));
+  g.appendChild(s('path', { d: 'M-14 4.2Q2 6.6 17 0.8', fill: 'none', stroke: detail, 'stroke-width': 0.8, 'stroke-linecap': 'round' }));
+  g.appendChild(s('circle', { cx: 16.5, cy: -2.6, r: 0.9, fill: detail }));
   return g;
 }
 

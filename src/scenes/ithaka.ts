@@ -42,7 +42,7 @@ export const scene: SceneFactory = (ctx) => {
   infant.setAttribute('transform', 'translate(-22 34) rotate(-14)');
   t1.append(penelope.g, odysseus1.g, infant);
   t1.appendChild(inscription('ΠΗΝΕΛΟΠΕΙΑ', -62, -34, { size: 6, angle: 90 }));
-  t1.appendChild(inscription('ΟΔΥΣΣΕΥΣ', 60, -26, { size: 6, angle: 90 }));
+  t1.appendChild(inscription('ΟΔΥΣΣΕΥΣ', 38, -30, { size: 6, align: 'middle' }));
   // A herald's staff will appear with Palamedes in beat 1.
   const palamedes1 = new Figure({ head: 'bearded', hat: 'petasos', garment: 'short', garmentColor: INK, cloak: true, cloakColor: PURPLE }, POSES.walk(-104, GROUND));
   palamedes1.g.style.opacity = '0';

@@ -335,3 +335,41 @@ export function garland(a: Vec, b: Vec, sag = 14, seed = 1): SVGGElement {
   g.appendChild(s('path', { d: `M${a[0]} ${a[1]}q-2 8 1 14M${b[0]} ${b[1]}q2 8 -1 14`, fill: 'none', stroke: PURPLE, 'stroke-width': 1.3 }));
   return g;
 }
+
+/**
+ * The palace door: a black frame with a lintel and two clay leaves with
+ * studded bands, hinged at the jambs (animate `left`/`right` scaleX to open).
+ * Stands on (cx, ground); `w` wide, `h` tall.
+ */
+export function door(cx: number, ground: number, w = 44, h = 118): { g: SVGGElement; left: SVGGElement; right: SVGGElement } {
+  const g = s('g', { class: 'kirke-door' });
+  const x0 = cx - w / 2, top = ground - h;
+  g.appendChild(s('rect', { x: x0, y: top, width: w, height: h, fill: '#2b1a10' }));
+  const leaf = (side: -1 | 1) => {
+    const lg = s('g', { class: `kirke-door__leaf kirke-door__leaf--${side < 0 ? 'l' : 'r'}` });
+    const lx = side < 0 ? x0 : cx;
+    lg.appendChild(s('rect', { x: lx, y: top, width: w / 2, height: h, fill: CLAY, stroke: INK, 'stroke-width': 1.2 }));
+    let bands = '';
+    let studs = '';
+    for (const t of [0.14, 0.42, 0.7, 0.92]) {
+      const y = top + h * t;
+      bands += `M${lx + 1.5} ${y}H${lx + w / 2 - 1.5}`;
+      for (let k = 1; k < 4; k++) studs += `M${(lx + (w / 2) * (k / 4) - 0.9).toFixed(1)} ${(y - 2.4).toFixed(1)}a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0`;
+    }
+    lg.appendChild(s('path', { d: bands, stroke: INK, 'stroke-width': 1.1 }));
+    lg.appendChild(s('path', { d: studs, fill: INK }));
+    // A ring handle near the meeting edge.
+    const hx = side < 0 ? cx - 4 : cx + 4;
+    lg.appendChild(s('circle', { cx: hx, cy: top + h * 0.56, r: 2, fill: 'none', stroke: INK, 'stroke-width': 0.9 }));
+    return lg;
+  };
+  const left = leaf(-1);
+  const right = leaf(1);
+  g.append(left, right);
+  // Jambs and lintel with a band of tongues.
+  g.appendChild(s('path', { d: `M${x0 - 5} ${ground}V${top - 8}H${x0 + w + 5}V${ground}H${x0 + w}V${top}H${x0}V${ground}Z`, fill: INK }));
+  let tongues = '';
+  for (let x = x0 - 2; x < x0 + w + 2; x += 4.4) tongues += `M${x.toFixed(1)} ${top - 7}q2.2 5 4.4 0`;
+  g.appendChild(s('path', { d: tongues, fill: 'none', stroke: CLAY, 'stroke-width': 0.6 }));
+  return { g, left, right };
+}

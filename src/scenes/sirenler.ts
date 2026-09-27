@@ -40,10 +40,12 @@ export const scene: SceneFactory = (ctx) => {
 
   /* ---------------- Sky ---------------- */
   const sky = s('g', { class: 'sir-sky' });
-  const theSun = sun(0, -128, 10);
+  // The sun sits in a plain wrapper so it can swell without losing its own transform.
+  const theSun = s('g');
+  theSun.appendChild(sun(-16, -128, 10));
   sky.appendChild(theSun);
-  sky.appendChild(fillers([[-64, -118], [66, -112], [-34, -64], [40, -78]], 3.8));
-  const title = inscription('ΣΕΙΡΗΝΕΣ', 0, -96, { size: 8.5, align: 'middle' });
+  sky.appendChild(fillers([[-70, -116], [34, -126], [-44, -66], [-2, -60]], 3.8));
+  const title = inscription('ΣΕΙΡΗΝΕΣ', -16, -96, { size: 8.5, align: 'middle' });
   sky.appendChild(title);
   root.appendChild(sky);
 
@@ -62,6 +64,13 @@ export const scene: SceneFactory = (ctx) => {
   const sirenA = new Siren({ x: -127, y: -8.4, scale: 1.14, facing: 1, instrument: 'lyre' });
   isleA.appendChild(sirenA.g);
   root.appendChild(isleA);
+
+  /* ---------------- The third Siren, hovering over the strait ---------------- */
+  const flyer = new Siren({ x: 0, y: 0, scale: 0.92, facing: -1, flying: true });
+  const flyerG = s('g', { class: 'sir-flyer', opacity: 0 });
+  flyerG.appendChild(flyer.g);
+  root.appendChild(flyerG);
+  const FLY: Vec = [48, -66];
 
   /* ---------------- The galley ---------------- */
   const galley = new Galley({
@@ -192,6 +201,7 @@ export const scene: SceneFactory = (ctx) => {
     lastP: 0,
     lastSfx: -10,
     nod: 0, // extra head bow (begging with his brows)
+    dive: 0, // the third Siren's plunge 0..1
   };
   galley.place(S.x, W);
 
@@ -324,6 +334,21 @@ export const scene: SceneFactory = (ctx) => {
       });
       sr.shut(clamp(d * 1.6 - 0.4, 0, 1));
     }
+    // The hovering Siren beats her wings; in the end she folds them and plunges, eyes shut.
+    const dv = S.dive;
+    const flap = Math.sin(t * 2.4);
+    flyer.setPose({
+      wing: lerp(24 + flap * 14, -30, dv),
+      farWing: lerp(40 + flap * 12, -20, dv),
+      head: lerp(-10 - sing * 8 + Math.sin(t * 1.3) * 3, 18, dv),
+      tail: lerp(flap * 4, -6, dv),
+      bob: 0,
+      hand: 0,
+    });
+    flyer.shut(clamp(dv * 3, 0, 1));
+    const fx = lerp(FLY[0], 30, dv * dv), fy = lerp(FLY[1] + Math.sin(t * 2.4 - 0.6) * 3, SEA_Y + 40, dv * dv);
+    const rot = lerp(Math.sin(t * 1.2) * 3 - 8, -100, clamp(dv * 1.6, 0, 1));
+    flyerG.setAttribute('transform', `translate(${fx.toFixed(1)} ${fy.toFixed(1)}) rotate(${rot.toFixed(1)} 0 -26)`);
   };
 
   let prevT = 0;
@@ -332,7 +357,7 @@ export const scene: SceneFactory = (ctx) => {
     prevT = t;
     // Galley follows its target.
     const before = S.x;
-    S.x += (S.tx - S.x) * Math.min(1, dt * S.follow);
+    S.x += (S.tx - S.x) * (ctx.reduced ? 1 : Math.min(1, dt * S.follow));
     const v = dt > 0 ? (S.x - before) / dt : 0;
     const roll = Math.sin(t * 1.1) * 0.6 + S.agitation * Math.sin(t * 7) * 0.6;
     galley.place(S.x, W + Math.sin(t * 1.3) * 0.8, roll);
@@ -367,8 +392,12 @@ export const scene: SceneFactory = (ctx) => {
       ctx.audio.sfx('sirens');
     }
   };
+  // Render every frame; the idle clock is frozen under reduced motion (st.loop pauses it).
   const clock = { t: 0 };
-  st.loop(gsap.to(clock, { t: 100000, duration: 100000, ease: 'none', onUpdate: () => tick(clock.t) }));
+  st.loop(gsap.to(clock, { t: 100000, duration: 100000, ease: 'none' }));
+  const onFrame = () => tick(clock.t);
+  gsap.ticker.add(onFrame);
+  ctx.signal.addEventListener('abort', () => gsap.ticker.remove(onFrame));
   tick(0);
 
   const setX = (x: number) => {
@@ -424,6 +453,7 @@ export const scene: SceneFactory = (ctx) => {
       setX(X_WAIT);
       const tl = st.timeline();
       tl.from([isleA, isleB], { opacity: 0, duration: 1, ease: 'power2.out' }, 0)
+        .to(flyerG, { opacity: 1, duration: 1 }, 0.4)
         .from(sky, { opacity: 0, duration: 1.2 }, 0.2)
         .to({}, { duration: 2.2 }, 0);
       return st.play(tl);
@@ -447,7 +477,7 @@ export const scene: SceneFactory = (ctx) => {
         const tl = st.timeline();
         tl.to(cake, { opacity: 1, duration: 0.3 }, 0);
         tl.add(ody.to({ armF: [158, 12], head: -16 }, { duration: 0.7 }), 0);
-        tl.to(theSun, { scale: 1.35, svgOrigin: '0 -128', duration: 0.5, yoyo: true, repeat: 1, ease: 'sine.inOut' }, 0.6);
+        tl.to(theSun, { scale: 1.35, svgOrigin: '-16 -128', duration: 0.5, yoyo: true, repeat: 1, ease: 'sine.inOut' }, 0.6);
         tl.to(cake, { attr: { rx: 3.2, ry: 3 }, duration: 0.6 }, 0.8);
         tl.add(ody.to({ armF: [74, 20], head: 2 }, { duration: 0.6 }), 1.5);
         await st.play(tl);
@@ -524,42 +554,32 @@ export const scene: SceneFactory = (ctx) => {
         // He begs with his brows; they bind him tighter and row away. The song dies.
         const tl = st.timeline();
         S.follow = 9;
-        tl.to(wraps[5], { reveal: 1, duration: 0.4 }, 0.1)
-          .to(S, { nod: 26, duration: 0.28, yoyo: true, repeat: 3, ease: 'sine.inOut' }, 0)
-          .to(S, { agitation: 0.1, duration: 1.2 }, 0.3)
-          .to(S, { song: 0, duration: 1.2, ease: 'power1.in' }, 0.4)
-          .to(S, { droop: 1, duration: 1.8, ease: 'power2.inOut' }, 0.9)
-          .to(odyBase, { head: 12, duration: 0.8 }, 1.3)
-          .to(S, { strain: 0.5, duration: 1.2 }, 1.2)
-          .call(() => ctx.audio.sfx('depart'), [], 0.5)
-          .to(S, { tx: X_AWAY, duration: 2.3, ease: 'power2.in' }, 0.5);
-        // The lyre slips from the silent Siren and drops into the sea.
-        const lyre = sirenA.lyre;
-        if (lyre) {
-          const fall = { y: 0, r: 0 };
-          const base = lyre.getAttribute('transform') ?? '';
-          tl.to(fall, {
-            y: 84,
-            r: -70,
-            duration: 0.9,
-            ease: 'power2.in',
-            onUpdate: () => lyre.setAttribute('transform', `translate(0 ${fall.y.toFixed(1)}) ${base} rotate(${fall.r.toFixed(1)})`),
-          }, 1.9);
-          tl.call(() => {
-            const sp = s('g');
-            sp.appendChild(splash(-93, SEA_Y + 4, 0.55));
-            water.g.appendChild(sp);
-            ctx.audio.sfx('splash');
-            st.timeline().fromTo(sp, { scale: 0.3, svgOrigin: `-93 ${SEA_Y + 4}`, opacity: 1 }, { scale: 1, duration: 0.35, ease: 'power2.out' }).to(sp, { opacity: 0, duration: 0.6 }, 0.3);
-            lyre.setAttribute('opacity', '0');
-          }, [], 2.8);
-        }
+        tl.to(wraps[5], { reveal: 1, duration: 0.35 }, 0.1)
+          .to(S, { nod: 26, duration: 0.25, yoyo: true, repeat: 3, ease: 'sine.inOut' }, 0)
+          .to(S, { agitation: 0.1, duration: 1 }, 0.3)
+          .to(S, { song: 0, duration: 1, ease: 'power1.in' }, 0.2)
+          .to(S, { droop: 1, duration: 1.5, ease: 'power2.inOut' }, 0.6)
+          .to(odyBase, { head: 12, duration: 0.7 }, 1.1)
+          .to(S, { strain: 0.5, duration: 1 }, 1.1)
+          .call(() => ctx.audio.sfx('depart'), [], 0.4)
+          .to(S, { tx: X_AWAY, duration: 2.1, ease: 'power2.in' }, 0.4);
+        // As on the Siren Vase, the third Siren shuts her eyes and plunges into the sea.
+        tl.to(S, { dive: 1, duration: 0.8, ease: 'power2.in' }, 1.25);
+        tl.call(() => {
+          const sp = s('g');
+          sp.appendChild(splash(30, SEA_Y + 2, 0.7));
+          water.g.appendChild(sp);
+          ctx.audio.sfx('splash');
+          st.timeline().fromTo(sp, { scale: 0.3, svgOrigin: `30 ${SEA_Y + 2}`, opacity: 1 }, { scale: 1, duration: 0.35, ease: 'power2.out' }).to(sp, { opacity: 0, duration: 0.6 }, 0.3);
+          gsap.set(flyerG, { opacity: 0 });
+        }, [], 2.05);
         if (ctx.reduced) setX(X_AWAY);
         return st.play(tl);
       }
     },
 
     destroy() {
+      gsap.ticker.remove(onFrame);
       st.destroy();
     },
   };

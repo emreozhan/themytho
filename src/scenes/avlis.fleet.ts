@@ -16,6 +16,7 @@ import { s } from '../lib/dom';
 import { gsap } from '../lib/motion';
 import { ship, type ShipParts } from '../art/ship';
 import { INK, CLAY, WHITE, PURPLE, type Figure, type Pose } from '../art/figure';
+import type { Stage } from './tools';
 import { waveStripPath } from '../art/ornaments';
 import { ribbon, smoothPath, clamp, lerp, type Vec } from '../lib/geometry';
 
@@ -77,6 +78,8 @@ export class Galley {
   roll = 0;
   /** Vertical displacement (scene units). */
   bob = 0;
+  /** Turning about the vertical axis (degrees): the hull narrows and flips as it spins round. */
+  yaw = 0;
   readonly phase: number;
   readonly mastH: number;
   readonly sailH: number;
@@ -125,6 +128,24 @@ export class Galley {
     this.g.insertBefore(this.deck, this.parts.hull);
     this.g.appendChild(this.top);
     if (o.halo) {
+      // Incise the oars too, so they stay legible where they cross black water.
+      this.parts.oars.querySelectorAll<SVGGElement>('.oar').forEach((oar) => {
+        const line = oar.querySelector('line');
+        const blade = oar.querySelector('path');
+        if (line) {
+          const l2 = line.cloneNode() as SVGLineElement;
+          l2.setAttribute('stroke', CLAY);
+          l2.setAttribute('stroke-width', '2.4');
+          oar.insertBefore(l2, oar.firstChild);
+        }
+        if (blade) {
+          const b2 = blade.cloneNode() as SVGPathElement;
+          b2.setAttribute('stroke', CLAY);
+          b2.setAttribute('stroke-width', '1.3');
+          b2.setAttribute('stroke-linejoin', 'round');
+          oar.insertBefore(b2, oar.firstChild);
+        }
+      });
       const halo = this.parts.hull.cloneNode(true) as SVGGElement;
       halo.setAttribute('class', 'galley__halo');
       [...halo.children].forEach((c, i) => {
@@ -141,10 +162,9 @@ export class Galley {
 
   place(): void {
     const k = this.scale;
-    this.g.setAttribute(
-      'transform',
-      `translate(${f1(this.x)} ${f1(this.y + this.bob)}) rotate(${f1(this.roll)}) scale(${r3(k * this.facing)} ${r3(k)})`,
-    );
+    const turn = this.yaw ? Math.cos((this.yaw * Math.PI) / 180) : 1;
+    const sx = k * this.facing * (Math.abs(turn) < 0.04 ? Math.sign(turn || 1) * 0.04 : turn);
+    this.g.setAttribute('transform', `translate(${f1(this.x)} ${f1(this.y + this.bob)}) rotate(${f1(this.roll)}) scale(${r3(sx)} ${r3(k)})`);
   }
 
   /** Map a point in ship-local units to the parent's coordinates. */
@@ -159,8 +179,9 @@ export class Galley {
   row(speed = 1): gsap.core.Timeline {
     if (!this.oarAnim) {
       const blades = this.parts.oars.querySelectorAll<SVGGElement>('.oar');
+      // A ship drawn without oars gets an idle, empty timeline (never an endless empty one).
+      if (!blades.length) return (this.oarAnim = gsap.timeline({ paused: true }));
       const tl = gsap.timeline({ repeat: -1, delay: (this.phase % 1) * 0.4 });
-      if (!blades.length) return (this.oarAnim = tl);
       tl.to(blades, { attr: { transform: 'rotate(16)' }, duration: 0.55 / speed, ease: 'sine.inOut', stagger: 0.012 }).to(blades, {
         attr: { transform: 'rotate(-8)' },
         duration: 0.75 / speed,
@@ -328,6 +349,11 @@ export interface SeaOptions {
 
 export class RollingSea {
   readonly g: SVGGElement;
+  /**
+   * Crests (+ foam) as one group: re-parent it in front of ships while the body
+   * stays behind them, so waves wash over the hulls and oars show in the water.
+   */
+  readonly front: SVGGElement;
   readonly crests: SVGPathElement;
   readonly body: SVGGElement;
   readonly foam: SVGPathElement | null;
@@ -340,6 +366,7 @@ export class RollingSea {
   heave = 0;
   private W: number;
   private flip: boolean;
+  private cover: SVGRectElement | null = null;
 
   constructor(y: number, o: SeaOptions = {}) {
     this.y = y;
@@ -370,7 +397,14 @@ export class RollingSea {
       d += `M${f1(x)} ${f1(yy)}q${f1(wd / 4)} -3 ${f1(wd / 2)} 0t${f1(wd / 2)} 0`;
     }
     this.body.appendChild(s('path', { d, fill: 'none', stroke: CLAY, 'stroke-width': 0.9, opacity: 0.42, 'stroke-linecap': 'round' }));
-    this.g.append(this.crests, this.body);
+    this.front = s('g', { class: 'aam-sea__front' });
+    this.front.appendChild(this.crests);
+    if (o.incised) {
+      // Hide the incised line along the crests' flat base.
+      this.cover = s('rect', { x: -220, y: 0, width: 440, height: 2.6, fill: INK });
+      this.front.appendChild(this.cover);
+    }
+    this.g.append(this.front, this.body);
     if (o.foam) {
       // Flecks of added white riding the crest tips (one per crest, a tile apart).
       let fd = '';
@@ -381,7 +415,7 @@ export class RollingSea {
         fd += `M${f1(cx - 1.6 * k)} ${f1(cy - 0.2 * k)}q${f1(1.4 * k)} ${f1(-1.6 * k)} ${f1(3 * k)} ${f1(0.2 * k)}`;
       }
       this.foam = s('path', { d: fd, fill: 'none', stroke: WHITE, 'stroke-width': Math.max(0.8, this.h / 18), 'stroke-linecap': 'round' });
-      this.g.insertBefore(this.foam, this.body);
+      this.front.insertBefore(this.foam, this.cover);
     } else this.foam = null;
     this.place();
   }
@@ -393,6 +427,7 @@ export class RollingSea {
     const tr = `translate(${f1(sx * (-this.W / 2 + off))} ${f1(base)}) scale(${sx} ${r3(Math.max(0.02, this.amp))}) translate(0 ${f1(-this.h)})`;
     this.crests.setAttribute('transform', tr);
     this.foam?.setAttribute('transform', tr);
+    this.cover?.setAttribute('y', f1(base - 1.6));
     this.body.setAttribute('transform', `translate(0 ${f1(this.heave)})`);
   }
 
@@ -482,6 +517,37 @@ export function headFrame(fig: Figure, p?: Pose): { c: Vec; a: number; at(x: num
     c,
     a: j.headAngle,
     at: (x, y) => [c[0] + x * Math.cos(a) - y * Math.sin(a), c[1] + x * Math.sin(a) + y * Math.cos(a)],
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Scene plumbing                                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Drive a frame-by-frame picture: `frame(t)` runs on every tick, with `t` in
+ * seconds. Under reduced motion time stands still (no idle motion) but the
+ * picture still follows state changes. Killed with the stage. Returns a
+ * `redraw()` for immediate updates.
+ */
+export function renderLoop(st: Stage, reduced: boolean, frame: (t: number) => void): () => void {
+  const clock = { t: 0 };
+  const now = () => (reduced ? 0 : clock.t);
+  st.timeline().to(clock, { t: 3600, duration: 3600, ease: 'none', repeat: -1, onUpdate: () => frame(now()) });
+  frame(0);
+  return () => frame(now());
+}
+
+/**
+ * Tween a Figure's pose as a stage-tracked animation (killed on destroy,
+ * shortened under reduced motion).
+ */
+export function poser(st: Stage, reduced: boolean) {
+  return (fig: Figure, target: Partial<Pose>, vars: gsap.TweenVars = {}): gsap.core.Tween => {
+    const d = (vars.duration as number | undefined) ?? 0.6;
+    const tw = fig.to(target, { ...vars, duration: reduced ? Math.min(d, 0.15) : d, delay: reduced ? 0 : vars.delay });
+    st.timeline().add(tw, 0);
+    return tw;
   };
 }
 

@@ -1,13 +1,14 @@
 /**
- * Art for Ε′ Kikonlar that the shared kit lacks: the Thracian fox-skin cap
- * (alopekis) and crescent shield (pelta), a laurel wreath in added purple,
- * a column-krater, a spit over a fire, a feaster's himation and an archaic
- * horse. All black-figure: glaze silhouettes, clay incisions, sparse white
- * and purple.
+ * Art for Ε′ Kikonlar that the shared kit lacks: gear that follows a posed
+ * Figure (the Thracian fox-skin cap, a laurel wreath in added purple, a
+ * feaster's himation), the Thracian crescent shield (pelta), a column-krater,
+ * a spit over a fire, Apollo's tripod, a small walled town with a gate that
+ * can burst open, and an archaic horse. All black-figure: glaze silhouettes,
+ * clay incisions, sparse added white and purple.
  */
 import { s, attr, r1 } from '../lib/dom';
 import { limb, ribbon, smoothPath, type Vec } from '../lib/geometry';
-import { Figure, INK, CLAY, WHITE, PURPLE, type FigureStyle, type Pose } from '../art/figure';
+import { Figure, INK, CLAY, WHITE, PURPLE } from '../art/figure';
 
 const d2r = Math.PI / 180;
 const f1 = (v: number) => r1(v).toString();
@@ -15,10 +16,8 @@ const pt = (p: Vec) => `${f1(p[0])} ${f1(p[1])}`;
 
 /** A Figure that redraws extra gear (caps, wreaths, drapes) whenever it is posed. */
 export class Dressed extends Figure {
+  // Initialised after the base constructor's first render (which therefore skips the hooks).
   private gear: Array<(f: Dressed) => void> = [];
-  constructor(style: FigureStyle, p: Pose) {
-    super(style, p);
-  }
   /** Add a redraw hook (called now and after every render). */
   wear(fn: (f: Dressed) => void): this {
     this.gear.push(fn);
@@ -27,7 +26,6 @@ export class Dressed extends Figure {
   }
   override render(): void {
     super.render();
-    // The base constructor renders before our fields exist.
     if (this.gear) for (const fn of this.gear) fn(this);
   }
 }
@@ -190,15 +188,6 @@ export function krater(k = 1): SVGGElement {
   return g;
 }
 
-/** An oinochoe (wine jug), foot at (0,0), ~16 tall. */
-export function oinochoe(k = 1): SVGGElement {
-  const g = s('g', { class: 'oinochoe', transform: `scale(${k})` });
-  g.appendChild(s('path', { d: 'M-3.4 0C-7 -3 -7.4 -8 -5 -11C-4 -12.2 -3 -12.8 -2.8 -14L-4.6 -16.2L-1 -15.4L3 -16.6L2.6 -14C3 -12.6 4.2 -12 5.2 -10.6C7.4 -7.6 6.6 -2.6 3.4 0Z', fill: INK }));
-  g.appendChild(s('path', { d: 'M2.8 -15.4C7.6 -16 8.4 -11 5.4 -8.6', fill: 'none', stroke: INK, 'stroke-width': 1.2 }));
-  g.appendChild(s('path', { d: 'M-5.6 -7.4Q0 -6.2 5.8 -7.4', fill: 'none', stroke: CLAY, 'stroke-width': 0.5 }));
-  return g;
-}
-
 /** A cooking fire under a spit of meat on two forked sticks; `flame` is returned for flickering. */
 export function roast(k = 1): { g: SVGGElement; spit: SVGGElement } {
   const g = s('g', { class: 'roast', transform: `scale(${k})` });
@@ -234,7 +223,6 @@ export interface HorsePose {
  */
 export class Horse {
   readonly g: SVGGElement;
-  readonly back: Vec = [2, -46];
   pose: HorsePose = { phase: 0, gallop: 0, neck: 0 };
   private far: SVGPathElement;
   private near: SVGPathElement;

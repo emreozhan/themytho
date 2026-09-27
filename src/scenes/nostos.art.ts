@@ -8,12 +8,15 @@ import { INK, CLAY, WHITE, PURPLE } from '../art/figure';
 export function argos(x: number, y: number, k = 1): { g: SVGGElement; head: SVGGElement; tail: SVGGElement; ears: SVGPathElement; eye: SVGCircleElement } {
   const g = s('g', { class: 'argos', transform: `translate(${r1(x)} ${r1(y)}) scale(${k})` });
   // Body lying down, legs folded forward.
-  g.appendChild(s('path', { d: smoothPath([[-32, 0], [-30, -10], [-14, -14], [4, -14], [16, -12], [22, -4], [14, 0]], true, 0.35), fill: INK, stroke: CLAY, 'stroke-width': 1, 'paint-order': 'stroke' }));
+  g.appendChild(s('path', { d: smoothPath([[-34, 0], [-36, -8], [-29, -16], [-19, -13], [-7, -12], [5, -15], [16, -14], [22, -6], [18, 0]], true, 0.35), fill: INK, stroke: CLAY, 'stroke-width': 1, 'paint-order': 'stroke' }));
+  // Folded hind leg: the thigh's outline and a paw along the ground.
+  g.appendChild(s('path', { d: 'M-31 -2Q-25 -16 -13 -5', fill: 'none', stroke: CLAY, 'stroke-width': 0.7 }));
+  g.appendChild(s('path', { d: ribbon([[-16, -1.6], [-8, -1.2], [-1, -1]], [[0, 3], [1, 2.4]], 8), fill: INK, stroke: CLAY, 'stroke-width': 0.6, 'paint-order': 'stroke' }));
   g.appendChild(s('path', { d: ribbon([[14, -2], [26, -1], [36, 0]], [[0, 4], [1, 2.4]], 12) + ribbon([[8, -1], [20, 1], [30, 2]], [[0, 3.6], [1, 2.2]], 12), fill: INK, stroke: CLAY, 'stroke-width': 0.8, 'paint-order': 'stroke' }));
   // Ribs of an old, neglected dog.
-  g.appendChild(s('path', { d: 'M-6 -12Q-4 -8 -6 -4M0 -12Q2 -8 0 -4M-22 -10Q-18 -6 -22 -2', fill: 'none', stroke: CLAY, 'stroke-width': 0.55, opacity: 0.7 }));
+  g.appendChild(s('path', { d: 'M-5 -11Q-3 -7 -5 -3M1 -12Q3 -8 1 -4M7 -13Q9 -9 7 -5', fill: 'none', stroke: CLAY, 'stroke-width': 0.55, opacity: 0.7 }));
   const tail = s('g', { class: 'argos__tail' });
-  tail.appendChild(s('path', { d: ribbon([[-29, -6], [-38, -8], [-46, -4]], [[0, 2.8], [1, 0.9]], 14), fill: INK }));
+  tail.appendChild(s('path', { d: ribbon([[-33, -7], [-41, -9], [-48, -5]], [[0, 2.8], [1, 0.9]], 14), fill: INK }));
   const head = s('g', { class: 'argos__head' });
   head.appendChild(s('path', { d: smoothPath([[12, -12], [17, -21], [26, -24], [34, -22], [46, -17], [48, -13], [44, -11], [30, -10], [20, -6]], true, 0.3), fill: INK, stroke: CLAY, 'stroke-width': 0.8, 'paint-order': 'stroke' }));
   const ears = s('path', { d: 'M22 -22C18 -26 15 -22 15 -15C17 -14 19 -16 21 -19Z', fill: INK, stroke: CLAY, 'stroke-width': 0.6, 'paint-order': 'stroke' });

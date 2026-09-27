@@ -1,6 +1,6 @@
 /**
- * Rigging helpers shared by my three chapter scenes (Lotofaglar, Kyklop,
- * Thrinakia): partial pose tweens that read their start pose when they start,
+ * Rigging helpers shared by the Lotofaglar, Kyklop and Thrinakia scenes:
+ * partial pose tweens that read their start pose when they start,
  * two-bone arm IK, a positioning wrapper for figures (so giants can be scaled
  * about their own feet), a walk cycle driven by distance, and brush-written
  * inscriptions. Everything returns plain GSAP tweens for scene timelines.

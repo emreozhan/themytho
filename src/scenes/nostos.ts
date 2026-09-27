@@ -90,7 +90,7 @@ export const scene: SceneFactory = (ctx) => {
   C.appendChild(penelopeC.g);
   C.appendChild(suitorCouch(104, GROUND - 2, true));
   C.appendChild(suitorCouch(60, GROUND, true));
-  C.appendChild(inscription('ΠΗΝΕΛΟΠΕΙΑ', -58, -52, { size: 6.5, angle: 90 }));
+  C.appendChild(inscription('ΠΗΝΕΛΟΠΕΙΑ', -4, -50, { size: 6.5, angle: 90 }));
   const sunC = sun(76, -96, 12);
   const moonC = moon(76, -96, 12, WHITE);
   moonC.style.opacity = '0';
@@ -215,11 +215,12 @@ export const scene: SceneFactory = (ctx) => {
         walk.kill();
         beggarB.to({ legF: [4, 2], legB: [-4, 2], head: 14 }, { duration: 0.6, onUpdate: () => syncStaff(beggarB, staffB) });
         // Argos knows him: head up, ears pricked, a few wags… then stillness.
+        // (Pivots are in the dog's own coordinates: head and tail sit inside its group.)
         ctx.audio.sfx('bark');
         const tl = st.timeline();
-        tl.to(dog.head, { rotation: -16, svgOrigin: `${-78 + 18 * 1.25} ${GROUND - 12 - 12 * 1.25}`, duration: 0.8, ease: 'power2.out' })
+        tl.to(dog.head, { rotation: -16, svgOrigin: '18 -12', duration: 0.8, ease: 'power2.out' })
           .to(dog.ears, { scaleY: 1.3, transformOrigin: '50% 100%', duration: 0.3 }, 0.4)
-          .to(dog.tail, { rotation: 18, svgOrigin: `${-78 - 29 * 1.25} ${GROUND - 12 - 6 * 1.25}`, duration: 0.18, yoyo: true, repeat: 5, ease: 'sine.inOut' }, 0.7)
+          .to(dog.tail, { rotation: 18, svgOrigin: '-33 -7', duration: 0.18, yoyo: true, repeat: 5, ease: 'sine.inOut' }, 0.7)
           .call(() => beggarB.to({ armB: [150, 150], head: 20 }, { duration: 0.7 }), [], 1.4)
           .call(() => {
             const [hx, hy] = beggarB.hand('B');

@@ -17,14 +17,16 @@ const line = (d: string, color: string, w = 0.7, op = 1) =>
 export function eidolon(color = WHITE): { g: SVGGElement; wings: SVGGElement } {
   const g = s('g', { class: 'eidolon' });
   const wings = s('g', { class: 'eidolon__wings' });
-  wings.appendChild(s('path', { d: 'M-1 -5C-5 -12 -12 -13 -15 -11C-12 -9 -9 -7 -7 -4C-9 -5 -12 -4 -13 -2C-9 -2 -5 -2 -2 -1Z', fill: color, opacity: 0.85 }));
-  wings.appendChild(line('M-4 -6.4L-11 -10.6M-5 -3.4L-11 -3', INK, 0.4, 0.6));
+  wings.appendChild(s('path', { d: 'M0.4 -6.4C-3.6 -14.6 -11.6 -17 -17.4 -14C-13.6 -12.8 -10.6 -10.8 -8.6 -8.2C-11.8 -9.2 -15 -8.6 -17 -6.4C-12 -5.4 -6.6 -4.6 -1.4 -3.6Z', fill: color, opacity: 0.9 }));
+  wings.appendChild(line('M-3.4 -8.6L-13.4 -13.4M-4.6 -6L-14.4 -7.4', INK, 0.4, 0.55));
   g.appendChild(wings);
-  // Head, draped body tapering to a wisp instead of feet, arms folded in the shroud.
-  g.appendChild(s('path', { d: 'M1.6 -11.6C1.6 -14.2 4.8 -14.8 5.8 -12.6L7 -11.2L5.8 -10.8C5.6 -9.4 4 -8.6 2.8 -9.2C1.8 -9.8 1.6 -10.6 1.6 -11.6Z', fill: color }));
-  g.appendChild(s('path', { d: 'M1.8 -8.8C5.4 -8.4 6.2 -5 5.6 -1C5 3 3 6.6 -1.4 9.4C-4 11 -7 11.4 -9.6 10.6C-6 9.4 -3.6 7.4 -2.6 4.4C-1.4 0.6 -1.6 -4 0 -7.4Z', fill: color }));
-  g.appendChild(line('M3.6 -5.6C4.6 -2.4 3.8 1.6 1.4 4.6M1 -6C1.6 -2 0.6 2 -1.4 5.6', INK, 0.45, 0.55));
-  g.appendChild(s('path', { d: 'M4.3 -12.1h0.9', stroke: INK, 'stroke-width': 0.6, 'stroke-linecap': 'round' }));
+  // A little draped soul: round head, arms reaching out, the shroud trailing off in a wisp.
+  g.appendChild(s('path', { d: 'M1.2 -8.2C6 -8.6 7.8 -5.2 7.2 -1.2C6.6 2.8 4.2 6.4 -0.2 9.4C-2.8 11 -6.2 11.8 -9.4 11.2C-6 9.6 -3.4 7.4 -2.2 4.2C-1 0.8 -1.4 -4.6 1.2 -8.2Z', fill: color }));
+  g.appendChild(s('circle', { cx: 4.4, cy: -11.6, r: 3, fill: color }));
+  g.appendChild(s('path', { d: 'M7 -12.6L8.8 -11L7 -10.4Z', fill: color }));
+  g.appendChild(s('path', { d: 'M5.4 -6.2Q8.4 -6.6 11 -4.4', fill: 'none', stroke: color, 'stroke-width': 1.5, 'stroke-linecap': 'round' }));
+  g.appendChild(line('M3.8 -5.4C4.8 -2.2 4 1.6 1.6 4.6M1.2 -6.2C1.8 -2.2 0.8 1.8 -1.2 5.4', INK, 0.45, 0.5));
+  g.appendChild(s('path', { d: 'M5.4 -12.2h0.9', stroke: INK, 'stroke-width': 0.7, 'stroke-linecap': 'round' }));
   return { g, wings };
 }
 

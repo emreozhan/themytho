@@ -16,7 +16,7 @@ import { meanderStripPath } from '../art/ornaments';
 import { stage } from './tools';
 import type { SceneFactory } from '../story/types';
 import { Actor, shimmer, burst, sparkPath, type PartName } from './kirke.rig';
-import { lion, wolf, moly, palace, skyphos, cup, wand, sword, krater, garland, MAN_HEAD, YOUTH_HEAD, PIG_HEAD, pigFeatures } from './kirke.art';
+import { lion, wolf, moly, palace, door, skyphos, cup, wand, sword, krater, garland, MAN_HEAD, YOUTH_HEAD, PIG_HEAD, pigFeatures } from './kirke.art';
 import { makeHermes, swoop, flyingPose } from './kirke.hermes';
 
 const GROUND = 90;
@@ -76,6 +76,10 @@ export const scene: SceneFactory = (ctx) => {
   const A = s('g', { class: 'kirke-a' });
   const pal = palace(GROUND, -84, 134);
   A.appendChild(pal.g);
+  // The great door at the back of the hall, through which the scouts come.
+  const DOOR_X = 64;
+  const gate = door(DOOR_X * KA, GROUND, 50, 124);
+  A.appendChild(gate.g);
   A.appendChild(fillers([[-92, -58], [-58, -72], [70, -66], [96, -46]], 4.2));
   const ta = s('g', { transform: fill(KA) });
   A.appendChild(ta);
@@ -85,7 +89,7 @@ export const scene: SceneFactory = (ctx) => {
   const lionB = lion();
   lionB.g.setAttribute('transform', `translate(-92 ${GROUND}) scale(0.7)`);
   const wolfB = wolf();
-  wolfB.g.setAttribute('transform', `translate(112 ${GROUND}) scale(-0.74 0.74)`);
+  wolfB.g.setAttribute('transform', `translate(114 ${GROUND}) scale(-0.84 0.84)`);
   ta.append(lionB.g, wolfB.g);
 
   // Kirke, facing the door (right): her brew in one hand, the wand raised in the other.
@@ -104,9 +108,9 @@ export const scene: SceneFactory = (ctx) => {
 
   // The companions, entering from the door on the right.
   const compSpecs = [
-    { x: 10, head: 'bearded' as const, garment: 'short' as const, garmentColor: PURPLE, cloak: false },
-    { x: 37, head: 'youth' as const, garment: 'short' as const, garmentColor: INK, cloak: true, cloakColor: PURPLE },
-    { x: 64, head: 'bearded' as const, garment: 'none' as const, garmentColor: INK, cloak: true, cloakColor: INK },
+    { x: 6, head: 'bearded' as const, garment: 'short' as const, garmentColor: PURPLE, cloak: false },
+    { x: 32, head: 'youth' as const, garment: 'short' as const, garmentColor: INK, cloak: true, cloakColor: PURPLE },
+    { x: 58, head: 'bearded' as const, garment: 'none' as const, garmentColor: INK, cloak: true, cloakColor: INK },
   ];
   const comps: Companion[] = compSpecs.map((c, i) => {
     const a = new Actor({ head: c.head, garment: c.garment, garmentColor: c.garmentColor, cloak: c.cloak, cloakColor: c.cloakColor, facing: -1 }, pose({ ...POSES.stand(c.x, GROUND), armF: [40, 40], armB: [-10, 16] }), 'companion');
@@ -151,16 +155,18 @@ export const scene: SceneFactory = (ctx) => {
   ody.hold(blade, 'F', { mode: 'grip', angle: -18, along: 1.2 });
   // Hermes's herb, held in his other hand: the milk-white flower shows beside him.
   const charm = moly();
-  charm.root.style.opacity = '1';
   const charmHold = s('g', { class: 'kirke-charm' });
   const charmInner = s('g', { transform: 'translate(0 8) scale(0.42)' });
   charmInner.appendChild(charm.g);
   charmHold.appendChild(charmInner);
   ody.hold(charmHold, 'B', { mode: 'upright', angle: 0, along: 1 });
   const odyLabel = inscription('ΟΔΥΣΣΕΥΣ', -84, -30, { size: 6.5, angle: 90 });
-  const odyLabel2 = inscription('ΟΔΥΣΣΕΥΣ', -36, 6, { size: 6, angle: 90 });
+  const odyLabel2 = inscription('ΟΔΥΣΣΕΥΣ', -36, 16, { size: 6, angle: 90 });
   odyLabel2.style.opacity = '0';
-  a2.append(odyLabel, odyLabel2, kirke2Label);
+  // When she stands and points, her name runs above her head, clear of the raised cups.
+  const kirke3Label = inscription('ΚΙΡΚΗ', -9, -22, { size: 6.2, align: 'middle' });
+  kirke3Label.style.opacity = '0';
+  a2.append(odyLabel, odyLabel2, kirke2Label, kirke3Label);
   // Odysseus faces left later (looking towards the dead): a mirrored twin.
   const odyL = new Actor({ hat: 'pilos', garment: 'short', garmentColor: PURPLE, cloak: true, cloakColor: INK, facing: -1 }, pose({ ...POSES.stand(-58, GROUND), armF: [50, 40], armB: [10, 20] }), 'odysseus');
   odyL.g.style.opacity = '0';
@@ -204,7 +210,8 @@ export const scene: SceneFactory = (ctx) => {
   const tb = s('g', { transform: fill(KB) });
   B.appendChild(tb);
   root.appendChild(B);
-  tb.appendChild(oliveTree(104, GROUND, 1.05, 31));
+  const olive = oliveTree(112, GROUND, 1.0, 31);
+  tb.appendChild(olive);
   tb.appendChild(reeds(-84, GROUND, 6, 18));
   tb.appendChild(reeds(70, GROUND, 4, 12));
   // Soil clip: whatever is below the ground stays hidden until pulled out.
@@ -229,7 +236,7 @@ export const scene: SceneFactory = (ctx) => {
   const odyB = new Actor({ hat: 'pilos', garment: 'short', garmentColor: PURPLE, cloak: true, cloakColor: INK, facing: -1 }, pose({ ...POSES.stand(42, GROUND), armF: [30, 20], armB: [-10, 20] }), 'odysseus');
   const bladeB = sword();
   odyB.hold(bladeB, 'B', { mode: 'grip', angle: -70, along: 1.2 });
-  const odyBLabel = inscription('ΟΔΥΣΣΕΥΣ', 25, -44, { size: 5.6, angle: 90 });
+  const odyBLabel = inscription('ΟΔΥΣΣΕΥΣ', 60, -24, { size: 5.6, angle: 90 });
   odyB.front.appendChild(odyBLabel);
   const hermes = makeHermes({ x: -50, ground: GROUND, facing: 1 });
   hermes.g.style.opacity = '0';
@@ -317,7 +324,8 @@ export const scene: SceneFactory = (ctx) => {
     for (let i = 0; i < 3; i++) {
       const p = s('path', { d: sparkPath(1.6), fill: WHITE, opacity: 0, transform: `translate(${-3 + i * 3} -11)` });
       vapour.appendChild(p);
-      vtl.fromTo(p, { opacity: 0, y: 0 }, { opacity: 0.9, y: -5, duration: 0.6, ease: 'sine.out' }, i * 0.5).to(p, { opacity: 0, y: -10, duration: 0.6, ease: 'sine.in' }, i * 0.5 + 0.6);
+      // GSAP's y is absolute here (it replaces the translate above): rise from the rim.
+      vtl.fromTo(p, { opacity: 0, y: -11 }, { opacity: 0.9, y: -17, duration: 0.6, ease: 'sine.out' }, i * 0.5).to(p, { opacity: 0, y: -23, duration: 0.6, ease: 'sine.in' }, i * 0.5 + 0.6);
     }
     idleA.push(st.loop(vtl));
   };
@@ -330,16 +338,21 @@ export const scene: SceneFactory = (ctx) => {
     });
   };
 
+  // The entrance is built now (paused) so the cup rises already in its
+  // before-state; enter() then plays it without a flash of the final picture.
+  const intro = st.timeline({ paused: true });
+  intro.from(pal.g, { y: -26, opacity: 0, duration: 1, ease: 'power3.out' })
+    .from(gate.g, { opacity: 0, duration: 0.8 }, 0.2)
+    .from(kirke.g, { x: -30, opacity: 0, duration: 0.9, ease: 'power3.out' }, 0.25)
+    .from(kirkeLabel, { opacity: 0, duration: 0.6 }, 0.8)
+    .from([lionB.g, wolfB.g], { opacity: 0, duration: 0.8, stagger: 0.2 }, 0.4)
+    .from(A.querySelectorAll('.kit-fillers'), { opacity: 0, duration: 0.8 }, 0.6);
+
   return {
     enter() {
-      const tl = st.timeline();
-      tl.from(pal.g, { y: -26, opacity: 0, duration: 1, ease: 'power3.out' })
-        .from(kirke.g, { x: -30, opacity: 0, duration: 0.9, ease: 'power3.out' }, 0.25)
-        .from(kirkeLabel, { opacity: 0, duration: 0.6 }, 0.8)
-        .from([lionB.g, wolfB.g], { opacity: 0, duration: 0.8, stagger: 0.2 }, 0.4)
-        .from(A.querySelectorAll('.kit-fillers'), { opacity: 0, duration: 0.8 }, 0.6);
       startIdleA();
-      return st.play(tl);
+      intro.play();
+      return st.play(intro);
     },
 
     async beat(i) {
@@ -349,11 +362,18 @@ export const scene: SceneFactory = (ctx) => {
         // The scouts come in; Kirke pours her brew into their cups and they drink.
         const walkers = comps.map((c) => st.loop(c.a.walk(0.8, 18)));
         const tl = st.timeline();
+        // The doors swing open; the men step out of the dark doorway.
+        tl.to(gate.left, { scaleX: 0.16, transformOrigin: '0% 50%', duration: 0.7, ease: 'power2.inOut' }, 0)
+          .to(gate.right, { scaleX: 0.16, transformOrigin: '100% 50%', duration: 0.7, ease: 'power2.inOut' }, 0);
+        tl.call(() => ctx.audio.sfx('thud'), [], 0.1);
         comps.forEach((c, k) => {
-          tl.set(c.a.g, { opacity: 1 }, 0).fromTo(c.a.g, { x: 118 + k * 18 }, { x: 0, duration: 1.5 + k * 0.12, ease: 'power1.out' }, 0);
+          const from = DOOR_X + 4 - c.x;
+          const at = 0.35 + k * 0.28;
+          tl.fromTo(c.a.g, { x: from, opacity: 0 }, { x: 0, opacity: 1, duration: 1.4 - k * 0.3, ease: 'power1.out' }, at);
         });
         tl.call(() => walkers.forEach((w) => w.kill()), [], 1.75);
         comps.forEach((c) => tl.add(c.a.to({ ...POSES.stand(c.x, GROUND), armF: [74, 30], armB: [-10, 16] }, { duration: 0.4 }), 1.75));
+        tl.to([gate.left, gate.right], { scaleX: 1, duration: 0.8, ease: 'power2.inOut' }, 1.9);
         // The lion and wolf fawn: tails and heads lift.
         tl.to(lionB.head, { rotation: -6, svgOrigin: '10 -16', duration: 0.5, yoyo: true, repeat: 1 }, 0.9);
         tl.add(kirke.to({ armF: [96, 4], lean: 4 }, { duration: 0.6 }), 1.6);
@@ -439,9 +459,13 @@ export const scene: SceneFactory = (ctx) => {
           .to(molyLabel, { opacity: 1, duration: 0.6 }, 4.2);
         cut.add(shimmer(tb, MOLY_X + 10, GROUND - 40, 10, 8, { n: 6, duration: 0.8, seed: 21 }), 4.1);
         await st.play(cut);
+        // Idle life in the wood: the olive stirs, the white bell nods.
+        st.loop(gsap.to(olive, { rotation: 1.2, svgOrigin: `112 ${GROUND}`, duration: 3.2, yoyo: true, repeat: -1, ease: 'sine.inOut' }));
+        const nod = st.loop(gsap.to(herb.flower, { rotation: 7, svgOrigin: '9.4 -40.6', duration: 1.6, yoyo: true, repeat: -1, ease: 'sine.inOut' }));
 
         // Gate: pull the moly out of the ground.
         await ctx.tap(herb.g, { label: 'Moly otunu topraktan çek' });
+        nod.pause();
         ctx.audio.sfx('thud');
         const pull = st.timeline();
         pull.add(hermes.to({ lean: 34, armF: [22, 10], legF: [20, 30], legB: [-12, 8], y: hermes.pose.y + 5 }, { duration: 0.45, ease: 'power2.inOut' }), 0);
@@ -502,7 +526,7 @@ export const scene: SceneFactory = (ctx) => {
         pigIdle.forEach((a) => a.kill());
         // Re-stage: hide the first staging, show the second.
         [kirke.g, kirkeLabel, lionB.g, wolfB.g].forEach((el) => (el.style.opacity = '0'));
-        const xs = [44, 66, 88];
+        const xs = [48, 70, 92];
         comps.forEach((c, k) => {
           c.x = xs[k];
           c.pig.moveTo(xs[k] - 7, GROUND - PIG_LIFT[k]);
@@ -516,31 +540,31 @@ export const scene: SceneFactory = (ctx) => {
         a2.appendChild(fx2);
         a2.style.opacity = '1';
         const cut = st.timeline();
-        cut.to(B, { opacity: 0, duration: 0.6, ease: 'power2.in' })
+        cut.to(B, { opacity: 0, duration: 0.45, ease: 'power2.in' })
           .set(B, { display: 'none' })
           .set(A, { display: 'inline' })
-          .fromTo(A, { opacity: 0 }, { opacity: 1, duration: 0.7, ease: 'power2.out' });
+          .fromTo(A, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: 'power2.out' });
         idleA.forEach((a) => a.resume());
         // He drinks: nothing happens.
-        cut.add(ody.to({ armF: [26, 128], head: -16, lean: -6 }, { duration: 0.5 }), 0.9);
-        cut.add(kirke2.to({ armB: [124, 20], lean: -4 }, { duration: 0.4 }), 1.1);
-        cut.add(kirke2.to({ armB: [72, 0], lean: 6 }, { duration: 0.22, ease: 'power3.in' }), 1.55);
-        cut.call(() => ctx.audio.sfx('magic'), [], 1.6);
-        cut.add(shimmer(fx2, -58, GROUND - 70, 14, 16, { n: 8, duration: 0.6, seed: 17 }), 1.72);
+        cut.add(ody.to({ armF: [26, 128], head: -16, lean: -6 }, { duration: 0.45 }), 0.55);
+        cut.add(kirke2.to({ armB: [124, 20], lean: -4 }, { duration: 0.35 }), 0.7);
+        cut.add(kirke2.to({ armB: [72, 0], lean: 6 }, { duration: 0.2, ease: 'power3.in' }), 1.08);
+        cut.call(() => ctx.audio.sfx('magic'), [], 1.1);
+        cut.add(shimmer(fx2, -58, GROUND - 70, 14, 16, { n: 8, duration: 0.6, seed: 17 }), 1.22);
         cut.call(() => {
           // The herb flares: the spell glances off.
           const h = ody.handFrame('B', 1);
           cut.add(burst(fx2, h.x + 4, h.y - 14, 12), cut.time());
-        }, [], 1.75);
+        }, [], 1.25);
         // Sword out and raised; Kirke runs in and clasps his knees.
-        cut.to(odyCup, { opacity: 0, duration: 0.2 }, 2.0).set(blade, { opacity: 1 }, 2.05);
-        cut.add(ody.to({ ...POSES.lunge(-54, GROUND), lean: 2, armF: [150, 30], armB: [30, 50] }, { duration: 0.45, ease: 'power3.out' }), 2.0);
-        cut.call(() => ctx.audio.sfx('twang'), [], 2.05);
-        cut.to([brew2, rod2.g], { opacity: 0, duration: 0.25 }, 2.15);
-        cut.add(kirke2.to({ ...POSES.plead(-10, GROUND), armF: [58, 8], armB: [50, 16] }, { duration: 0.55, ease: 'power2.inOut' }), 2.15);
-        cut.to(kirke2Label, { x: 8, y: 10, duration: 0.55 }, 2.15);
-        cut.call(() => ctx.audio.sfx('magic'), [], 2.8);
-        comps.forEach((c, k) => toMan(c, cut, 2.8 + k * 0.2));
+        cut.to(odyCup, { opacity: 0, duration: 0.2 }, 1.45).set(blade, { opacity: 1 }, 1.5);
+        cut.add(ody.to({ ...POSES.lunge(-54, GROUND), lean: 2, armF: [150, 30], armB: [30, 50] }, { duration: 0.4, ease: 'power3.out' }), 1.45);
+        cut.call(() => ctx.audio.sfx('twang'), [], 1.5);
+        cut.to([brew2, rod2.g], { opacity: 0, duration: 0.25 }, 1.6);
+        cut.add(kirke2.to({ ...POSES.plead(-10, GROUND), armF: [58, 8], armB: [50, 16] }, { duration: 0.5, ease: 'power2.inOut' }), 1.6);
+        cut.to(kirke2Label, { x: 8, y: 10, duration: 0.5 }, 1.6);
+        cut.call(() => ctx.audio.sfx('magic'), [], 2.15);
+        comps.forEach((c, k) => toMan(c, cut, 2.15 + k * 0.15));
         await st.play(cut);
         return;
       }
@@ -565,7 +589,7 @@ export const scene: SceneFactory = (ctx) => {
         tl.call(() => ctx.audio.sfx('success'), [], 0.4);
         // Kirke rises and points west, into the dark.
         tl.add(kirke2.to({ ...POSES.stand(-4, GROUND), armF: [104, -8], armB: [10, 20], lean: -3, head: -4 }, { duration: 0.8, ease: 'power2.inOut' }), 1.1);
-        tl.to(kirke2Label, { x: 12, y: -24, duration: 0.6 }, 1.1);
+        tl.to(kirke2Label, { opacity: 0, duration: 0.4 }, 1.1).to(kirke3Label, { opacity: 1, duration: 0.6 }, 1.6);
         tl.to(dark, { opacity: 1, duration: 1.2, ease: 'power1.inOut' }, 1.4)
           .fromTo(dark, { x: -60 }, { x: 0, duration: 1.4, ease: 'power2.out' }, 1.4);
         tl.to(odyLabel, { opacity: 0, duration: 0.4 }, 1.5).to(odyLabel2, { opacity: 1, duration: 0.5 }, 2.0);
@@ -573,7 +597,8 @@ export const scene: SceneFactory = (ctx) => {
         tl.add(odyL.to({ head: -8, armF: [70, 30] }, { duration: 0.5 }), 1.95);
         tl.call(() => ctx.audio.sfx('ghost'), [], 1.6);
         await st.play(tl);
-        st.loop(gsap.to(shades.children, { y: -6, duration: 1.2, stagger: 0.3, yoyo: true, repeat: -1, ease: 'sine.inOut' }));
+        // Relative: each shade already carries its own translate.
+        st.loop(gsap.to(shades.children, { y: '-=6', duration: 1.2, stagger: 0.3, yoyo: true, repeat: -1, ease: 'sine.inOut' }));
         return;
       }
     },

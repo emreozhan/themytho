@@ -17,12 +17,13 @@ import { gsap } from '../lib/motion';
 import type { Vec } from '../lib/geometry';
 import { POSES, pose, INK, WHITE, type Pose } from '../art/figure';
 import { Beast } from '../art/animals';
-import { exergue, inscription, flames, glow, kylix, amphora, sea, SEA_TILE, splash, cloud, rock, fillers } from '../art/kit';
+import { exergue, inscription, flames, glow, kylix, amphora, sea, SEA_TILE, splash, rock, fillers } from '../art/kit';
 import { ship, rowing, BLACK_FIGURE } from '../art/ship';
 import { stage } from './tools';
 import type { SceneFactory } from '../story/types';
 import { GROUND, cave, boulder, cheeseBasket, milkPail, fence, hearthStones, stake, trident, seatRock } from './kyklop.art';
 import { Actor, poseTo, walkTo, beastTo, writeIn } from './kyklop.rig';
+import { stormCloud } from './thrinakia.art';
 
 const MAN = 1.15;
 const GIANT = 2.1;
@@ -90,21 +91,27 @@ export const scene: SceneFactory = (ctx) => {
   /* ---------------- The men ---------------- */
   const walkPose = (): Pose => POSES.walk(0, 0);
   const odysseus = new Actor({ hat: 'pilos', garment: 'short', cloak: true, facing: -1 }, walkPose(), 240, GROUND, MAN, 'odysseus');
-  const c1 = new Actor({ head: 'youth', garment: 'short', garmentColor: INK, facing: -1 }, pose({ ...walkPose(), armF: [150, 40], armB: [30, 20] }), 274, GROUND, MAN);
+  const c1 = new Actor({ head: 'youth', garment: 'short', garmentColor: INK, facing: -1 }, pose({ ...walkPose(), armF: [20, 30], armB: [30, 20] }), 274, GROUND, MAN);
   const c2 = new Actor({ head: 'bearded', garment: 'short', facing: -1 }, walkPose(), 306, GROUND, MAN);
   const c3 = new Actor({ head: 'bearded', garment: 'short', garmentColor: INK, facing: -1 }, walkPose(), 338, GROUND, MAN);
   const c4 = new Actor({ head: 'youth', garment: 'short', facing: -1 }, walkPose(), 370, GROUND, MAN);
   menLayer.append(c4.g, c3.g, c2.g, c1.g, odysseus.g);
   const odyLabel = inscription('ΟΔΥΣΣΕΥΣ', 17, -92, { size: 5.4, angle: 90 });
   odysseus.g.appendChild(odyLabel);
-  // The wine amphora on c1's shoulder.
+  // The wine amphora rides on c1's back shoulder, tilted away from his face;
+  // his back hand steadies it by the neck.
   const amphWrap = s('g');
-  amphWrap.appendChild(amphora(0, 0, 0.6));
+  amphWrap.appendChild(amphora(0, 0, 0.56));
   c1.g.appendChild(amphWrap);
   const placeAmphora = () => {
+    const f = c1.facing;
     const j = c1.fig.joints();
-    const [hx, hy] = j.armF.W;
-    amphWrap.setAttribute('transform', `translate(${(hx + 3).toFixed(1)} ${(hy + 21).toFixed(1)}) rotate(-26)`);
+    const [bx, by] = c1.fig.toWorld([j.armB.S[0] - 2, j.armB.S[1] + 14]);
+    const rot = -32 * f;
+    amphWrap.setAttribute('transform', `translate(${bx.toFixed(1)} ${by.toFixed(1)}) rotate(${rot})`);
+    const a = (rot * Math.PI) / 180;
+    const neck: [number, number] = [bx + Math.sin(a) * 26, by - Math.cos(a) * 26];
+    c1.reach('B', [c1.x + neck[0] * c1.k, c1.y + neck[1] * c1.k], false);
   };
   placeAmphora();
 
@@ -208,7 +215,7 @@ export const scene: SceneFactory = (ctx) => {
   looming.style.opacity = '0';
   const triWrap = s('g', { transform: 'translate(206 -228) rotate(212) scale(1.45)' });
   triWrap.appendChild(trident(170));
-  looming.append(triWrap, cloud(146, -98, 150, INK), cloud(84, -122, 110, INK), cloud(40, -146, 90, INK));
+  looming.append(triWrap, stormCloud(146, -96, 150, 4), stormCloud(84, -120, 112, 7), stormCloud(38, -146, 92, 10));
   seaPic.appendChild(looming);
   const waves = sea(60, { crestHeight: 18 });
   seaPic.appendChild(waves.g);
@@ -287,9 +294,9 @@ export const scene: SceneFactory = (ctx) => {
   return {
     enter() {
       const tl = st.timeline();
-      const spots: Array<[Actor, number]> = [[odysseus, -64], [c1, -30], [c2, 4], [c3, 38], [c4, 72]];
+      const spots: Array<[Actor, number]> = [[odysseus, -70], [c1, -32], [c2, 6], [c3, 42], [c4, 78]];
       spots.forEach(([a, x], i) => {
-        tl.add(walkTo(a, x, 2.1 - i * 0.1, { ease: 'power1.out', arms: a !== c1 }), i * 0.1);
+        tl.add(walkTo(a, x, 2.1 - i * 0.1, { ease: 'power1.out', arms: a !== c1, onUpdate: a === c1 ? placeAmphora : undefined }), i * 0.1);
       });
       tl.from(odyLabel, { opacity: 0, duration: 0.6 }, 1.6);
       return st.play(tl);
@@ -322,32 +329,32 @@ export const scene: SceneFactory = (ctx) => {
           { ...POSES.plead(0, 0), head: -18, armF: [128, 20], armB: [104, 30] },
         ];
         hide.forEach(([a, x], k) => {
-          tl.add(walkTo(a, x, 0.7, { stride: 40, ease: 'power2.out', arms: a !== c1 }), 0.05 + k * 0.05);
+          tl.add(walkTo(a, x, 0.7, { stride: 40, ease: 'power2.out', arms: a !== c1, onUpdate: a === c1 ? placeAmphora : undefined }), 0.05 + k * 0.05);
           tl.call(() => a.face(1), [], 0.78 + k * 0.04);
           tl.add(poseTo(a.fig, cower[k], { duration: 0.35 }), 0.8 + k * 0.04);
         });
         tl.to(amphWrap, { opacity: 0, duration: 0.3 }, 0.7);
         // Polyphemos strides in.
-        tl.add(walkTo(giant, 56, 1.4, { stride: 32, ease: 'power1.out' }), 0.3);
-        tl.to(giantLabel, { opacity: 1, duration: 0.6 }, 1.2);
+        tl.add(walkTo(giant, 56, 1.15, { stride: 32, ease: 'power1.out' }), 0.25);
+        tl.to(giantLabel, { opacity: 1, duration: 0.6 }, 1.0);
         // He turns and sets the door stone: the light dies.
-        tl.call(() => giant.face(1), [], 1.72);
-        tl.add(poseTo(giant.fig, { lean: 18, head: 6, armF: [98, 4], armB: [86, 10], legF: [22, 10], legB: [-16, 4] }, { duration: 0.3 }), 1.72);
-        tl.to(doorPos, { x: DOOR[0], rot: 0, duration: 0.7, ease: 'power2.out', onUpdate: placeDoor }, 1.8);
+        tl.call(() => giant.face(1), [], 1.42);
+        tl.add(poseTo(giant.fig, { lean: 18, head: 6, armF: [98, 4], armB: [86, 10], legF: [22, 10], legB: [-16, 4] }, { duration: 0.3 }), 1.42);
+        tl.to(doorPos, { x: DOOR[0], rot: 0, duration: 0.65, ease: 'power2.out', onUpdate: placeDoor }, 1.5);
         tl.call(() => {
           ctx.audio.sfx('boulder');
           localShake(3);
           ctx.atlas.shake(4);
-        }, [], 2.42);
-        tl.to(veil, { opacity: 0.3, duration: 0.8, ease: 'power1.in' }, 2.3);
+        }, [], 2.08);
+        tl.to(veil, { opacity: 0.3, duration: 0.8, ease: 'power1.in' }, 1.95);
         // He kindles the fire.
-        tl.call(() => ctx.audio.sfx('fire'), [], 2.6);
-        tl.to(fireScale, { v: 1, duration: 0.5, ease: 'back.out(2)', onUpdate: placeFire }, 2.6);
-        tl.to(fireGlow, { opacity: 1, duration: 0.6 }, 2.6);
-        tl.call(flameLoop, [], 3.1);
+        tl.call(() => ctx.audio.sfx('fire'), [], 2.2);
+        tl.to(fireScale, { v: 1, duration: 0.5, ease: 'back.out(2)', onUpdate: placeFire }, 2.2);
+        tl.to(fireGlow, { opacity: 1, duration: 0.6 }, 2.2);
+        tl.call(flameLoop, [], 2.7);
         // …and seizes two of the men.
-        tl.call(() => giant.face(-1), [], 2.6);
-        tl.add(walkTo(giant, 34, 0.45, { stride: 30 }), 2.6);
+        tl.call(() => giant.face(-1), [], 2.2);
+        tl.add(walkTo(giant, 34, 0.4, { stride: 30 }), 2.2);
         const victims = [c3, c4];
         let held = false;
         const follow = () => {
@@ -359,25 +366,25 @@ export const scene: SceneFactory = (ctx) => {
             v.place();
           });
         };
-        tl.add(poseTo(giant.fig, { lean: 36, head: 12, armF: [70, 10], armB: [62, 16], legF: [46, 32], legB: [-26, 6] }, { duration: 0.4 }), 3.05);
+        tl.add(poseTo(giant.fig, { lean: 36, head: 12, armF: [70, 10], armB: [62, 16], legF: [46, 32], legB: [-26, 6] }, { duration: 0.35 }), 2.6);
         const grab = { t: 0 };
         tl.to(grab, {
           t: 1,
-          duration: 0.4,
+          duration: 0.35,
           onUpdate: () => {
             giant.reach('F', [c3.x - 2, GROUND - 40]);
             giant.reach('B', [c4.x - 2, GROUND - 42]);
           },
-        }, 3.05);
+        }, 2.6);
         tl.call(() => {
           held = true;
           victims.forEach((v, k) => v.fig.set(pose({ x: 0, y: -50, head: 22, armF: [164 - k * 24, 20], armB: [-150 + k * 30, 30], legF: [30 + k * 20, 50], legB: [-20, 70] })));
           follow();
           ctx.audio.sfx('thud');
-        }, [], 3.46);
-        tl.add(poseTo(giant.fig, { lean: -6, head: -18, armF: [170, 8], armB: [160, 14], legF: [8, 4], legB: [-8, 4] }, { duration: 0.8, ease: 'power2.inOut', onUpdate: follow }), 3.5);
-        tl.to(victims.map((v) => v.g), { opacity: 0, duration: 0.4 }, 4.05);
-        tl.add(poseTo(giant.fig, { lean: 2, head: 0, armF: [22, 20], armB: [-14, 20] }, { duration: 0.6 }), 4.45);
+        }, [], 2.96);
+        tl.add(poseTo(giant.fig, { lean: -6, head: -18, armF: [170, 8], armB: [160, 14], legF: [8, 4], legB: [-8, 4] }, { duration: 0.7, ease: 'power2.inOut', onUpdate: follow }), 3.0);
+        tl.to(victims.map((v) => v.g), { opacity: 0, duration: 0.35 }, 3.45);
+        tl.add(poseTo(giant.fig, { lean: 2, head: 0, armF: [22, 20], armB: [-14, 20] }, { duration: 0.5 }), 3.8);
         await st.play(tl);
         victims.forEach((v) => (v.g.style.display = 'none'));
         return;
@@ -496,6 +503,7 @@ export const scene: SceneFactory = (ctx) => {
         const tl = st.timeline();
         tl.to(stakeGrip, { opacity: 1, duration: 0.4 }, 0);
         tl.to(stk.hot, { opacity: 1, duration: 0.6 }, 0.2);
+        const tipFlicker = st.loop(gsap.to(tipFlameInner.querySelectorAll('.kit-flame__tongue'), { scaleY: 0.72, transformOrigin: '50% 100%', duration: 0.22, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: 0.08 }));
         tl.call(() => ctx.audio.sfx('fire'), [], 0);
         crew.forEach(([a], k) => {
           tl.call(() => a.face(1), [], 0.1);
@@ -534,6 +542,7 @@ export const scene: SceneFactory = (ctx) => {
         const tl2 = st.timeline();
         tl2.fromTo(flashDisc, { opacity: 0.9 }, { opacity: 0, duration: 0.7, ease: 'power2.out' }, 0);
         tl2.set(tipFlame, { opacity: 0 }, 0);
+        tl2.call(() => void tipFlicker.kill(), [], 0);
         tl2.add(poseTo(giant.fig, { x: 0, y: -30, lean: -22, head: -32, armF: [150, 112], armB: [140, 124], legF: [80, 70], legB: [20, 112], footB: 60 }, { duration: 0.45, ease: 'back.out(1.6)' }), 0.05);
         tl2.to(fireScale, { v: 0.5, duration: 0.4, onUpdate: placeFire }, 0.1);
         // The men leap back; the stake falls.

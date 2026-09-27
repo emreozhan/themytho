@@ -13,6 +13,7 @@ import { s } from '../lib/dom';
 import { ribbon, sampleSpline, smoothPath, type Vec } from '../lib/geometry';
 import { waveRing } from '../art/ornaments';
 import { INK, CLAY, WHITE, PURPLE } from '../art/figure';
+import { band } from './sirenler.art';
 
 const f1 = (v: number) => Math.round(v * 10) / 10;
 
@@ -106,7 +107,7 @@ export class Neck {
     this.phase = spec.phase ?? 0;
     this.g = s('g', { class: 'skylla-neck' });
     this.body = s('path', { fill: INK, stroke: CLAY, 'stroke-width': 0.9, 'paint-order': 'stroke', 'stroke-linejoin': 'round' });
-    this.spine = s('path', { fill: 'none', stroke: CLAY, 'stroke-width': 0.55, 'stroke-dasharray': '2.4 1.6', 'stroke-linecap': 'round' });
+    this.spine = s('path', { fill: 'none', stroke: CLAY, 'stroke-width': 0.5, 'stroke-linecap': 'round' });
     this.head = new DogHead(headScale);
     this.g.append(this.body, this.spine, this.head.g);
   }
@@ -127,10 +128,19 @@ export class Neck {
     }
     const spline = sampleSpline(pts, 24);
     const W = this.width;
-    this.body.setAttribute('d', ribbon(pts, [[0, W * 1.25], [0.5, W], [0.9, W * 0.8], [1, W * 0.75]], 40));
-    // Incised spine line (stops short of the head).
-    const sp = spline.slice(1, -2);
-    this.spine.setAttribute('d', sp.map((p, i) => `${i ? 'L' : 'M'}${f1(p[0])} ${f1(p[1])}`).join(''));
+    const widths: Array<[number, number]> = [[0, W * 1.25], [0.5, W], [0.9, W * 0.8], [1, W * 0.75]];
+    this.body.setAttribute('d', ribbon(pts, widths, 40));
+    // Incised belly band with a ladder of cross-lines, the painters' serpent convention.
+    const b = band(pts, widths, 30);
+    const up = b.at(0.5, 0)[1] < b.at(0.5, 1)[1] ? 1 : -1;
+    let d = b.line(0.2 * up, 0.08, 0.93, 16) + b.line(0.72 * up, 0.08, 0.93, 16);
+    const rungs = Math.round(b.total / 3.6);
+    for (let i = 1; i < rungs; i++) {
+      const u = 0.08 + (0.85 * i) / rungs;
+      const p = b.at(u, 0.2 * up), q = b.at(u, 0.72 * up);
+      d += `M${f1(p[0])} ${f1(p[1])}L${f1(q[0])} ${f1(q[1])}`;
+    }
+    this.spine.setAttribute('d', d);
     const tip = spline[spline.length - 1];
     const pre = spline[spline.length - 3];
     this.tip = tip;

@@ -12,7 +12,7 @@ import { s } from '../lib/dom';
 import { gsap } from '../lib/motion';
 import { lerp, type Vec } from '../lib/geometry';
 import { Figure, POSES, pose, spear, INK, CLAY } from '../art/figure';
-import { sea, rock, cloud, inscription, fillers } from '../art/kit';
+import { sea, rock, inscription, fillers } from '../art/kit';
 import { Galley, type Rower } from './sirenler.galley';
 import { Neck, whirlpool, figTree } from './skylla.art';
 import { stage } from './tools';
@@ -25,7 +25,7 @@ const X_ENTER = -280;
 const X_START = -96;
 const X_END = 36;
 const X_OUT = 72;
-const WHIRL: Vec = [-40, 122];
+const WHIRL: Vec = [-14, 122];
 const WHIRL_R = 56;
 const CAVE: Vec = [-90, -100];
 
@@ -48,7 +48,7 @@ export const scene: SceneFactory = (ctx) => {
   const figG = s('g', { class: 'sky-fig', opacity: 0 });
   const figRock = rock([[190, 80], [190, 14], [168, 18], [150, 22], [138, 30], [130, 44], [126, 60], [124, 80]], { lines: 3, seed: 41 });
   figG.appendChild(figRock);
-  figG.appendChild(figTree([150, 22], [116, -40], 7));
+  figG.appendChild(figTree([150, 22], [108, -34], 7));
   root.appendChild(figG);
 
   /* ---------------- Skylla's cliff and cave ---------------- */
@@ -59,8 +59,6 @@ export const scene: SceneFactory = (ctx) => {
       { lines: 8, seed: 5 },
     ),
   );
-  // A cloud that never leaves the peak.
-  cliffG.appendChild(cloud(-6, -138, 60));
   const hollow = s('path', {
     d: `M${CAVE[0] - 18} ${CAVE[1] + 20}C${CAVE[0] - 20} ${CAVE[1] - 4} ${CAVE[0] - 10} ${CAVE[1] - 20} ${CAVE[0] + 2} ${CAVE[1] - 20}C${CAVE[0] + 14} ${CAVE[1] - 20} ${CAVE[0] + 20} ${CAVE[1] - 6} ${CAVE[0] + 18} ${CAVE[1] + 16}C${CAVE[0] + 8} ${CAVE[1] + 22} ${CAVE[0] - 8} ${CAVE[1] + 24} ${CAVE[0] - 18} ${CAVE[1] + 20}Z`,
     fill: '#8f4020',
@@ -124,7 +122,9 @@ export const scene: SceneFactory = (ctx) => {
   whirlInner.appendChild(whirl.g);
   whirlWrap.appendChild(whirlInner);
   water.g.appendChild(whirlWrap);
-  const khLabel = inscription('ΧΑΡΥΒΔΙΣ', 30, 112, { size: 7.5, color: CLAY });
+  /** Each ring opens out from the gullet when Kharybdis wakes (scale per ring). */
+  const grow = whirl.rings.map(() => ({ v: 0.2 }));
+  const khLabel = inscription('ΧΑΡΥΒΔΙΣ', 54, 110, { size: 7.5, color: CLAY });
   khLabel.style.opacity = '0';
   water.g.appendChild(khLabel);
 
@@ -176,7 +176,7 @@ export const scene: SceneFactory = (ctx) => {
   const tick = (t: number) => {
     const dt = Math.min(0.1, Math.max(0, t - prevT));
     prevT = t;
-    if (!S.dragging) S.x += (S.tx - S.x) * Math.min(1, dt * S.follow);
+    if (!S.dragging) S.x += (S.tx - S.x) * (ctx.reduced ? 1 : Math.min(1, dt * S.follow));
     const bob = Math.sin(t * 1.4) * 0.9;
     const wob = S.pull * Math.sin(t * 5) * 1.2;
     galley.place(S.x, W + bob + S.pull * 10, Math.sin(t * 1.1) * 0.8 + S.pull * 5 + wob);
@@ -188,7 +188,8 @@ export const scene: SceneFactory = (ctx) => {
     water.crests.setAttribute('transform', `translate(${S.crest.toFixed(2)} ${(Math.sin(t * 1.2) * 0.8).toFixed(2)})`);
     S.spin += dt * S.spinRate * (1 + S.pull * 2.5) * S.whirl;
     whirl.rings.forEach((ring, i) => {
-      ring.setAttribute('transform', `rotate(${((S.spin * whirl.speeds[i] * 180) / Math.PI).toFixed(2)})`);
+      const k = grow[i].v;
+      ring.setAttribute('transform', `rotate(${((S.spin * whirl.speeds[i] * 180) / Math.PI).toFixed(2)}) scale(${k.toFixed(3)})`);
     });
     renderNecks(t);
     // Prey dangle from the jaws.
@@ -205,8 +206,12 @@ export const scene: SceneFactory = (ctx) => {
       for (const r of galley.rowers) if (!r.gone) r.extra = { head: 24 * S.look, lean: 6 * S.look };
     }
   };
+  // Render every frame; the idle clock is frozen under reduced motion (st.loop pauses it).
   const clock = { t: 0 };
-  st.loop(gsap.to(clock, { t: 100000, duration: 100000, ease: 'none', onUpdate: () => tick(clock.t) }));
+  st.loop(gsap.to(clock, { t: 100000, duration: 100000, ease: 'none' }));
+  const onFrame = () => tick(clock.t);
+  gsap.ticker.add(onFrame);
+  ctx.signal.addEventListener('abort', () => gsap.ticker.remove(onFrame));
   tick(0);
 
   const snatch = (): gsap.core.Timeline => {
@@ -268,7 +273,7 @@ export const scene: SceneFactory = (ctx) => {
         if (pr) st.to(pr, { fade: 0, duration: 0.3 });
       }, [], at + 0.26 + 0.62);
       // …and out again, hungry.
-      tl.to(n, { mix: 0, duration: 1, ease: 'power2.inOut' }, at + 1.3);
+      tl.to(n, { mix: 0, duration: 0.7, ease: 'power2.inOut' }, at + 1.0);
     });
     tl.to(S, { look: 0, duration: 0.6 }, 1.5);
     tl.add(ody.to({ head: 4 }, { duration: 0.6 }), 1.5);
@@ -276,7 +281,6 @@ export const scene: SceneFactory = (ctx) => {
       S.follow = 0.8;
       S.tx = X_OUT;
     }, [], 1.3);
-    tl.to({}, { duration: 0.1 }, 2.9);
     return tl;
   };
 
@@ -285,7 +289,7 @@ export const scene: SceneFactory = (ctx) => {
       S.tx = X_START;
       S.follow = 1.1;
       const tl = st.timeline();
-      tl.from([cliffG, figG], { opacity: 0, duration: 0.9 }, 0).to({}, { duration: 2 }, 0);
+      tl.from(cliffG, { opacity: 0, duration: 0.9 }, 0).to({}, { duration: 2 }, 0);
       return st.play(tl);
     },
 
@@ -307,7 +311,7 @@ export const scene: SceneFactory = (ctx) => {
         tl.to(figG, { opacity: 1, duration: 0.9 }, 0)
           .from(figG, { y: 14, duration: 1, ease: 'power2.out' }, 0)
           .to(whirlInner, { opacity: 1, duration: 0.6 }, 0.2)
-          .fromTo(whirl.rings.slice(0, -1), { scale: 0.2, svgOrigin: '0 0' }, { scale: 1, duration: 1.4, stagger: { each: 0.1, from: 'end' }, ease: 'power2.out' }, 0.2)
+          .to(grow, { v: 1, duration: 1.4, stagger: { each: 0.1, from: 'end' }, ease: 'power2.out' }, 0.2)
           .to(S, { whirl: 1, duration: 1.2 }, 0.2)
           .to(S, { spinRate: 0.55, duration: 1.2 }, 0.2)
           .to(khLabel, { opacity: 1, duration: 0.8 }, 1.1);
@@ -323,11 +327,12 @@ export const scene: SceneFactory = (ctx) => {
           distance: X_END - X_START,
           onProgress: (p) => {
             S.dragging = true;
-            S.x = lerp(X_START, X_END, p);
-            S.tx = S.x;
-            // The tug is strongest right above the whirlpool.
-            const d = (S.x + 20 - WHIRL[0]) / 70;
+            const x = lerp(X_START, X_END, p);
+            // The tug is strongest right above the whirlpool: the ship lags and dips toward it.
+            const d = (x + 20 - WHIRL[0]) / 70;
             S.pull = Math.exp(-d * d) * (p < 1 ? 1 : 0);
+            S.x = x - S.pull * 7;
+            S.tx = S.x;
           },
         });
         S.dragging = false;
@@ -343,6 +348,7 @@ export const scene: SceneFactory = (ctx) => {
     },
 
     destroy() {
+      gsap.ticker.remove(onFrame);
       st.destroy();
     },
   };
