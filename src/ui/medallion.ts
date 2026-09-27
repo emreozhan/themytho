@@ -72,9 +72,10 @@ export class Medallion {
   }
 
   /** Current centre of the medallion on screen. */
+  /** Layout centre, ignoring transforms: emerge, retreat and dock offsets are relative to it. */
   center(): [number, number] {
-    const r = this.el.getBoundingClientRect();
-    return [r.left + r.width / 2, r.top + r.height / 2];
+    const el = this.el;
+    return [el.offsetLeft + el.offsetWidth / 2, el.offsetTop + el.offsetHeight / 2];
   }
 
   diameter(): number {
@@ -117,6 +118,25 @@ export class Medallion {
           gsap.set(this.el, { x: 0, y: 0, rotation: 0 });
           resolve();
         },
+      });
+    });
+  }
+
+  /**
+   * Shrink the cup into a screen point so the map can show a voyage beside
+   * it (`at` = null returns it to its place). The scene keeps playing inside.
+   */
+  dock(at: [number, number] | null, scale = 0.5): Promise<void> {
+    const [cx, cy] = this.center();
+    gsap.killTweensOf(this.el, 'x,y,scale');
+    return new Promise((resolve) => {
+      gsap.to(this.el, {
+        x: at ? at[0] - cx : 0,
+        y: at ? at[1] - cy : 0,
+        scale: at ? scale : 1,
+        duration: dur(0.8),
+        ease: 'power3.inOut',
+        onComplete: resolve,
       });
     });
   }

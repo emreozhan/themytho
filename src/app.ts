@@ -65,11 +65,14 @@ export class App {
         timeline: this.timeline,
         drawer: this.drawer,
         caption,
-        voyageRect: () => {
-          const hudH = this.hud.el.offsetHeight || 64;
-          const tl = this.timeline.el.offsetParent ? this.timeline.el.offsetHeight : 0;
-          const w = innerWidth, hh = innerHeight;
-          return { x: 32, y: hudH + 20, w: w - 64, h: Math.max(200, hh - hudH - tl - 150) };
+        voyageRect: () => this.voyageRect(),
+        mapRect: () => {
+          // The panel sits on the right on wide screens and along the bottom on narrow ones.
+          const r = this.voyageRect();
+          const p = this.panel.el.getBoundingClientRect();
+          if (!p.width || !p.height) return r;
+          if (p.left > innerWidth * 0.5) return { ...r, w: Math.max(160, p.left - 24 - r.x) };
+          return { ...r, h: Math.max(160, Math.min(r.h, p.top - 16 - r.y)) };
         },
         stagePoint: () => {
           const el = this.medallion.el;
@@ -121,6 +124,14 @@ export class App {
   }
 
   /** `#/odysseia/kyklop`, or just `#kyklop` where only a bare anchor survives. */
+  /** Screen rectangle free for the map during voyages (between the HUD and the timeline). */
+  private voyageRect(): { x: number; y: number; w: number; h: number } {
+    const hudH = this.hud.el.offsetHeight || 64;
+    const tl = this.timeline.el.offsetParent ? this.timeline.el.offsetHeight : 0;
+    const w = innerWidth, hh = innerHeight;
+    return { x: 32, y: hudH + 20, w: w - 64, h: Math.max(200, hh - hudH - tl - 150) };
+  }
+
   private chapterFromHash(): number {
     const [a, b] = location.hash.replace(/^#\/?/, '').split('/');
     const id = b === undefined ? a : a === this.story.id ? b : '';

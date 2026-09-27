@@ -102,7 +102,6 @@ export class Siren {
   readonly lid: SVGPathElement;
   /** The playing hand (plucks the lyre / fingers the pipes). */
   readonly hand: SVGGElement;
-  readonly mouth: SVGCircleElement;
   readonly instrument: 'lyre' | 'aulos' | 'none';
   readonly x: number;
   readonly y: number;
@@ -226,8 +225,6 @@ export class Siren {
     face.appendChild(s('path', { d: 'M6.2 5.1Q5.4 5.7 4.6 5.3', fill: 'none', stroke: INK, 'stroke-width': 0.35 }));
     // Ear-ring.
     face.appendChild(s('circle', { cx: -2.4, cy: 5.8, r: 1, fill: PURPLE, stroke: INK, 'stroke-width': 0.3 }));
-    this.mouth = s('circle', { cx: MOUTH[0], cy: MOUTH[1], r: 0.1, fill: 'none', class: 'siren__mouth' });
-    face.appendChild(this.mouth);
     this.head.append(neck, necklace, dots, face);
 
     // Arms and instrument.
@@ -278,11 +275,18 @@ export class Siren {
     this.g.setAttribute('transform', `translate(${f1(this.x)} ${f1(this.y)}) scale(${f1(k * this.facing * 100) / 100} ${f1(k * 100) / 100}) rotate(${f1(this.pose?.pitch ?? 0)})`);
   }
 
-  /** Where the song leaves the lips, in the coordinates of `space`. */
-  mouthIn(space: SVGGraphicsElement): Vec {
-    const m = space.getCTM()?.inverse().multiply(this.mouth.getCTM() ?? new DOMMatrix());
-    if (!m) return [this.x, this.y - 40 * this.scale];
-    return [m.e + m.a * MOUTH[0] + m.c * MOUTH[1], m.f + m.b * MOUTH[0] + m.d * MOUTH[1]];
+  /** Where the song leaves the lips, in the coordinates the Siren is placed in (no DOM reads). */
+  mouth(): Vec {
+    const q = this.pose;
+    const P: Vec = [HEAD[0] + MOUTH[0], HEAD[1] + MOUTH[1]];
+    const [nx, ny] = Siren.NECK;
+    const a = (q.head * Math.PI) / 180;
+    const dx = P[0] - nx, dy = P[1] - ny;
+    let x = nx + dx * Math.cos(a) - dy * Math.sin(a);
+    let y = ny + dx * Math.sin(a) + dy * Math.cos(a) + q.bob;
+    const b = (q.pitch * Math.PI) / 180;
+    [x, y] = [x * Math.cos(b) - y * Math.sin(b), x * Math.sin(b) + y * Math.cos(b)];
+    return [this.x + x * this.scale * this.facing, this.y + y * this.scale];
   }
 
   /** Set the animated angles (degrees) in one call. */

@@ -93,7 +93,7 @@ export const scene: SceneFactory = (ctx) => {
     sprigWrap.setAttribute('transform', `translate(${(w[0] + 1).toFixed(1)} ${(w[1] + 1).toFixed(1)})`);
   };
   placeSprig();
-  const lotoLabel = inscription('ΛΩΤΟΦΑΓΟΙ', -84, -52, { size: 6.4, align: 'middle' });
+  const lotoLabel = inscription('ΛΩΤΟΦΑΓΟΙ', -70, -52, { size: 6.4, align: 'middle' });
   shore.appendChild(lotoLabel);
   cast.append(woman.g, elder.g);
 
@@ -173,7 +173,7 @@ export const scene: SceneFactory = (ctx) => {
     new Actor({ head: 'woman', garment: 'peplos', hat: 'veil', garmentColor: INK }, pose({ ...POSES.stand(0, 0), armF: [160, 10], armB: [120, 30] }), -98, 62, 1.05),
   ];
   wavers.forEach((w) => away.appendChild(w.g));
-  away.appendChild(inscription('ΛΩΤΟΦΑΓΟΙ', -108, -64, { size: 6, align: 'middle' }));
+  away.appendChild(inscription('ΛΩΤΟΦΑΓΟΙ', -94, -64, { size: 6, align: 'middle' }));
   // The ship with the bound men.
   const vessel = ship({ palette: BLACK_FIGURE, sail: 'furled', oars: 11, crew: 2 });
   const vesselWrap = s('g');

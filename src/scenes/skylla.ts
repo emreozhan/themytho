@@ -192,8 +192,14 @@ export const scene: SceneFactory = (ctx) => {
       ring.setAttribute('transform', `rotate(${((S.spin * whirl.speeds[i] * 180) / Math.PI).toFixed(2)}) scale(${k.toFixed(3)})`);
     });
     renderNecks(t);
-    // Prey dangle from the jaws.
-    for (const p of prey) {
+    // Prey dangle from the jaws until they vanish into the cave.
+    for (let i = prey.length - 1; i >= 0; i--) {
+      const p = prey[i];
+      if (p.fade <= 0.001) {
+        p.wrap.remove();
+        prey.splice(i, 1);
+        continue;
+      }
       const [jx, jy] = p.neck.jaws();
       const sw = Math.sin(t * 7 + p.swing) * 14;
       p.wrap.setAttribute('transform', `translate(${jx.toFixed(1)} ${jy.toFixed(1)}) rotate(${sw.toFixed(1)}) translate(${(-p.grab[0]).toFixed(1)} ${(-p.grab[1]).toFixed(1)})`);

@@ -33,6 +33,8 @@ export interface EngineUI {
   caption: Caption;
   /** Screen rectangle free for the map during voyages. */
   voyageRect(): Rect;
+  /** The part of the voyage rectangle the story panel leaves uncovered. */
+  mapRect(): Rect;
   /** Screen point where the tondo sits (chapter locations are anchored there). */
   stagePoint(): Vec;
 }
@@ -335,18 +337,26 @@ export class Engine {
         atlas.fleet.setKind(rec.leg.vessel ?? (atlas.fleet.alive > 1 ? 'fleet' : 'ship'));
         const box = rec.handle.box;
         const pad = 60;
-        const stage = this.ui.stagePoint();
-        // Keep the tondo in view: frame the leg in the map area beside it.
-        const rect = this.ui.voyageRect();
-        const side: Rect = stage[0] > rect.x + rect.w * 0.5 ? { ...rect, w: rect.w * 0.45 } : rect;
-        const target = atlas.camera.fit({ x: box.x - pad, y: box.y - pad, w: box.w + pad * 2, h: box.h + pad * 2 }, side, 4);
-        await atlas.camera.fly(target, { duration: 1.1 });
+        // Tuck the cup into the map's lower left corner (the scene plays on
+        // inside it) and frame the leg in the room left beside it.
+        const map = this.ui.mapRect();
+        const d = medallion.el.offsetWidth;
+        const k = Math.min(0.5, (map.w * 0.3) / d, (map.h * 0.7) / d);
+        const size = d * k;
+        const free: Rect = { x: map.x + size + 16, y: map.y, w: map.w - size - 16, h: map.h };
+        const target = atlas.camera.fit({ x: box.x - pad, y: box.y - pad, w: box.w + pad * 2, h: box.h + pad * 2 }, free, 4);
+        await Promise.all([
+          medallion.dock([map.x + size / 2, map.y + map.h - size / 2], k),
+          atlas.camera.fly(target, { duration: 1.1 }),
+        ]);
         if (!live()) return halt();
         const seconds = prefersReducedMotion() ? 0.3 : (rec.leg.duration ?? gsap.utils.clamp(2.2, 5, rec.handle.length / 220));
         if (rec.leg.style === 'blown' || rec.leg.style === 'storm') atlas.setWeather('storm');
         await atlas.fleet.sail(rec.handle.path, seconds, (p) => rec.handle.set(p), rec.leg.style === 'blown' ? 'power1.inOut' : 'sail');
         if (!live()) return halt();
         atlas.setWeather('none');
+        await medallion.dock(null);
+        if (!live()) return halt();
       },
       flash: (color) => {
         if (live()) atlas.flash(color);

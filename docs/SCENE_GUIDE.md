@@ -61,6 +61,11 @@ export const scene: SceneFactory = (ctx) => {
 * GSAP `x`/`y` tweens on an element that already has an SVG `transform`
   attribute replace that transform. Put positioned art in a plain wrapper `<g>`
   and animate the wrapper.
+* A `fromTo` placed later in a timeline renders its *from* state at once
+  (a flash or splash shows up early) unless you pass `immediateRender: false`.
+* `Figure` `scale` pivots about the point (x, 0), not about the feet: a giant
+  standing on the groundline needs its pose `y` adjusted, or wrap it in a group
+  scaled about its feet.
 * `ctx.reduced` is true for `prefers-reduced-motion`; `stage()` shortens durations.
 * Per-scene defs (gradients, clip paths) go into `ctx.defs` with attribute
   `data-scene` so they are removed with the scene.

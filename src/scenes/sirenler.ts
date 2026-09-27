@@ -202,6 +202,7 @@ export const scene: SceneFactory = (ctx) => {
     lastSfx: -10,
     nod: 0, // extra head bow (begging with his brows)
     dive: 0, // the third Siren's plunge 0..1
+    chorus: false, // repeat the song sfx (only while the reader holds out against it)
   };
   galley.place(S.x, W);
 
@@ -302,8 +303,8 @@ export const scene: SceneFactory = (ctx) => {
     if (S.song <= 0.01) return;
     const target = galley.toScene(galley.ear(ody));
     const amp = 3.5 + S.agitation * 3;
-    const a = sirenA.mouthIn(root);
-    const b = sirenB.mouthIn(root);
+    const a = sirenA.mouth();
+    const b = sirenB.mouth();
     const pa = [0, 1, 2].map((lane) => songPath(a, target, t, lane, amp));
     const pb = [0, 1, 2].map((lane) => songPath(b, target, t + 1.3, lane, amp));
     const toD = (pts: Vec[]) => pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join('');
@@ -387,7 +388,7 @@ export const scene: SceneFactory = (ctx) => {
     });
     renderSirens(t);
     renderSong(t);
-    if (S.song > 0.5 && t - S.lastSfx > 3.9 && S.droop < 0.2) {
+    if (S.chorus && S.song > 0.5 && t - S.lastSfx > 3.9) {
       S.lastSfx = t;
       ctx.audio.sfx('sirens');
     }
@@ -534,6 +535,7 @@ export const scene: SceneFactory = (ctx) => {
         intro.to(S, { song: 1, duration: 0.8 }, 0).to(S, { effort: 1, duration: 0.8 }, 0).to(S, { agitation: 0.35, duration: 0.8 }, 0);
         S.follow = 2.2;
         S.lastP = 0;
+        S.chorus = true;
         await ctx.hold({
           label: 'Basılı tut',
           seconds: 4.2,
@@ -545,6 +547,7 @@ export const scene: SceneFactory = (ctx) => {
             setX(lerp(X_WAIT, X_PAST, p));
           },
         });
+        S.chorus = false;
         const after = st.timeline();
         after.to(S, { agitation: 0.6, duration: 0.4 }, 0);
         return st.play(after);
