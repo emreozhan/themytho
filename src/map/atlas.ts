@@ -12,7 +12,7 @@ import { Fleet } from './fleet';
 import { COAST_TILES, LAND_COARSE_PATH, LAND_PATH, RIPPLE_TILES } from './data/land';
 import { LABELS, dolphin, ketos, labelNode, reliefLayer, seaPattern, windRose } from './decor';
 import { MAP_HEIGHT, MAP_WIDTH, project, type LonLat } from './projection';
-import type { LegStyle } from '../story/types';
+import type { LegStyle, Pictogram } from '../story/types';
 
 export interface MarkerSpec {
   id: string;
@@ -21,6 +21,7 @@ export interface MarkerSpec {
   greek: string;
   numeral: string;
   side?: 'right' | 'left' | 'top' | 'bottom';
+  pict?: Pictogram;
 }
 
 export interface LegHandle {
@@ -202,6 +203,15 @@ export class Atlas {
     num.g.classList.add('marker__num');
     g.appendChild(label);
     g.appendChild(num.g);
+    if (m.pict) {
+      // The pictogram sits opposite the label.
+      const at: Vec = m.pict.at ?? (side === 'left' ? [30, 0] : side === 'right' ? [-30, 0] : side === 'top' ? [0, 32] : [0, -32]);
+      const pict = s('g', { class: 'marker__pict', transform: `translate(${at[0]} ${at[1]})` });
+      pict.appendChild(s('circle', { r: 17, class: 'marker__pict-bg' }));
+      if (m.pict.fill) pict.appendChild(s('path', { d: m.pict.fill, class: 'marker__pict-fill' }));
+      if (m.pict.stroke) pict.appendChild(s('path', { d: m.pict.stroke, class: 'marker__pict-stroke', pathLength: 1 }));
+      g.appendChild(pict);
+    }
     g.addEventListener('click', () => this.onMarkerClick(m.id));
     g.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -224,6 +234,13 @@ export class Atlas {
     if (state === 'active') {
       gsap.fromTo(m.g.querySelector('.marker__ring'), { scale: 0.2, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.8, ease: 'back.out(2.2)' });
       gsap.fromTo(m.g.querySelector('.marker__label'), { opacity: 0, x: -6 }, { opacity: 1, x: 0, duration: 0.7, delay: 0.2, ease: 'power3.out' });
+      const pict = m.g.querySelector('.marker__pict');
+      if (pict) {
+        // The cartographer paints the sign: a disc, the solid parts, then the strokes.
+        gsap.fromTo(pict, { scale: 0.4, opacity: 0, transformOrigin: '50% 50%' }, { scale: 1, opacity: 1, duration: 0.7, delay: 0.5, ease: 'back.out(2)' });
+        const stroke = pict.querySelector('.marker__pict-stroke');
+        if (stroke) gsap.fromTo(stroke, { strokeDasharray: 1, strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.1, delay: 0.8, ease: 'power2.out' });
+      }
     }
   }
 

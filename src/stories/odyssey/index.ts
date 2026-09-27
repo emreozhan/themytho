@@ -24,6 +24,7 @@ import { thrinakia } from './chapters/15-thrinakia';
 import { kalypso } from './chapters/16-kalypso';
 import { skheria } from './chapters/17-skheria';
 import { nostos } from './chapters/18-nostos';
+import { PICTOGRAMS } from './pictograms';
 
 export const odyssey: Story = {
   id: 'odysseia',
@@ -54,4 +55,5 @@ export const odyssey: Story = {
     { at: [24.9, 35.6], r: 150 },
     { at: [25.6, 36.9], r: 150 },
   ],
+  pictograms: PICTOGRAMS,
 };

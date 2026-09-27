@@ -88,6 +88,14 @@ export interface Chapter {
   end?: { year?: number; ships?: number; at?: LonLat; mood?: Mood };
 }
 
+/** A small painted sign beside a map stop (24-unit box centred on the origin). */
+export interface Pictogram {
+  stroke?: string;
+  fill?: string;
+  /** Offset from the marker in screen px (defaults to the side opposite the label). */
+  at?: [number, number];
+}
+
 export interface Story {
   id: string;
   title: string;
@@ -100,6 +108,8 @@ export interface Story {
   initialShips: number;
   /** Map points (lon/lat) and radii that are "known" before the voyage begins. */
   known: Array<{ at: LonLat; r: number }>;
+  /** Pictograms painted beside visited stops, by chapter id. */
+  pictograms?: Record<string, Pictogram>;
 }
 
 /* ------------------------------------------------------------------ */

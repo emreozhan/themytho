@@ -844,6 +844,15 @@
   font-style: italic;
   color: var(--dilute);
 }
+.caption__hint {
+  margin: 14px 0 0;
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.8;
+}
 
 /* ------------------------------------------------------------------ */
 /* Responsive                                                          */

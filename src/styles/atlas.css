@@ -276,6 +276,41 @@
 .marker__num {
   opacity: 0;
 }
+.marker__pict {
+  opacity: 0;
+  pointer-events: none;
+}
+.marker.is-active .marker__pict,
+.marker.is-visited .marker__pict {
+  opacity: 1;
+}
+.marker__pict-bg {
+  fill: var(--map-sea);
+  stroke: var(--gold);
+  stroke-width: 1;
+  opacity: 0.92;
+  transition: fill 1.6s;
+}
+.marker__pict-fill {
+  fill: var(--gold);
+}
+.marker__pict-stroke {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.marker.is-visited .marker__pict-bg {
+  stroke: var(--dilute);
+}
+.marker.is-visited .marker__pict-fill {
+  fill: var(--dilute);
+}
+.marker.is-visited .marker__pict-stroke {
+  stroke: var(--dilute);
+}
+
 .marker.is-visited .marker__ring {
   stroke: var(--dilute);
 }

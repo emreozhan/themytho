@@ -70,7 +70,7 @@ export class Engine {
     story.known.forEach((k, i) => atlas.reveal(`known-${i}`, k.at, k.r, false));
     story.chapters.forEach((c, i) => {
       if (c.marker) return;
-      atlas.addMarker({ id: c.id, at: c.at, name: c.label ?? c.title, greek: c.greek, numeral: greekNumeral(i + 1), side: c.labelSide });
+      atlas.addMarker({ id: c.id, at: c.at, name: c.label ?? c.title, greek: c.greek, numeral: greekNumeral(i + 1), side: c.labelSide, pict: story.pictograms?.[c.id] });
     });
     this.buildLegs();
     atlas.onMarkerClick = (id) => {

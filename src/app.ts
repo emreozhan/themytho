@@ -259,6 +259,10 @@ export class App {
       },
       { passive: true },
     );
+    // A tap on the map while the ships are at sea hurries the voyage along.
+    this.atlas.el.addEventListener('click', () => {
+      if (this.started && !this.exploring && this.engine.isBusy) this.engine.next();
+    });
     // Drag to pan while exploring.
     let drag: [number, number] | null = null;
     this.atlas.el.addEventListener('pointerdown', (e) => {

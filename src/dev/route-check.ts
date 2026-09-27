@@ -30,7 +30,7 @@ const lines: string[] = [];
 const bad: string[] = [];
 chs.forEach((c, i) => {
   atlas.reveal(c.id, c.at, 400, false);
-  atlas.addMarker({ id: c.id, at: c.at, name: c.label ?? c.title, greek: c.greek, numeral: String(i + 1), side: c.labelSide });
+  atlas.addMarker({ id: c.id, at: c.at, name: c.label ?? c.title, greek: c.greek, numeral: String(i + 1), side: c.labelSide, pict: odyssey.pictograms?.[c.id] });
   if (!c.marker) atlas.setMarker(c.id, 'visited');
   const legs: Array<[string, LonLat[], string | undefined]> = [];
   if (c.arrival) legs.push([`${c.id}/${c.arrival.id}`, [c.arrival.from ?? (i ? endOf(i - 1) : harbor(i)), ...(c.arrival.via ?? []), c.arrival.to ?? harbor(i)], c.arrival.style]);

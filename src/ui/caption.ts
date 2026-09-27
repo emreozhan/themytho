@@ -12,7 +12,8 @@ export class Caption {
     this.dest = h('div', { class: 'caption__dest' });
     this.line = h('p', { class: 'caption__line' });
     this.greek = h('p', { class: 'caption__greek', lang: 'grc' });
-    this.el = h('div', { class: 'caption', 'aria-live': 'polite' }, [this.dest, this.line, this.greek]);
+    const hint = h('p', { class: 'caption__hint' }, ['Hızlandırmak için haritaya dokun ya da → tuşuna bas']);
+    this.el = h('div', { class: 'caption', 'aria-live': 'polite' }, [this.dest, this.line, this.greek, hint]);
     host.appendChild(this.el);
     gsap.set(this.el, { autoAlpha: 0 });
   }
