@@ -1,0 +1,333 @@
+.atlas {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--map-sea);
+  transition: background-color 1.6s;
+}
+
+.atlas__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sea {
+  fill: var(--map-sea);
+  transition: fill 1.6s;
+}
+.sea-glyphs {
+  fill: none;
+  stroke: var(--dilute);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  opacity: 0.2;
+}
+
+.ripple {
+  fill: none;
+  stroke: var(--map-sea-line);
+  stroke-linejoin: round;
+  transition: stroke 1.6s;
+}
+
+.land {
+  fill: var(--map-land);
+  transition: fill 1.6s;
+}
+.coast {
+  fill: none;
+  stroke: var(--map-land-edge);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.relief__body {
+  fill: var(--map-ink);
+  opacity: 0.62;
+  transition: fill 1.6s;
+}
+.relief__hatch {
+  fill: none;
+  stroke: var(--map-land);
+  stroke-width: 1;
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+.relief__smoke {
+  fill: var(--map-ink);
+  opacity: 0.35;
+}
+
+.map-label__main {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.34em;
+}
+.map-label__sub {
+  font-family: var(--font-body);
+  font-style: italic;
+  letter-spacing: 0.06em;
+}
+.map-label--land .map-label__main,
+.map-label--land .map-label__sub,
+.map-label--minor .map-label__main {
+  fill: var(--map-ink);
+}
+.map-label--land,
+.map-label--sea {
+  /* Big names belong to the overview; they fade as the camera descends. */
+  opacity: clamp(0, calc((3.4 - var(--zoom, 1)) / 1.3), 1);
+  transition: opacity 0.4s;
+}
+.map-label--land .map-label__main {
+  opacity: 0.72;
+}
+.map-label--land .map-label__sub {
+  opacity: 0.62;
+}
+.map-label--minor .map-label__main {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  opacity: 0.75;
+}
+.map-label--sea .map-label__main {
+  fill: var(--dilute);
+  opacity: 0.62;
+  letter-spacing: 0.42em;
+}
+.map-label--sea .map-label__sub {
+  fill: var(--dilute);
+  opacity: 0.5;
+}
+
+.wind-rose {
+  color: var(--dilute);
+}
+.wind-rose__ring {
+  fill: none;
+  stroke: var(--dilute);
+  stroke-width: 1.4;
+  opacity: 0.45;
+}
+.wind-rose__ring--thin {
+  stroke-width: 0.8;
+  stroke-dasharray: 2 5;
+}
+.wind-rose__star {
+  fill: var(--clay);
+  opacity: 0.75;
+}
+.wind-rose__hub {
+  fill: var(--map-sea);
+  stroke: var(--clay);
+}
+.wind-rose__name {
+  opacity: 0.7;
+}
+
+.sea-creature__body {
+  fill: var(--clay);
+  opacity: 0.4;
+  transition: fill 1.6s;
+}
+.sea-creature__eye {
+  fill: var(--map-sea);
+}
+.sea-creature__line {
+  fill: none;
+  stroke: var(--map-sea);
+  stroke-width: 1.2;
+  opacity: 0.8;
+}
+
+.fog {
+  fill: var(--map-fog);
+  opacity: 0.72;
+}
+.fog.fog--hatch {
+  fill: url(#fog-hatch);
+  opacity: 1;
+}
+.fog-hatch {
+  stroke: var(--dilute);
+  stroke-width: 1.1;
+  opacity: 0.16;
+}
+.unknown-label {
+  color: var(--dilute);
+  opacity: 0.85;
+}
+.unknown-label__sub {
+  fill: var(--dilute);
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 18px;
+  letter-spacing: 0.12em;
+}
+
+/* Route legs. Strokes stay crisp at every zoom. */
+.leg {
+  fill: none;
+  stroke: var(--map-route);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 0.1 7;
+  vector-effect: non-scaling-stroke;
+  transition: stroke 1.6s;
+}
+.leg--storm,
+.leg--blown {
+  stroke: var(--bone);
+  stroke-dasharray: 7 5;
+  stroke-width: 1.8;
+  opacity: 0.8;
+}
+.leg--drift {
+  stroke: var(--bone-dim);
+  stroke-dasharray: 0.1 5;
+  stroke-width: 2.2;
+}
+.leg--feint {
+  opacity: 0.45;
+  stroke-dasharray: 3 6;
+  stroke-width: 1.6;
+}
+.leg--night {
+  stroke: #cfe0ea;
+  stroke-dasharray: 0.1 6;
+}
+.leg-mask {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Markers are counter-scaled, so these sizes are screen pixels. */
+.marker {
+  cursor: pointer;
+  outline: none;
+}
+.marker.is-hidden {
+  display: none;
+}
+.marker__hit {
+  fill: transparent;
+}
+.marker__ring {
+  fill: var(--map-sea);
+  stroke: var(--gold);
+  stroke-width: 1.8;
+  transition: stroke 0.6s, fill 1.6s;
+}
+.marker__dot {
+  fill: var(--gold);
+  transition: fill 0.6s;
+}
+.marker__pulse {
+  fill: none;
+  stroke: var(--gold);
+  stroke-width: 1.4;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.marker.is-active .marker__pulse {
+  animation: marker-pulse 2.4s ease-out infinite;
+}
+.marker__name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.1em;
+  fill: var(--bone);
+  paint-order: stroke;
+  stroke: var(--map-sea);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  transition: fill 1.6s, stroke 1.6s;
+}
+.marker__greek,
+.marker__num {
+  color: var(--gold);
+}
+.marker__num {
+  opacity: 0;
+}
+.marker.is-visited .marker__ring {
+  stroke: var(--dilute);
+}
+.marker.is-visited .marker__dot {
+  fill: var(--dilute);
+}
+.marker.is-visited .marker__label {
+  opacity: 0.72;
+}
+.marker.is-visited .marker__greek {
+  display: none;
+}
+.marker:hover .marker__ring,
+.marker:focus-visible .marker__ring {
+  stroke: var(--bone);
+}
+.marker:hover .marker__num,
+.marker:focus-visible .marker__num {
+  opacity: 1;
+}
+
+@keyframes marker-pulse {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3);
+  }
+}
+
+/* Weather overlays. */
+.atlas::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.4s;
+}
+.atlas[data-weather='storm']::after,
+.atlas[data-weather='rain']::after {
+  opacity: 1;
+  background:
+    repeating-linear-gradient(104deg, transparent 0 22px, rgba(239, 226, 198, 0.09) 22px 23px, transparent 23px 47px),
+    radial-gradient(120% 90% at 50% 50%, transparent 30%, rgba(0, 0, 0, 0.55));
+  background-size: 200px 200px, 100% 100%;
+  animation: rain 0.45s linear infinite;
+}
+.atlas[data-weather='mist']::after {
+  opacity: 1;
+  background: radial-gradient(70% 60% at 50% 50%, rgba(207, 220, 226, 0.08), rgba(8, 10, 12, 0.6));
+}
+.atlas[data-weather='night']::after {
+  opacity: 1;
+  background: radial-gradient(90% 80% at 50% 50%, transparent 20%, rgba(3, 4, 8, 0.65));
+}
+
+@keyframes rain {
+  to {
+    background-position: -60px 200px, 0 0;
+  }
+}
+
+.atlas__flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}

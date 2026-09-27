@@ -1,0 +1,7 @@
+/* Shared classes used inside chapter tondos. */
+.scene-label {
+  color: var(--ink);
+}
+.scene-glow {
+  mix-blend-mode: screen;
+}

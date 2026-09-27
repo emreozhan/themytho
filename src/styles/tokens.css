@@ -1,0 +1,96 @@
+/*
+ * Design tokens — the palette of an Attic workshop.
+ * Black glaze, orange clay, dilute-glaze gold, added white and added purple.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Glaze & clay */
+  --glaze: #14100c;
+  --glaze-2: #1b1510;
+  --glaze-3: #251c15;
+  --glaze-4: #33271d;
+  --clay: #c4662f;
+  --clay-hi: #d98348;
+  --clay-lo: #9a4a21;
+  --clay-deep: #6e3417;
+  --dilute: #b88a52;
+  --gold: #e0ad55;
+  --gold-soft: #c9994c;
+  --bone: #efe2c6;
+  --bone-dim: #cdbd9f;
+  --purple: #7e2e26;
+  --ink: #1a130e;
+  --muted: #9a846a;
+
+  /* Map roles (switched by moods) */
+  --map-sea: var(--glaze);
+  --map-sea-line: #3a2a1d;
+  --map-land: var(--clay);
+  --map-land-edge: #2a1a10;
+  --map-ink: #2a180d;
+  --map-label: #f1dfbd;
+  --map-route: var(--gold);
+  --map-fog: #0f0c09;
+
+  /* Type */
+  --font-display: 'Cinzel', 'Trajan Pro', 'Times New Roman', serif;
+  --font-body: 'EB Garamond', 'Garamond', Georgia, serif;
+
+  --fs-xs: 0.78rem;
+  --fs-s: 0.9rem;
+  --fs-m: 1.08rem;
+  --fs-l: clamp(1.2rem, 0.9rem + 0.8vw, 1.45rem);
+  --fs-xl: clamp(1.6rem, 1.1rem + 1.6vw, 2.35rem);
+  --fs-xxl: clamp(2.4rem, 1.2rem + 4vw, 4.6rem);
+
+  /* Layout */
+  --hud-h: 64px;
+  --timeline-h: 76px;
+  --panel-w: min(420px, 34vw);
+  --gutter: clamp(14px, 2vw, 28px);
+  --radius: 4px;
+
+  /* Motion (mirrored in src/lib/motion.ts) */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --t-fast: 180ms;
+  --t-med: 420ms;
+  --t-slow: 900ms;
+}
+
+/* Moods tint the whole atlas; colour transitions are declared on the consumers. */
+:root[data-mood='night'] {
+  --map-sea: #0c0e12;
+  --map-sea-line: #1e2530;
+  --map-land: #8a4424;
+  --map-label: #d8cbb2;
+  --map-route: #e9bc6a;
+}
+:root[data-mood='storm'] {
+  --map-sea: #101113;
+  --map-sea-line: #2a2d31;
+  --map-land: #93502b;
+  --map-label: #d9ccb4;
+}
+:root[data-mood='underworld'] {
+  --map-sea: #07090b;
+  --map-sea-line: #1c2429;
+  --map-land: #4d5559;
+  --map-land-edge: #0b0e10;
+  --map-label: #b8c7cc;
+  --map-route: #a9c3cc;
+  --gold: #b7cfd6;
+}
+:root[data-mood='dawn'] {
+  --map-sea: #17110f;
+  --map-sea-line: #452c22;
+  --map-land: #cf6f38;
+}
+
+@media (max-width: 860px) {
+  :root {
+    --hud-h: 54px;
+    --timeline-h: 0px;
+  }
+}

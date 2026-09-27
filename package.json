@@ -1,0 +1,29 @@
+{
+  "name": "themytho",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Mitos Atlası — Yunan mitolojisini harita üzerinde anlatan etkileşimli bir hikâye sitesi. Cilt I: Odysseia.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "map:build": "node scripts/build-coastlines.mjs"
+  },
+  "dependencies": {
+    "@fontsource/cinzel": "^5.3.0",
+    "@fontsource/eb-garamond": "^5.3.0",
+    "gsap": "^3.15.0"
+  },
+  "devDependencies": {
+    "d3-geo": "^3.1.1",
+    "topojson-client": "^3.1.0",
+    "topojson-simplify": "^3.0.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2",
+    "world-atlas": "^2.0.2"
+  }
+}
