@@ -85,7 +85,7 @@ pieces.figures = () => {
     ['lunge', { hat: 'helmet', garment: 'short' }, POSES.lunge(390)],
     ['woman', { head: 'woman', garment: 'peplos', hat: 'diadem' }, POSES.stand(490)],
     ['woman walk', { head: 'woman', garment: 'peplos', hat: 'veil' }, POSES.walk(570)],
-    ['sit', { head: 'old', garment: 'long' }, POSES.sit(660)],
+    ['sit', { head: 'old', garment: 'long', hat: 'wreath' }, POSES.sit(660)],
     ['row', { garment: 'short', hat: 'pilos' }, POSES.row(760)],
     ['lament', { head: 'woman', garment: 'long' }, POSES.lament(850)],
     ['plead', { head: 'bearded', garment: 'rags', hat: 'pilos' }, POSES.plead(940)],

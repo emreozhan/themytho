@@ -168,7 +168,7 @@ export class Figure {
       mk('hairBack', { fill: hair, ...outline(1) }),
       mk('head', { fill: skin, ...(female ? femaleLine(0.7) : {}) }),
       mk('beard', { fill: hair }),
-      mk('hat', { fill: this.style.hat === 'diadem' ? PURPLE : INK, ...outline(1.1) }),
+      mk('hat', { fill: this.style.hat === 'diadem' || this.style.hat === 'wreath' ? PURPLE : INK, ...outline(1.1) }),
       mk('hatDetail', { fill: 'none', stroke: this.style.hat === 'diadem' ? WHITE : inc, 'stroke-width': 0.6 }),
       mk('faceLines', { fill: 'none', stroke: female ? INK : inc, 'stroke-width': 0.6, 'stroke-linecap': 'round' }),
       mk('eye', { fill: female ? INK : this.style.head === 'cyclops' ? WHITE : inc }),
@@ -580,12 +580,15 @@ export class Figure {
         hatLines = path([['M', -3.6, -9.2], ['L', -3.5, -9.1]]) + path([['M', 1.2, -9.8], ['L', 1.3, -9.7]]) + path([['M', 4.4, -9.2], ['L', 4.5, -9.1]]);
         break;
       case 'wreath': {
+        // Paired laurel leaves in added purple along an incised stem.
         let w = '';
         for (let i = 0; i < 6; i++) {
           const x = -7 + i * 2.6, y = -6.4 - Math.sin((i / 5) * Math.PI) * 2.4;
-          w += path([['M', x, y], ['q', 1.2, -2.8, 2.6, -1.6]]) + path([['M', x, y], ['q', 1.4, 1.8, 2.8, 0.6]]);
+          w += path([['M', x, y], ['Q', x + 0.4, y - 2.8, x + 2.8, y - 2.2], ['Q', x + 2, y - 0.4, x, y]]) + 'Z';
+          w += path([['M', x, y], ['Q', x + 1.2, y + 1.8, x + 3, y + 0.8], ['Q', x + 1.6, y - 0.4, x, y]]) + 'Z';
         }
-        hatLines = w;
+        hat = w;
+        hatLines = path([['M', -7.4, -6.2], ['C', -3, -9.6, 3.6, -9.6, 8.6, -6.4]]);
         break;
       }
       case 'veil':
