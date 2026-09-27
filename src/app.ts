@@ -81,7 +81,7 @@ export class App {
 
     this.engine.onChapter = (i) => {
       const c = story.chapters[i];
-      history.replaceState(null, '', `#/${story.id}/${c.id}`);
+      rewriteUrl(`#/${story.id}/${c.id}`);
       live.textContent = `${i + 1}. bölüm: ${c.title}`;
       document.title = `${c.title} · ${story.title} · Mitos Atlası`;
     };
@@ -120,10 +120,11 @@ export class App {
     });
   }
 
+  /** `#/odysseia/kyklop`, or just `#kyklop` where only a bare anchor survives. */
   private chapterFromHash(): number {
-    const m = location.hash.match(/^#\/([\w-]+)\/([\w-]+)/);
-    if (!m || m[1] !== this.story.id) return -1;
-    return this.story.chapters.findIndex((c) => c.id === m[2]);
+    const [a, b] = location.hash.replace(/^#\/?/, '').split('/');
+    const id = b === undefined ? a : a === this.story.id ? b : '';
+    return id ? this.story.chapters.findIndex((c) => c.id === id) : -1;
   }
 
   private async begin(): Promise<void> {
@@ -177,7 +178,7 @@ export class App {
     this.hud.show(false);
     this.timeline.show(false);
     await this.panel.hide();
-    history.replaceState(null, '', location.pathname + location.search);
+    rewriteUrl(location.pathname + location.search);
     document.title = 'Odysseia · Mitos Atlası';
     this.cover.show();
   }
@@ -291,5 +292,14 @@ export class App {
       else if (dx > 50) this.engine.prev();
     });
     gsap.ticker.lagSmoothing(500, 33);
+  }
+}
+
+/** Rewrites the address without navigating; some sandboxed frames refuse it. */
+function rewriteUrl(url: string): void {
+  try {
+    history.replaceState(null, '', url);
+  } catch {
+    /* the story works without a deep link */
   }
 }
