@@ -17,7 +17,7 @@ export const laistrygonlar: Chapter = {
   reveal: 200,
   arrival: {
     id: 'sail',
-    via: [[14.0, 39.2], [12.0, 40.4], [10.3, 41.15]],
+    via: [[14.5, 38.75], [14.0, 39.2], [12.0, 40.4], [10.3, 41.15]],
     caption: {
       tr: 'Altı gün, altı gece yol aldık; yedinci gün Lamos’un yüksek kalesine, Laistrygonların Telepylos’una vardık.',
       greek: 'ἑβδομάτῃ δ᾽ ἱκόμεσθα Λάμου αἰπὺ πτολίεθρον — Od. 10.81',

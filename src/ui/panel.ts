@@ -41,7 +41,7 @@ export class Panel {
     this.title = h('h2', { class: 'panel__title', id: 'panel-title' });
     this.greek = h('div', { class: 'panel__greek' });
     this.place = h('p', { class: 'panel__place' });
-    this.body = h('div', { class: 'panel__body' });
+    this.body = h('div', { class: 'panel__body', 'aria-live': 'polite' });
     this.scroll = h('div', { class: 'panel__scroll' }, [
       h('header', { class: 'panel__head' }, [
         h('div', { class: 'panel__kicker' }, [this.kickerNum, this.kickerPart, h('span', { class: 'panel__sep', 'aria-hidden': 'true' }, ['·']), this.kickerYear]),

@@ -9,6 +9,7 @@ export class Hud implements HudApi {
   private yearEl: HTMLElement;
   private shipsEl: HTMLElement;
   private shipIcons: HTMLElement[] = [];
+  private shipsNum: HTMLElement;
   private wrathEl: HTMLElement;
   private soundBtn: HTMLButtonElement;
   private year = { v: 0 };
@@ -27,6 +28,7 @@ export class Hud implements HudApi {
       this.shipIcons.push(icon);
     }
     this.ships = totalShips;
+    this.shipsNum = h('span', { class: 'hud__ships-num', 'aria-hidden': 'true' }, [`×${totalShips}`]);
     this.wrathEl = h('span', { class: 'hud__wrath', title: 'Poseidon’un gazabı', 'aria-hidden': 'true' });
     this.wrathEl.innerHTML = ICONS.trident;
     this.soundBtn = h('button', { class: 'icon-btn hud__sound', type: 'button', 'aria-pressed': 'false', 'aria-label': 'Sesi aç' });
@@ -45,7 +47,7 @@ export class Hud implements HudApi {
       home,
       h('div', { class: 'hud__stats' }, [
         h('div', { class: 'hud__stat hud__stat--year' }, [h('span', { class: 'hud__label' }, ['Yıl']), this.yearEl]),
-        h('div', { class: 'hud__stat hud__stat--ships' }, [h('span', { class: 'hud__label' }, ['Gemi']), this.shipsEl]),
+        h('div', { class: 'hud__stat hud__stat--ships' }, [h('span', { class: 'hud__label' }, ['Gemi']), this.shipsEl, this.shipsNum]),
         this.wrathEl,
         this.soundBtn,
         indexBtn,
@@ -73,6 +75,7 @@ export class Hud implements HudApi {
     const prev = this.ships;
     this.ships = n;
     this.shipsEl.setAttribute('aria-label', `${n} gemi`);
+    this.shipsNum.textContent = `×${n}`;
     this.shipIcons.forEach((icon, i) => {
       const alive = i < n;
       const was = i < prev;

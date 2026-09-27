@@ -9,7 +9,7 @@ export const kalypso: Chapter = {
   greek: 'ΚΑΛΥΨΩ',
   place: 'Geleneğe göre Gozo, Malta',
   at: [14.25, 36.05],
-  harbor: [14.28, 36.1],
+  harbor: [14.29, 36.12],
   labelSide: 'left',
   year: 12,
   ships: 0,
@@ -18,7 +18,7 @@ export const kalypso: Chapter = {
   reveal: 180,
   arrival: {
     id: 'surukleniş',
-    via: [[15.35, 37.55], [15.05, 36.85], [14.55, 36.3]],
+    via: [[15.6, 38.16], [15.58, 38.12], [15.56, 38.08], [15.545, 38.02], [15.46, 37.7], [15.42, 37.2], [15.33, 36.75], [15.0, 36.45], [14.55, 36.22]],
     style: 'drift',
     vessel: 'wreck',
     duration: 5,

@@ -18,7 +18,7 @@ export const malea: Chapter = {
   reveal: 150,
   arrival: {
     id: 'sail',
-    via: [[25.3, 40.35], [25.05, 39.45], [24.55, 38.4], [24.2, 37.5], [23.75, 36.75]],
+    via: [[25.3, 40.62], [25.25, 40.3], [25.62, 40.06], [25.55, 39.6], [25.1, 38.9], [24.85, 38.3], [24.7, 38.12], [24.63, 38.0], [24.45, 37.92], [24.2, 37.76], [24.17, 37.6], [24.1, 37.3], [23.8, 36.8]],
     caption: { tr: 'Kuzey rüzgârı gemileri Ege’nin güneyine, Mora’nın en uç burnuna taşır. İthaka artık birkaç gün uzaktadır.' },
   },
   end: { mood: 'storm' },

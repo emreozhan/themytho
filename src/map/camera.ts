@@ -128,6 +128,30 @@ export class Camera {
     return this.tween;
   }
 
+  /** Zoom by `factor` keeping the map point under screen point `at` fixed. */
+  zoomAt(at: Vec, factor: number): void {
+    this.tween?.kill();
+    const p = this.toMap(at);
+    const s = Math.min(this.maxScale, Math.max(this.minScale * 0.9, this.state.s * factor));
+    this.state = { x: p[0] - (at[0] - this.vw / 2) / s, y: p[1] - (at[1] - this.vh / 2) / s, s };
+    this.clampToMap();
+    this.apply();
+  }
+
+  /** Pan by a screen-space delta. */
+  panBy(dx: number, dy: number): void {
+    this.tween?.kill();
+    this.state = { ...this.state, x: this.state.x - dx / this.state.s, y: this.state.y - dy / this.state.s };
+    this.clampToMap();
+    this.apply();
+  }
+
+  /** Keep the view centre over the map. */
+  private clampToMap(): void {
+    this.state.x = Math.min(MAP_WIDTH, Math.max(0, this.state.x));
+    this.state.y = Math.min(MAP_HEIGHT, Math.max(0, this.state.y));
+  }
+
   stop(): void {
     this.tween?.kill();
     this.tween = null;

@@ -17,7 +17,7 @@ export const kyklop: Chapter = {
   reveal: 230,
   arrival: {
     id: 'sail',
-    via: [[11.6, 34.8], [12.0, 36.5], [12.1, 37.6]],
+    via: [[11.6, 34.8], [12.35, 36.3], [12.4, 37.1], [12.15, 37.7]],
     caption: {
       tr: 'Oradan daha öteye yelken açtık ve kibirli, yasa tanımaz Kykloplar ülkesine vardık.',
       greek: 'Κυκλώπων δ᾽ ἐς γαῖαν ὑπερφιάλων ἀθεμίστων / ἱκόμεθ᾽ — Od. 9.106–107',

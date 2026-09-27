@@ -28,6 +28,7 @@ export class Fleet {
   private minScale = 1;
   private time = 0;
   private formation: Vec[] = [];
+  private voyage: gsap.core.Tween | null = null;
 
   constructor(parent: SVGGElement, count: number) {
     this.layer = s('g', { class: 'fleet' });
@@ -59,7 +60,14 @@ export class Fleet {
       else v.body.appendChild(ship({ palette: RED_FIGURE, icon: true, oars: 6 }).g);
       v.g.classList.toggle('is-lead', i === 0);
     });
-    this.vessels.forEach((v, i) => (v.g.style.display = v.alive && (kind === 'fleet' || i === 0) ? '' : 'none'));
+    this.vessels.forEach((v, i) => (v.g.style.display = this.visible(v, i) ? '' : 'none'));
+  }
+
+  /** Vessel 0 is Odysseus himself: on a raft, a wreck or a borrowed ship he sails on alone. */
+  private visible(v: Vessel, i: number): boolean {
+    if (this.kind === 'fleet') return v.alive;
+    if (i !== 0) return false;
+    return this.kind === 'ship' ? v.alive : true;
   }
 
   /** Show exactly `n` ships (instantly). */
@@ -67,7 +75,7 @@ export class Fleet {
     this.vessels.forEach((v, i) => {
       v.alive = i < n;
       gsap.set(v.g, { opacity: 1 });
-      v.g.style.display = v.alive && (this.kind === 'fleet' || i === 0) ? '' : 'none';
+      v.g.style.display = this.visible(v, i) ? '' : 'none';
     });
   }
 
@@ -121,22 +129,23 @@ export class Fleet {
     const lagUnit = (this.iconPx() * 0.7) / this.scale;
     const lateral = this.formation.map(([, fy]) => fy / this.scale);
     const lags = this.formation.map(([fx]) => (-fx / this.iconPx() / 0.62) * lagUnit);
-    const maxLag = Math.max(0, ...lags.filter((_, i) => this.vessels[i].alive));
+    const maxLag = Math.max(0, ...lags.filter((_, i) => this.visible(this.vessels[i], i)));
     const state = { d: 0 };
     const total = L + maxLag * 0.6;
     const at = (d: number): Vec => {
       const p = path.getPointAtLength(clamp(d, 0, L));
       return [p.x, p.y];
     };
+    this.voyage?.kill();
     return new Promise((resolve) => {
-      gsap.to(state, {
+      this.voyage = gsap.to(state, {
         d: total,
         duration,
         ease,
         onUpdate: () => {
           onProgress(clamp(state.d / L, 0, 1));
           this.vessels.forEach((v, i) => {
-            if (!v.alive) return;
+            if (!this.visible(v, i)) return;
             const di = Math.min(state.d - lags[i], L - lags[i] * 0.4);
             const dd = clamp(di, 0, L);
             const p = at(dd);
@@ -154,10 +163,18 @@ export class Fleet {
         },
         onComplete: () => {
           onProgress(1);
+          this.voyage = null;
           resolve();
         },
+        onInterrupt: () => resolve(),
       });
     });
+  }
+
+  /** Abandon a voyage in progress (the reader jumped elsewhere). */
+  stop(): void {
+    this.voyage?.kill();
+    this.voyage = null;
   }
 
   /** Sink the last `count` living ships, one after another. */
@@ -178,8 +195,12 @@ export class Fleet {
   update(dt: number): void {
     this.time += dt;
     const k = this.iconPx() / 100 / this.scale;
-    this.vessels.forEach((v) => {
+    // From afar a dozen hulls read as a smudge: show a small squadron instead.
+    const far = this.scale / this.minScale < 1.8;
+    this.vessels.forEach((v, i) => {
       if (v.g.style.display === 'none') return;
+      const vis = far && i >= 4 ? '0' : '1';
+      if (v.g.style.opacity !== vis && !gsap.isTweening(v.g)) v.g.style.opacity = vis;
       const bob = Math.sin(this.time * 1.6 + v.phase) * 2.2;
       const heave = Math.sin(this.time * 2.1 + v.phase) * 0.9;
       const left = Math.cos((v.heading * Math.PI) / 180) < 0;

@@ -9,7 +9,7 @@ import { clamp, smoothPath, sampleSpline, bounds, type Vec } from '../lib/geomet
 import { greekText } from '../art/letters';
 import { Camera, type CamState, type Rect } from './camera';
 import { Fleet } from './fleet';
-import { LAND_COARSE_PATH, LAND_PATH } from './data/land';
+import { COAST_TILES, LAND_COARSE_PATH, LAND_PATH, RIPPLE_TILES } from './data/land';
 import { LABELS, dolphin, ketos, labelNode, reliefLayer, seaPattern, windRose } from './decor';
 import { MAP_HEIGHT, MAP_WIDTH, project, type LonLat } from './projection';
 import type { LegStyle } from '../story/types';
@@ -95,16 +95,24 @@ export class Atlas {
     sea.appendChild(s('rect', { class: 'sea', x: -PAD, y: -PAD, width: MAP_WIDTH + PAD * 2, height: MAP_HEIGHT + PAD * 2 }));
     sea.appendChild(s('rect', { class: 'sea-texture', x: -PAD, y: -PAD, width: MAP_WIDTH + PAD * 2, height: MAP_HEIGHT + PAD * 2, fill: 'url(#sea-glyphs)' }));
 
-    // Water-lines: the coast echoed outward in fading dilute-glaze rings.
+    // Water-lines: the coast echoed outward in fading dilute-glaze rings. The
+    // strokes are split into grid tiles so off-screen parts are never painted.
     const ripples = layer('ripples');
     for (const [w, o] of [[30, 0.1], [19, 0.16], [9, 0.26]] as const) {
-      ripples.appendChild(s('path', { d: LAND_COARSE_PATH, class: 'ripple', 'stroke-width': w, style: `opacity:${o}` }));
+      const ring = s('g', { class: 'ripple', 'stroke-width': w, style: `opacity:${o}` });
+      RIPPLE_TILES.forEach((d) => d && ring.appendChild(s('path', { d })));
+      ripples.appendChild(ring);
     }
 
-    // Land.
+    // Land, in two levels of detail: generalised for distant views, full detail
+    // (with a tiled coastline) once the camera comes close.
     const land = layer('land');
-    land.appendChild(s('path', { d: LAND_PATH, class: 'land' }));
-    land.appendChild(s('path', { d: LAND_PATH, class: 'coast' }));
+    land.appendChild(s('path', { d: LAND_COARSE_PATH, class: 'land lod-far' }));
+    land.appendChild(s('path', { d: LAND_COARSE_PATH, class: 'coast lod-far' }));
+    land.appendChild(s('path', { d: LAND_PATH, class: 'land lod-near' }));
+    const coast = s('g', { class: 'coast lod-near' });
+    COAST_TILES.forEach((d) => d && coast.appendChild(s('path', { d })));
+    land.appendChild(coast);
     land.appendChild(reliefLayer());
 
     // Labels & ornaments.
@@ -152,8 +160,15 @@ export class Atlas {
     this.camera.resize(r.width || innerWidth, r.height || innerHeight);
   }
 
+  private far: boolean | null = null;
+
   private onCamera(c: CamState): void {
     this.fleet.onCamera(c.s, this.camera.minScale);
+    const far = c.s / this.camera.minScale < 1.8;
+    if (far !== this.far) {
+      this.far = far;
+      this.svg.classList.toggle('is-far', far);
+    }
     const k = 1 / c.s;
     this.markers.forEach((m) => {
       m.g.setAttribute('transform', `translate(${r1(m.at[0])} ${r1(m.at[1])}) scale(${k.toFixed(4)})`);
@@ -228,12 +243,18 @@ export class Atlas {
     if (style === 'blown') {
       // A wind-tossed track: the smooth course, worried by gusts.
       const base = sampleSpline(P, 90);
+      const acc = [0];
+      for (let i = 1; i < base.length; i++) acc.push(acc[i - 1] + Math.hypot(base[i][0] - base[i - 1][0], base[i][1] - base[i - 1][1]));
+      const total = acc[acc.length - 1] || 1;
       const wob = base.map((p, i) => {
         if (i === 0 || i === base.length - 1) return p;
         const a = base[Math.max(0, i - 1)], b = base[Math.min(base.length - 1, i + 1)];
         const tx = b[0] - a[0], ty = b[1] - a[1];
         const L = Math.hypot(tx, ty) || 1;
-        const amp = Math.sin((i / base.length) * Math.PI) * (10 + 8 * Math.sin(i * 0.9));
+        // Gusts only over open water: the envelope fades out before the end of the leg.
+        const u = acc[i] / total;
+        const env = u < 0.7 ? Math.sin((u / 0.7) * Math.PI) : 0;
+        const amp = env * (10 + 8 * Math.sin(i * 0.9));
         const w = Math.sin(i * 0.55) * amp;
         return [p[0] - (ty / L) * w, p[1] + (tx / L) * w] as Vec;
       });

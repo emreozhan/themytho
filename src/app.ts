@@ -32,6 +32,8 @@ export class App {
   private started = false;
   private wheelAcc = 0;
   private wheelLock = 0;
+  /** Free map exploration after the finale: drag to pan, wheel to zoom, markers open chapters. */
+  private exploring = false;
 
   constructor(
     root: HTMLElement,
@@ -84,6 +86,11 @@ export class App {
       document.title = `${c.title} · ${story.title} · Mitos Atlası`;
     };
     this.engine.onFinish = () => this.showFinale();
+    const openFromMap = this.atlas.onMarkerClick;
+    this.atlas.onMarkerClick = (id) => {
+      this.setExploring(false);
+      openFromMap(id);
+    };
 
     this.panel.onNext = () => this.engine.next();
     this.panel.onPrev = () => this.engine.prev();
@@ -134,7 +141,13 @@ export class App {
   private jump(i: number): void {
     if (!this.started) return;
     if (!this.finale.el.hidden) void this.finale.hide();
+    this.setExploring(false);
     this.engine.goTo(i);
+  }
+
+  private setExploring(on: boolean): void {
+    this.exploring = on;
+    this.atlas.el.classList.toggle('is-exploring', on);
   }
 
   private async showFinale(): Promise<void> {
@@ -147,10 +160,12 @@ export class App {
 
   private async explore(): Promise<void> {
     await this.finale.hide();
+    this.setExploring(true);
   }
 
   private async restart(): Promise<void> {
     await this.finale.hide();
+    this.setExploring(false);
     this.engine.reset();
     this.engine.start(0);
   }
@@ -223,6 +238,10 @@ export class App {
     addEventListener(
       'wheel',
       (e) => {
+        if (this.exploring) {
+          this.atlas.camera.zoomAt([e.clientX, e.clientY], Math.exp(-e.deltaY * 0.0015));
+          return;
+        }
         if (!this.started || this.drawer.opened || !this.finale.el.hidden) return;
         const inPanel = (e.target as HTMLElement).closest?.('.panel__scroll');
         if (inPanel) {
@@ -240,10 +259,25 @@ export class App {
       },
       { passive: true },
     );
+    // Drag to pan while exploring.
+    let drag: [number, number] | null = null;
+    this.atlas.el.addEventListener('pointerdown', (e) => {
+      if (!this.exploring || (e.target as Element).closest('.marker')) return;
+      drag = [e.clientX, e.clientY];
+      this.atlas.el.setPointerCapture(e.pointerId);
+    });
+    this.atlas.el.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      this.atlas.camera.panBy(e.clientX - drag[0], e.clientY - drag[1]);
+      drag = [e.clientX, e.clientY];
+    });
+    const endDrag = () => (drag = null);
+    this.atlas.el.addEventListener('pointerup', endDrag);
+    this.atlas.el.addEventListener('pointercancel', endDrag);
     let touch: [number, number, number] | null = null;
     this.atlas.el.addEventListener('touchstart', (e) => (touch = [e.touches[0].clientX, e.touches[0].clientY, performance.now()]), { passive: true });
     this.atlas.el.addEventListener('touchend', (e) => {
-      if (!touch || !this.started) return;
+      if (!touch || !this.started || this.exploring) return;
       const t = e.changedTouches[0];
       const dx = t.clientX - touch[0], dy = t.clientY - touch[1];
       const fast = performance.now() - touch[2] < 600;

@@ -42,6 +42,7 @@ interface LegRec {
   leg: Leg;
   handle: LegHandle;
   arrival: boolean;
+  sailed?: boolean;
 }
 
 export class Engine {
@@ -131,7 +132,10 @@ export class Engine {
   private applyState(i: number): void {
     const { atlas, hud } = this.ui;
     const chs = this.story.chapters;
-    this.all.forEach((l) => l.handle.set(l.chapter < i ? 1 : 0));
+    this.all.forEach((l) => {
+      l.handle.set(l.chapter < i ? 1 : 0);
+      l.sailed = l.chapter < i;
+    });
     chs.forEach((c, k) => {
       if (!c.marker) atlas.setMarker(c.id, chs.some((d, m) => m < i && (d.marker ?? d.id) === c.id) ? 'visited' : 'hidden');
       if (k < i) atlas.reveal(c.id, c.at, c.reveal ?? 170, false);
@@ -148,6 +152,28 @@ export class Engine {
     hud.wrath(!!chs[i].wrath && !!prev?.wrath);
     this.setMood(prev ? (prev.end?.mood ?? prev.mood ?? 'day') : 'day');
     atlas.setUnknownLabel(i > 7 ? 0 : 1);
+  }
+
+  /**
+   * Make sure the map reflects the end of chapter i before sailing on, even if
+   * its scene skipped an extra leg or a shipwreck: draw the legs, move the
+   * fleet to where the chapter ends, and trim the fleet to its surviving ships.
+   */
+  private settleChapter(i: number): void {
+    const c = this.story.chapters[i];
+    const { atlas } = this.ui;
+    let skipped = false;
+    for (const rec of this.all) {
+      if (rec.chapter !== i || rec.arrival) continue;
+      if (!rec.sailed) skipped = true;
+      rec.handle.set(1);
+    }
+    if (skipped) {
+      const end = this.endOf(i);
+      atlas.fleet.anchor(project(end[0], end[1]));
+    }
+    const ships = c.end?.ships ?? c.ships;
+    if (atlas.fleet.alive !== Math.max(1, ships) && ships > 0) atlas.fleet.setCount(ships);
   }
 
   private setMood(m: Mood): void {
@@ -169,6 +195,7 @@ export class Engine {
     const sequential = opts.sequential ?? i === this.index + 1;
     await this.leave();
     if (!sequential) this.applyState(i);
+    else if (this.index >= 0) this.settleChapter(this.index);
     await this.voyage(i, sequential ? 1 : 0.5);
     await this.arrive(i);
     this.busy = false;
@@ -178,6 +205,10 @@ export class Engine {
 
   private async leave(): Promise<void> {
     this.ctrl?.abort();
+    this.ui.atlas.fleet.stop();
+    this.ui.atlas.camera.stop();
+    this.ui.caption.hide();
+    this.ui.atlas.setWeather('none');
     this.scene?.destroy?.();
     this.scene = null;
     this.inter = null;
@@ -249,7 +280,13 @@ export class Engine {
     medallion.clear();
     medallion.el.setAttribute('aria-label', `Sahne: ${c.title}`);
     const ctx = this.makeContext(i, signal, this.inter);
-    this.scene = c.scene(ctx);
+    try {
+      this.scene = c.scene(ctx);
+    } catch (e) {
+      // A broken picture must not strand the reader: fall back to an empty cup.
+      console.error(`Scene "${c.id}" failed to build`, e);
+      this.scene = { beat: () => undefined };
+    }
     const part = this.story.parts.find((pt) => pt.id === c.part);
     panel.setChapter(c, greekNumeral(i + 1), part?.title ?? '', c.beats.length);
     panel.setPrev(i > 0);
@@ -267,6 +304,7 @@ export class Engine {
       sail: async (legId) => {
         const rec = this.extras.get(`${i}:${legId}`);
         if (!rec || signal.aborted) return;
+        rec.sailed = true;
         atlas.fleet.setKind(rec.leg.vessel ?? (atlas.fleet.alive > 1 ? 'fleet' : 'ship'));
         const box = rec.handle.box;
         const pad = 60;

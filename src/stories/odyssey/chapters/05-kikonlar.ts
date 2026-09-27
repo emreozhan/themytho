@@ -17,7 +17,7 @@ export const kikonlar: Chapter = {
   reveal: 150,
   arrival: {
     id: 'sail',
-    via: [[25.95, 40.25], [25.75, 40.6]],
+    via: [[26.1, 40.08], [26.06, 40.28], [25.85, 40.56], [25.62, 40.73]],
     caption: {
       tr: 'İlion’dan beni taşıyan rüzgâr Kikonlara, İsmaros’a yanaştırdı.',
       greek: 'Ἰλιόθεν με φέρων ἄνεμος Κικόνεσσι πέλασσεν, Ἰσμάρῳ — Od. 9.39–40',

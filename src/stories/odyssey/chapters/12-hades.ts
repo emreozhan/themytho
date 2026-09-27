@@ -9,7 +9,7 @@ export const hades: Chapter = {
   greek: 'ΝΕΚΥΙΑ',
   place: 'Romalılara göre giriş: Avernus Gölü, Napoli yakınları',
   at: [14.08, 40.84],
-  harbor: [14.07, 40.79],
+  harbor: [14.13, 40.78],
   labelSide: 'right',
   year: 11,
   ships: 1,

@@ -17,7 +17,7 @@ export const lotofaglar: Chapter = {
   reveal: 240,
   arrival: {
     id: 'storm',
-    via: [[22.55, 36.05], [20.2, 35.25], [16.4, 34.35], [12.8, 34.05]],
+    via: [[23.28, 36.12], [22.7, 35.92], [20.2, 35.25], [16.4, 34.35], [12.8, 34.05]],
     style: 'storm',
     duration: 6,
     caption: {

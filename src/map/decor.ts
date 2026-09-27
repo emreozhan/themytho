@@ -23,7 +23,7 @@ export interface MapLabel {
 export const LABELS: MapLabel[] = [
   { at: [21.85, 39.35], text: 'HELLAS', sub: 'Yunanistan', kind: 'land', size: 30 },
   { at: [22.15, 37.5], text: 'PELOPONNESOS', sub: 'Mora', kind: 'land', size: 15, rotate: -8 },
-  { at: [25.2, 41.25], text: 'THRAKE', sub: 'Trakya', kind: 'land', size: 22 },
+  { at: [24.35, 41.3], text: 'THRAKE', sub: 'Trakya', kind: 'land', size: 22 },
   { at: [28.35, 38.55], text: 'ASİA', sub: 'Anadolu', kind: 'land', size: 28 },
   { at: [24.75, 35.24], text: 'KRETE', sub: 'Girit', kind: 'land', size: 14, rotate: -6 },
   { at: [14.25, 37.6], text: 'SİKELİA', sub: 'Sicilya', kind: 'land', size: 20, rotate: -4, west: true },

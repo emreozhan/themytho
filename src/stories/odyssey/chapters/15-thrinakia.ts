@@ -20,13 +20,13 @@ export const thrinakia: Chapter = {
   reveal: 190,
   arrival: {
     id: 'sail',
-    via: [[15.5, 37.75]],
+    via: [[15.6, 38.16], [15.58, 38.12], [15.56, 38.08], [15.545, 38.02], [15.5, 37.8], [15.45, 37.35]],
     vessel: 'ship',
     caption: { tr: 'Güneş tanrısı Helios’un kusursuz adasına… Teiresias’ın uyarısı kulaklarındadır.' },
   },
   legs: [
     { id: 'kalkis', via: [[15.7, 36.85]], to: [15.95, 36.72], duration: 2.4 },
-    { id: 'surukleniş', from: [15.95, 36.72], via: [[16.05, 37.3], [15.8, 37.85]], to: CHARYBDIS, style: 'drift', vessel: 'wreck', duration: 3.6 },
+    { id: 'surukleniş', from: [15.95, 36.72], via: [[16.0, 37.3], [15.6, 37.88], [15.545, 38.02], [15.56, 38.08], [15.58, 38.12], [15.6, 38.16], [15.605, 38.2]], to: CHARYBDIS, style: 'drift', vessel: 'wreck', duration: 3.6 },
   ],
   end: { at: CHARYBDIS, ships: 0, year: 12 },
   beats: [

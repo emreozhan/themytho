@@ -126,6 +126,36 @@ pieces.atlas = () => {
   a.fleet.anchor(a.markerPoint('troya')!, -30);
 };
 
+pieces.perf = () => {
+  document.body.style.overflow = 'hidden';
+  const a = new Atlas(document.body);
+  (window as any).atlas = a;
+  a.reveal('known', [23.6, 38.9], 380, false);
+  a.addLeg('l1', [[20.68, 38.42], [20.9, 37.6], [22.0, 36.6], [23.3, 36.3], [24.2, 37.3]]).set(1);
+  (window as any).perfRun = async (hide: string[]) => {
+    for (const sel of ['.land', '.coast', '.relief']) (a.svg.querySelector(sel) as SVGElement).style.display = hide.includes(sel) ? 'none' : '';
+    const coast = a.svg.querySelector('.coast') as SVGPathElement;
+    if (hide.includes('nse')) coast.style.vectorEffect = 'none';
+    if (hide.includes('bevel')) coast.style.strokeLinejoin = 'bevel';
+    if (hide.includes('miter')) coast.style.strokeLinejoin = 'miter';
+    if (hide.includes('speed')) coast.style.shapeRendering = 'optimizeSpeed';
+
+    for (const sel of ['.layer--sea', '.layer--ripples', '.layer--land', '.layer--labels', '.layer--decor', '.layer--fog', '.layer--routes', '.layer--markers', '.layer--fleet'])
+      (a.svg.querySelector(sel) as SVGElement).style.display = hide.includes(sel) ? 'none' : '';
+    const frames: number[] = [];
+    let last = performance.now();
+    let on = true;
+    const loop = (tt: number) => { frames.push(tt - last); last = tt; if (on) requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+    const cam = a.camera;
+    await cam.fly(cam.anchor([1100, 560], cam.zoom(4), [700, 450]), { duration: 1.5 });
+    await cam.fly(cam.anchor([400, 600], cam.zoom(2), [700, 450]), { duration: 1.5 });
+    on = false;
+    const f = frames.slice(3);
+    return (f.reduce((x, y) => x + y, 0) / f.length).toFixed(1);
+  };
+};
+
 queueMicrotask(() => {
   if (piece === 'all') Object.values(pieces).forEach((f) => f());
   else piece.split(',').forEach((p) => pieces[p]?.());

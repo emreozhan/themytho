@@ -17,7 +17,7 @@ export const sirenler: Chapter = {
   reveal: 170,
   arrival: {
     id: 'sail',
-    via: [[13.75, 40.95], [13.15, 41.14], [13.55, 40.78], [14.1, 40.5]],
+    via: [[14.07, 40.76], [13.86, 40.84], [13.6, 40.99], [13.15, 41.14], [13.55, 40.78], [14.1, 40.5]],
     vessel: 'ship',
     caption: { tr: 'Önce Kirke’nin adasına dönüp ölen yoldaşları Elpenor’u gömerler. Kirke önlerindeki tehlikeleri tek tek anlatır.' },
   },

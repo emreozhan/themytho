@@ -9,7 +9,7 @@ export const skylla: Chapter = {
   greek: 'ΣΚΥΛΛΑ ΧΑΡΥΒΔΙΣ',
   place: 'Geleneğe göre Messina Boğazı',
   at: [15.64, 38.26],
-  harbor: [15.6, 38.21],
+  harbor: [15.605, 38.2],
   labelSide: 'right',
   year: 11,
   ships: 1,
@@ -18,7 +18,7 @@ export const skylla: Chapter = {
   reveal: 150,
   arrival: {
     id: 'sail',
-    via: [[14.85, 40.15], [15.45, 39.4], [15.62, 38.75]],
+    via: [[14.85, 40.15], [15.45, 39.4], [15.62, 38.75], [15.72, 38.42], [15.68, 38.31], [15.66, 38.26], [15.625, 38.23]],
     vessel: 'ship',
     caption: { tr: 'Önlerinde, iki kayalığın arasında daracık bir geçit vardır.' },
   },

@@ -194,6 +194,13 @@
 .hud__ship.is-lost {
   color: var(--muted);
 }
+.hud__ships-num {
+  display: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--clay-hi);
+}
 .hud__wrath {
   width: 26px;
   height: 26px;
@@ -223,7 +230,15 @@
   top: calc(var(--hud-h) + (var(--vh) - var(--hud-h) - var(--timeline-h) - var(--medal)) / 2);
   border-radius: 50%;
   z-index: 12;
-  filter: drop-shadow(0 26px 40px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.9));
+}
+/* A static box-shadow disc: a CSS filter would be re-run on every animated frame. */
+.medallion::before {
+  content: '';
+  position: absolute;
+  inset: 1%;
+  border-radius: 50%;
+  box-shadow: 0 28px 50px rgba(0, 0, 0, 0.65), 0 8px 18px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
 }
 .medallion__svg {
   width: 100%;
@@ -845,16 +860,24 @@
     --medal: min(86vw, calc(var(--vh) * 0.4));
   }
   .hud__stat--ships .hud__label,
-  .hud__volume {
+  .hud__brand-text {
     display: none;
   }
-  .hud__ship {
-    width: 12px;
-    height: 10px;
+  .hud__ship:not(:first-child) {
+    display: none;
   }
-  .hud__title {
-    font-size: 10.5px;
-    letter-spacing: 0.24em;
+  .hud__ships-num {
+    display: inline;
+  }
+  .hud__ship {
+    width: 18px;
+    height: 15px;
+  }
+  .hud__stats {
+    gap: 10px;
+  }
+  .hud__year-num {
+    font-size: 21px;
   }
   .medallion {
     left: calc(50vw - var(--medal) / 2);

@@ -12,12 +12,7 @@
  *   __lab.choose(label)     click the choice whose text contains label
  *   __lab.state()           { index, beat, busy, nextEnabled }
  */
-import '@fontsource/cinzel/400.css';
-import '@fontsource/cinzel/600.css';
-import '@fontsource/cinzel/700.css';
-import '@fontsource/eb-garamond/400.css';
-import '@fontsource/eb-garamond/400-italic.css';
-import '@fontsource/eb-garamond/600.css';
+import '../styles/fonts';
 import '../styles/tokens.css';
 import '../styles/base.css';
 import '../styles/atlas.css';
@@ -109,5 +104,6 @@ const lab = {
     }
   },
 };
-(window as unknown as { __lab: typeof lab }).__lab = lab;
+(window as unknown as { __lab: typeof lab; __atlas: App }).__lab = lab;
+(window as unknown as { __atlas: App }).__atlas = app;
 if (targetBeat > 0) void lab.goto(targetBeat);
