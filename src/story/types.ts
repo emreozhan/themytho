@@ -83,7 +83,10 @@ export interface Chapter {
   /** Camera zoom at this stop, as a multiple of the whole-map scale. */
   zoom?: number;
   beats: Beat[];
-  scene: SceneFactory;
+  /** The tondo for this chapter, either bundled… */
+  scene?: SceneFactory;
+  /** …or loaded on demand (code-split), e.g. `() => import('../../scenes/kyklop')`. */
+  load?: () => Promise<{ scene: SceneFactory }>;
   /** State once the chapter is over (defaults: same year/ships, ends at `at`). */
   end?: { year?: number; ships?: number; at?: LonLat; mood?: Mood };
 }

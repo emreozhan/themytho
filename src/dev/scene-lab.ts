@@ -76,6 +76,7 @@ const lab = {
   state: () => ({ index: engine.index, beat: engine.beat, busy: engine.isBusy, nextEnabled: !(document.querySelector('.panel__next') as HTMLButtonElement).disabled }),
   /** Advance to beat n, auto-completing gates on the way. */
   async goto(n: number) {
+    const tried = new Set<string>();
     for (let guard = 0; guard < 400 && (engine.beat < n || engine.isBusy); guard++) {
       await sleep(120);
       const st = lab.state();
@@ -91,14 +92,13 @@ const lab = {
           await lab.hold(4000);
           continue;
         }
-        const choice = document.querySelector<HTMLButtonElement>('.ostrakon');
-        if (choice) {
-          // Try each option until the gate resolves.
-          for (const b of document.querySelectorAll<HTMLButtonElement>('.ostrakon')) {
-            b.click();
-            await sleep(900);
-            if (lab.state().nextEnabled) break;
-          }
+        const options = [...document.querySelectorAll<HTMLButtonElement>('.ostrakon')];
+        if (options.length) {
+          // Try each answer once; a wrong answer re-renders the options.
+          const next = options.find((b) => !tried.has(b.textContent ?? '')) ?? options[0];
+          tried.add(next.textContent ?? '');
+          next.click();
+          await sleep(900);
         }
       }
     }

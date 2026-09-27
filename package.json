@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "map:build": "node scripts/build-coastlines.mjs"
+    "map:build": "node scripts/build-coastlines.ts"
   },
   "dependencies": {
     "@fontsource/cinzel": "^5.3.0",

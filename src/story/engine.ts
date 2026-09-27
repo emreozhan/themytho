@@ -20,7 +20,7 @@ import type { Timeline } from '../ui/timeline';
 import type { Drawer } from '../ui/drawer';
 import type { Caption } from '../ui/caption';
 import { interactions, type Interactions } from './interactions';
-import type { AtlasApi, AudioApi, Chapter, Leg, Mood, Scene, SceneContext, Story } from './types';
+import type { AtlasApi, AudioApi, Chapter, Leg, Mood, Scene, SceneContext, SceneFactory, Story } from './types';
 import { RADIUS } from '../ui/medallion';
 
 export interface EngineUI {
@@ -203,6 +203,19 @@ export class Engine {
     await this.playBeat(0);
   }
 
+  /** Resolve a chapter's scene factory, loading its module if it is code-split. */
+  private async factory(c: Chapter): Promise<SceneFactory> {
+    if (c.scene) return c.scene;
+    if (c.load) return (await c.load()).scene;
+    return () => ({ beat: () => undefined });
+  }
+
+  /** Warm the module cache for a chapter's scene (during the voyage there). */
+  private prefetch(i: number): void {
+    const c = this.story.chapters[i];
+    c?.load?.().catch(() => undefined);
+  }
+
   private async leave(): Promise<void> {
     this.ctrl?.abort();
     this.ui.atlas.fleet.stop();
@@ -222,6 +235,7 @@ export class Engine {
   }
 
   private async voyage(i: number, speed: number): Promise<void> {
+    this.prefetch(i);
     const rec = this.arrivals.get(i);
     const c = this.story.chapters[i];
     const { atlas, hud, caption } = this.ui;
@@ -276,12 +290,15 @@ export class Engine {
     // Raise the tondo.
     this.ctrl = new AbortController();
     const signal = this.ctrl.signal;
+    this.prefetch(i + 1);
     this.inter = interactions(medallion, panel, signal);
     medallion.clear();
     medallion.el.setAttribute('aria-label', `Sahne: ${c.title}`);
     const ctx = this.makeContext(i, signal, this.inter);
     try {
-      this.scene = c.scene(ctx);
+      const factory = await this.factory(c);
+      if (signal.aborted) return;
+      this.scene = factory(ctx);
     } catch (e) {
       // A broken picture must not strand the reader: fall back to an empty cup.
       console.error(`Scene "${c.id}" failed to build`, e);

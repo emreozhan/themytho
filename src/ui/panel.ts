@@ -4,7 +4,7 @@
  * controls that wait for the reader.
  */
 import { h, clear } from '../lib/dom';
-import { gsap, SplitText, prefersReducedMotion } from '../lib/motion';
+import { gsap, SplitText, prefersReducedMotion, t as dur } from '../lib/motion';
 import { greekSvg } from '../art/letters';
 import { ICONS } from './icons';
 import type { Beat, Chapter, ChoiceOption, Gate } from '../story/types';
@@ -91,13 +91,13 @@ export class Panel {
 
   show(): Promise<void> {
     return new Promise((resolve) =>
-      gsap.to(this.el, { autoAlpha: 1, x: 0, duration: 0.8, ease: 'expo.out', onComplete: resolve }),
+      gsap.to(this.el, { autoAlpha: 1, x: 0, duration: dur(0.8), ease: 'expo.out', onComplete: resolve }),
     );
   }
 
   hide(): Promise<void> {
     return new Promise((resolve) =>
-      gsap.to(this.el, { autoAlpha: 0, x: 40, duration: 0.45, ease: 'power2.in', onComplete: resolve }),
+      gsap.to(this.el, { autoAlpha: 0, x: 40, duration: dur(0.45), ease: 'power2.in', onComplete: resolve }),
     );
   }
 

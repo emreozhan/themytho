@@ -5,7 +5,7 @@
  * marker on arrival and sinks back into it on departure.
  */
 import { s, h, nextId } from '../lib/dom';
-import { gsap } from '../lib/motion';
+import { gsap, t as dur } from '../lib/motion';
 import { meanderRing } from '../art/ornaments';
 import { CLAY, INK } from '../art/figure';
 
@@ -20,8 +20,10 @@ export class Medallion {
   private spin: gsap.core.Tween;
 
   constructor(host: HTMLElement) {
-    this.el = h('div', { class: 'medallion', 'aria-hidden': 'true' });
-    this.svg = s('svg', { class: 'medallion__svg', viewBox: '-200 -200 400 400', role: 'img' });
+    // A labelled group: the painting itself is decoration, but the things you can
+    // touch inside it are real buttons/sliders for keyboards and screen readers.
+    this.el = h('div', { class: 'medallion', role: 'group', 'aria-roledescription': 'sahne' });
+    this.svg = s('svg', { class: 'medallion__svg', viewBox: '-200 -200 400 400', focusable: 'false' });
     this.defs = s('defs');
     const clipId = nextId('tondo');
     const clip = s('clipPath', { id: clipId });
@@ -90,7 +92,7 @@ export class Medallion {
       gsap.fromTo(
         this.el,
         { autoAlpha: 0, x: dx, y: dy, scale: 0.06, rotation: -40 },
-        { autoAlpha: 1, x: 0, y: 0, scale: 1, rotation: 0, duration: 1.15, ease: 'expo.out', onComplete: resolve },
+        { autoAlpha: 1, x: 0, y: 0, scale: 1, rotation: 0, duration: dur(1.15), ease: 'expo.out', onComplete: resolve },
       );
     });
   }
@@ -108,7 +110,7 @@ export class Medallion {
         y: dy,
         scale: 0.06,
         rotation: 30,
-        duration: 0.75,
+        duration: dur(0.75),
         ease: 'power3.in',
         onComplete: () => {
           this.spin.pause();

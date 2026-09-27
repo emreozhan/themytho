@@ -21,7 +21,7 @@ describe('the Odyssey', () => {
     const parts = new Set(odyssey.parts.map((p) => p.id));
     for (const c of chs) {
       expect(c.beats.length, c.id).toBeGreaterThan(0);
-      expect(typeof c.scene, c.id).toBe('function');
+      expect(typeof (c.scene ?? c.load), c.id).toBe('function');
       expect(parts.has(c.part), c.id).toBe(true);
       for (const b of c.beats) {
         expect(b.text.length, c.id).toBeGreaterThan(10);
