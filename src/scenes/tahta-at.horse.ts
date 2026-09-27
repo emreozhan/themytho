@@ -10,7 +10,7 @@
  */
 import { s, r1 } from '../lib/dom';
 import { rng, range } from '../lib/random';
-import { limb, ribbon, smoothPath, type Vec } from '../lib/geometry';
+import { ribbon, smoothPath, type Vec } from '../lib/geometry';
 import { INK, CLAY, WHITE, PURPLE } from '../art/figure';
 
 export interface Horse {
@@ -246,9 +246,4 @@ export function woodenHorse(defs: SVGDefsElement, id: string): Horse {
       muzzle: [111, -158],
     },
   };
-}
-
-/** Straight-ish helper for limb-like props (ladder rails, ropes). */
-export function railPath(a: Vec, b: Vec, w: number): string {
-  return limb(a, b, [[0, w / 2, w / 2], [1, w / 2, w / 2]], false, false);
 }

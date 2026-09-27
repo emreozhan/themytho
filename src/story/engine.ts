@@ -317,10 +317,16 @@ export class Engine {
   private makeContext(i: number, signal: AbortSignal, inter: Interactions): SceneContext {
     const c = this.story.chapters[i];
     const { atlas, hud, panel, medallion } = this.ui;
+    // Once the reader leaves, the old scene must not touch the map, HUD or
+    // panel of the next chapter: its calls do nothing and its awaits never
+    // resume, so any code still running simply stops.
+    const live = () => !signal.aborted;
+    const halt = <T = void>() => new Promise<T>(() => undefined);
     const api: AtlasApi = {
       sail: async (legId) => {
         const rec = this.extras.get(`${i}:${legId}`);
-        if (!rec || signal.aborted) return;
+        if (!live()) return halt();
+        if (!rec) return;
         rec.sailed = true;
         atlas.fleet.setKind(rec.leg.vessel ?? (atlas.fleet.alive > 1 ? 'fleet' : 'ship'));
         const box = rec.handle.box;
@@ -331,27 +337,43 @@ export class Engine {
         const side: Rect = stage[0] > rect.x + rect.w * 0.5 ? { ...rect, w: rect.w * 0.45 } : rect;
         const target = atlas.camera.fit({ x: box.x - pad, y: box.y - pad, w: box.w + pad * 2, h: box.h + pad * 2 }, side, 4);
         await atlas.camera.fly(target, { duration: 1.1 });
+        if (!live()) return halt();
         const seconds = prefersReducedMotion() ? 0.3 : (rec.leg.duration ?? gsap.utils.clamp(2.2, 5, rec.handle.length / 220));
         if (rec.leg.style === 'blown' || rec.leg.style === 'storm') atlas.setWeather('storm');
         await atlas.fleet.sail(rec.handle.path, seconds, (p) => rec.handle.set(p), rec.leg.style === 'blown' ? 'power1.inOut' : 'sail');
+        if (!live()) return halt();
         atlas.setWeather('none');
       },
-      flash: (color) => atlas.flash(color),
-      shake: (k) => atlas.shake(k),
-      setMood: (m) => this.setMood(m),
+      flash: (color) => {
+        if (live()) atlas.flash(color);
+      },
+      shake: (k) => {
+        if (live()) atlas.shake(k);
+      },
+      setMood: (m) => {
+        if (live()) this.setMood(m);
+      },
       sinkShips: async (count) => {
+        if (!live()) return halt();
         const left = Math.max(0, atlas.fleet.alive - count);
         hud.setShips(left);
         await atlas.fleet.sink(count);
+        if (!live()) return halt();
       },
-      setWeather: (w) => atlas.setWeather(w),
+      setWeather: (w) => {
+        if (live()) atlas.setWeather(w);
+      },
       look: async (at, zoom) => {
+        if (!live()) return halt();
         const p = project(at[0], at[1]);
         await atlas.camera.fly(atlas.camera.anchor(p, atlas.camera.zoom(zoom ?? c.zoom ?? 3.4), this.ui.stagePoint()), { duration: 1.2 });
+        if (!live()) return halt();
       },
       settle: async () => {
+        if (!live()) return halt();
         const p = project(c.at[0], c.at[1]);
         await atlas.camera.fly(atlas.camera.anchor(p, atlas.camera.zoom(c.zoom ?? 3.4), this.ui.stagePoint()), { duration: 1.2 });
+        if (!live()) return halt();
       },
     };
     return {
@@ -360,15 +382,31 @@ export class Engine {
       defs: medallion.defs,
       radius: RADIUS,
       atlas: api,
-      hud,
-      audio: this.audio,
+      hud: {
+        setYear: (year, seconds) => {
+          if (live()) hud.setYear(year, seconds);
+        },
+        setShips: (n) => {
+          if (live()) hud.setShips(n);
+        },
+        wrath: (on) => {
+          if (live()) hud.wrath(on);
+        },
+      },
+      audio: {
+        sfx: (name) => {
+          if (live()) this.audio.sfx(name);
+        },
+      },
       signal,
       reduced: prefersReducedMotion(),
-      tap: (t, o) => inter.tap(t, o),
-      hold: (o) => inter.hold(o),
-      drag: (t, o) => inter.drag(t, o),
-      choose: (o) => inter.choose(o),
-      say: (text) => panel.say(text),
+      tap: (t, o) => (live() ? inter.tap(t, o) : halt()),
+      hold: (o) => (live() ? inter.hold(o) : halt()),
+      drag: (t, o) => (live() ? inter.drag(t, o) : halt()),
+      choose: (o) => (live() ? inter.choose(o) : halt<string>()),
+      say: (text) => {
+        if (live()) panel.say(text);
+      },
     };
   }
 

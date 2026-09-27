@@ -51,9 +51,16 @@ export const scene: SceneFactory = (ctx) => {
   completed the interaction **and** the reaction animation has played. The
   “Devam” button stays disabled until then.
 * Keep ungated beats short (≤ 2.5 s of animation).
-* `ctx.signal` aborts when the reader leaves the chapter; `stage()` helpers
-  already resolve on abort. Never leave `requestAnimationFrame`/intervals
-  running — use `st.loop(gsap.to(...))` for endless idle motion.
+* `ctx.signal` aborts when the reader leaves the chapter. From then on the
+  scene is frozen: `st.play`/`st.wait` and the gates never resolve (code after
+  them simply stops), animations started through `st` are killed at once, and
+  `ctx.atlas`/`ctx.hud`/`ctx.audio`/`ctx.say` do nothing, so a stale scene can
+  never touch the next chapter. Never leave `requestAnimationFrame`/intervals
+  running — use `st.loop(gsap.to(...))` for endless idle motion, and remove any
+  `gsap.ticker` callback on abort.
+* GSAP `x`/`y` tweens on an element that already has an SVG `transform`
+  attribute replace that transform. Put positioned art in a plain wrapper `<g>`
+  and animate the wrapper.
 * `ctx.reduced` is true for `prefers-reduced-motion`; `stage()` shortens durations.
 * Per-scene defs (gradients, clip paths) go into `ctx.defs` with attribute
   `data-scene` so they are removed with the scene.

@@ -295,9 +295,4 @@ export function smokePath(x: number, y: number, h: number, w: number, phase: num
   return ribbon(pts, [[0, w * 0.35], [0.3, w], [0.75, w * 0.8], [1, w * 0.2]], 40);
 }
 
-/** Tiny arrows/strokes helper: a straight line segment path. */
-export function seg(a: Vec, b: Vec): string {
-  return `M${r1(a[0])} ${r1(a[1])}L${r1(b[0])} ${r1(b[1])}`;
-}
-
 export { down };

@@ -40,6 +40,8 @@ export interface WallSpec {
   gate?: GateSpec;
   /** Height of the stone footing (default 30% of the height). */
   socle?: number;
+  /** Spacing of the shallow vertical offsets in the curtain (Troy VI's saw-tooth face); 0 = none. */
+  offsets?: number;
   seed?: number;
 }
 
@@ -125,6 +127,13 @@ export function troyWalls(spec: WallSpec): TroyWalls {
   inc += ashlar(from, to, base - socleH + 1.6, base, 2, 26, rand);
   inc += ashlar(from, to, walk + 3.2, base - socleH, Math.max(2, Math.round((height - socleH) / 9)), 16, rand);
   curtain.appendChild(s('path', { d: inc, fill: 'none', stroke: CLAY, 'stroke-width': 0.6, opacity: 0.55, 'stroke-linecap': 'round' }));
+  // Shallow offsets in the face of the wall, every few dozen units.
+  const off = spec.offsets ?? 46;
+  if (off > 0) {
+    let od = '';
+    for (let x = from + off * 0.6; x < to - 6; x += off) od += `M${f(x)} ${f(walk + 3.2)}V${f(base)}M${f(x + 1.6)} ${f(walk + 3.2)}V${f(base)}`;
+    curtain.appendChild(s('path', { d: od, fill: 'none', stroke: CLAY, 'stroke-width': 0.55, opacity: 0.7 }));
+  }
   // The socle's sloping blocks: short slanted strokes, the painter's shorthand for a battered footing.
   let slope = '';
   for (let x = from + 5; x < to; x += 9) slope += `M${f(x)} ${f(base - 1)}l2.6 ${f(-socleH * 0.32)}`;

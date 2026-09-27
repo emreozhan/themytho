@@ -119,13 +119,10 @@ export const scene: SceneFactory = (ctx) => {
   const shore = s('g', { class: 'troya-shore' });
   const theSea = sea(141, { crestHeight: 9, foam: true });
   shore.appendChild(theSea.g);
-  const ships: SVGGElement[] = [];
   for (const [x, k] of [[-72, 0.46], [0, 0.5], [72, 0.46]] as const) {
-    const sp = ship({ palette: BLACK_FIGURE, sail: 'furled', oars: 0, crew: 0 });
     const wrap = s('g', { transform: `translate(${x} 138) scale(${k})` });
-    wrap.appendChild(sp.g);
+    wrap.appendChild(ship({ palette: BLACK_FIGURE, sail: 'furled', oars: 0, crew: 0 }).g);
     shore.appendChild(wrap);
-    ships.push(wrap);
   }
   root.appendChild(shore);
   root.appendChild(groundLine(GROUND + 0.6, -170, 170));
@@ -143,9 +140,18 @@ export const scene: SceneFactory = (ctx) => {
   // Achilles turns about his own pelvis (a quick squash of this wrapper).
   const achWrap = s('g', { class: 'achilles' });
   achWrap.appendChild(achilles.g);
-  plain.append(hector.g, achWrap);
+  // Untransformed wrappers for the entrance (figures own their transform attributes).
+  const inA = s('g');
+  const inH = s('g');
+  inA.appendChild(achWrap);
+  inH.appendChild(hector.g);
+  plain.append(inH, inA);
+  gsap.set(inA, { x: -40, opacity: 0 });
+  gsap.set(inH, { x: 40, opacity: 0 });
   const labA = inscription('ΑΧΙΛΛΕΥΣ', -92, -14, { size: 6.5, angle: 90 });
   const labH = inscription('ΕΚΤΩΡ', 88, -2, { size: 6.5, angle: 90 });
+  labA.style.opacity = '0';
+  labH.style.opacity = '0';
   plain.append(labA, labH);
 
   /** Duel state: `phase` counts exchanges (driven by the hold), `sway` is idle breathing. */
@@ -224,9 +230,13 @@ export const scene: SceneFactory = (ctx) => {
 
   /* ---------------- Idle life ---------------- */
   duel.sway = -1;
-  (window as unknown as Record<string, unknown>).__dbg = { gsap, duel, renderDuel };
   const idle = st.loop(gsap.to(duel, { sway: 1, duration: 1.9, ease: 'sine.inOut', yoyo: true, repeat: -1, onUpdate: renderDuel }));
   st.loop(gsap.to(theSea.crests, { x: -SEA_TILE, duration: 5, ease: 'none', repeat: -1 }));
+  // The watchers on the wall talk and point.
+  const watch = [
+    st.loop(poseTo(andromache, { armF: [84, 40], head: -6 }, { duration: 1.7, yoyo: true, repeat: -1, ease: 'sine.inOut' })),
+    st.loop(poseTo(priam, { armF: [70, 20], head: 8 }, { duration: 2.3, delay: 0.6, yoyo: true, repeat: -1, ease: 'sine.inOut' })),
+  ];
 
   /** Paint a label's letters stroke by stroke. */
   const write = (lab: SVGGElement, at: number, tl: gsap.core.Timeline) => {
@@ -261,14 +271,13 @@ export const scene: SceneFactory = (ctx) => {
 
   return {
     enter() {
+      // The city and the ships are painted already; the heroes step into the field.
       const tl = st.timeline();
-      tl.from(walls.g, { y: -18, opacity: 0, duration: 1.0, ease: 'power3.out' })
-        .from(onWall, { y: 10, opacity: 0, duration: 0.8, ease: 'power2.out' }, 0.5)
-        .from(ships, { y: 14, opacity: 0, duration: 0.8, stagger: 0.12, ease: 'power3.out' }, 0.2)
-        .from(achilles.g, { x: -40, opacity: 0, duration: 0.9, ease: 'power3.out' }, 0.35)
-        .from(hector.g, { x: 40, opacity: 0, duration: 0.9, ease: 'power3.out' }, 0.35);
-      write(labA, 0.9, tl);
-      write(labH, 1.0, tl);
+      tl.from(onWall, { opacity: 0, duration: 0.8, ease: 'power2.out' }, 0.2)
+        .to(inA, { x: 0, opacity: 1, duration: 0.9, ease: 'power3.out' }, 0)
+        .to(inH, { x: 0, opacity: 1, duration: 0.9, ease: 'power3.out' }, 0);
+      write(labA, 0.6, tl);
+      write(labH, 0.7, tl);
       return st.play(tl);
     },
 
@@ -293,12 +302,14 @@ export const scene: SceneFactory = (ctx) => {
             }
           },
         });
+        if (ctx.signal.aborted) return;
         ctx.hud.setYear(9, 0.2);
         ctx.audio.sfx('success');
         return;
       }
       if (i === 2) {
         idle.kill();
+        watch.forEach((a) => a.kill());
         ctx.hud.setYear(10, 1);
         duel.phase = 0;
         duel.sway = 0;
@@ -320,10 +331,9 @@ export const scene: SceneFactory = (ctx) => {
             hSpear.style.display = '';
             gsap.set(hShield, { x: sc[0], y: sc[1], rotation: 0, svgOrigin: '0 0' });
             gsap.set(hSpear, { x: sc[0] + 6, y: sc[1] - 24, rotation: -150, svgOrigin: '0 0' });
-            st.timeline()
-              .to(hShield, { x: 114, y: GROUND - 20, rotation: 40, duration: 0.7, ease: 'bounce.out' })
-              .to(hSpear, { x: 96, y: GROUND - 1.5, rotation: 176, duration: 0.6, ease: 'power2.in' }, 0.05);
           }, [], 0.6)
+          .to(hShield, { x: 114, y: GROUND - 20, rotation: 40, duration: 0.7, ease: 'bounce.out' }, 0.6)
+          .to(hSpear, { x: 96, y: GROUND - 1.5, rotation: 176, duration: 0.6, ease: 'power2.in' }, 0.65)
           .add(hector.to(POSES.fallen(64, GROUND), { duration: 0.75, ease: 'power2.in' }), 0.62)
           .add(poseTo(andromache, { armF: [150, 150], armB: [140, 160], head: 14 }, { duration: 0.5 }), 0.8)
           .add(poseTo(priam, { head: 24, lean: 8, armF: [120, 60] }, { duration: 0.6 }), 0.9);
@@ -399,10 +409,9 @@ export const scene: SceneFactory = (ctx) => {
             aSpear.style.display = '';
             gsap.set(aShield, { x: c[0], y: c[1], rotation: 0, svgOrigin: '0 0' });
             gsap.set(aSpear, { x: c[0], y: c[1] - 20, rotation: -120, svgOrigin: '0 0' });
-            st.timeline()
-              .to(aShield, { x: -64, y: GROUND - 21.5, rotation: -25, duration: 0.55, ease: 'bounce.out' })
-              .to(aSpear, { x: -8, y: GROUND - 1.5, rotation: -4, duration: 0.5, ease: 'power2.in' }, 0);
-          }, [], 3.3);
+          }, [], 3.3)
+          .to(aShield, { x: -64, y: GROUND - 21.5, rotation: -25, duration: 0.55, ease: 'bounce.out' }, 3.3)
+          .to(aSpear, { x: -8, y: GROUND - 1.5, rotation: -4, duration: 0.5, ease: 'power2.in' }, 3.3);
 
         // 5 — Odysseus comes from the ships and lifts the great shield.
         const walk = { p: 0 };
@@ -437,6 +446,7 @@ export const scene: SceneFactory = (ctx) => {
         write(labO, 4.4, tl);
         write(labA2, 3.9, tl);
         await st.play(tl);
+        if (ctx.signal.aborted) return;
         // Idle: the shield held high sways a little.
         st.loop(
           gsap.to(lift, {

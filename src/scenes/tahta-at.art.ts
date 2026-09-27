@@ -104,6 +104,15 @@ export class Warrior {
     this.sync();
   }
 
+  /** Turn to face left (-1) or right (1). */
+  face(f: 1 | -1): void {
+    if ((this.fig.style.facing ?? 1) === f) return;
+    this.fig.style.facing = f;
+    this.halo.fig.style.facing = f;
+    this.fig.render();
+    this.sync();
+  }
+
   /** Tween to a pose; the start pose is read when the tween starts. */
   to(target: Partial<Pose>, vars: gsap.TweenVars = {}): gsap.core.Tween {
     let from = clonePose(this.fig.pose);
@@ -140,4 +149,14 @@ export function peekingHead(x: number, y: number, k = 1, facing: 1 | -1 = 1): SV
   g.appendChild(s('path', { d: 'M-10 -8.6C-5 -12.6 1 -12.8 5 -11.8M-5.6 3C-6.4 -2 -5 -6.4 0 -7', fill: 'none', stroke: CLAY, 'stroke-width': 0.5 }));
   g.appendChild(s('path', { d: 'M3.6 -2.2h0.01', stroke: WHITE, 'stroke-width': 1.2, 'stroke-linecap': 'round' }));
   return g;
+}
+
+/** A bird in flight, archaic style: a small body and two wings (animate `wings` scaleY to flap). */
+export function flyingBird(x: number, y: number, k = 1): { g: SVGGElement; wings: SVGGElement } {
+  const g = s('g', { class: 'flying-bird', transform: `translate(${x} ${y}) scale(${k})` });
+  const wings = s('g');
+  wings.appendChild(s('path', { d: 'M0 0C-3 -5 -8 -7 -12 -5C-8 -4.4 -4.6 -2.4 -1.6 0.8ZM0 0C3 -5 8 -7 12 -5C8 -4.4 4.6 -2.4 1.6 0.8Z', fill: INK }));
+  g.appendChild(wings);
+  g.appendChild(s('path', { d: 'M-4.4 0.6C-2 -1 2.4 -1 5.4 0.2L7.4 -0.6L6.4 1.4C3 2.6 -2 2.4 -4.4 0.6ZM-4 0.6L-7.4 -0.6L-6.6 1.8Z', fill: INK }));
+  return { g, wings };
 }
