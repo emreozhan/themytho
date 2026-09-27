@@ -5,7 +5,7 @@
  * marker on arrival and sinks back into it on departure.
  */
 import { s, h, nextId } from '../lib/dom';
-import { gsap, t as dur } from '../lib/motion';
+import { gsap, t as dur, prefersReducedMotion } from '../lib/motion';
 import { meanderRing } from '../art/ornaments';
 import { CLAY, INK } from '../art/figure';
 
@@ -16,7 +16,8 @@ export class Medallion {
   readonly svg: SVGSVGElement;
   readonly defs: SVGDefsElement;
   readonly root: SVGGElement;
-  private ring: SVGGElement;
+  /** The rim and meander band, in their own layer so turning them never repaints the scene. */
+  private ring: SVGSVGElement;
   private spin: gsap.core.Tween;
 
   constructor(host: HTMLElement) {
@@ -44,13 +45,13 @@ export class Medallion {
     this.defs.append(clip, grad, glossGrad);
     this.svg.appendChild(this.defs);
 
-    // Cup: black glaze rim, meander band on reserved clay, the tondo itself.
-    this.svg.appendChild(s('circle', { r: 199, fill: INK, class: 'medallion__rim' }));
-    this.ring = s('g', { class: 'medallion__ring' });
+    // Cup: black glaze rim and the meander band on reserved clay, drawn in a
+    // separate layer behind the picture: the band turns slowly, and a turning
+    // shape inside the scene's own SVG would repaint the whole tondo every frame.
+    this.ring = s('svg', { class: 'medallion__ring', viewBox: '-200 -200 400 400', focusable: 'false', 'aria-hidden': 'true' });
+    this.ring.appendChild(s('circle', { r: 199, fill: INK }));
     this.ring.appendChild(s('circle', { r: 191, fill: CLAY }));
-    const m = meanderRing({ rOuter: 189, rInner: 171.5, color: INK, units: 40 });
-    this.ring.appendChild(m);
-    this.svg.appendChild(this.ring);
+    this.ring.appendChild(meanderRing({ rOuter: 189, rInner: 171.5, color: INK, units: 40 }));
     this.svg.appendChild(s('circle', { r: RADIUS + 1.5, fill: INK }));
     const tondo = s('g', { 'clip-path': `url(#${clipId})` });
     tondo.appendChild(s('circle', { r: RADIUS, fill: `url(#${shade})` }));
@@ -58,10 +59,10 @@ export class Medallion {
     tondo.appendChild(this.root);
     this.svg.appendChild(tondo);
     this.svg.appendChild(s('circle', { r: 199, fill: `url(#${gloss})`, 'pointer-events': 'none' }));
-    this.el.appendChild(this.svg);
+    this.el.append(this.ring, this.svg);
     host.appendChild(this.el);
 
-    this.spin = gsap.to(this.ring, { rotation: 360, svgOrigin: '0 0', duration: 240, ease: 'none', repeat: -1, paused: true });
+    this.spin = gsap.to(this.ring, { rotation: 360, duration: 240, ease: 'none', repeat: -1, paused: true });
     gsap.set(this.el, { autoAlpha: 0 });
   }
 
@@ -71,7 +72,6 @@ export class Medallion {
     [...this.defs.querySelectorAll('[data-scene]')].forEach((n) => n.remove());
   }
 
-  /** Current centre of the medallion on screen. */
   /** Layout centre, ignoring transforms: emerge, retreat and dock offsets are relative to it. */
   center(): [number, number] {
     const el = this.el;
@@ -84,7 +84,7 @@ export class Medallion {
 
   /** Rise from a screen point (the map marker) into place. */
   emerge(from?: [number, number]): Promise<void> {
-    this.spin.play();
+    if (!prefersReducedMotion()) this.spin.play();
     const [cx, cy] = this.center();
     const dx = from ? from[0] - cx : 0;
     const dy = from ? from[1] - cy : 40;
