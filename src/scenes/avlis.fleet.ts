@@ -322,6 +322,8 @@ export interface SeaOptions {
   foam?: boolean;
   /** Mirror the crests so they break the other way. */
   flip?: boolean;
+  /** Outline the crests with an incised line (for a sea in front of black water). */
+  incised?: boolean;
 }
 
 export class RollingSea {
@@ -349,6 +351,12 @@ export class RollingSea {
     const W = this.W;
     this.g = s('g', { class: 'aam-sea' });
     this.crests = s('path', { d: waveStripPath(W, this.h), fill: INK });
+    if (o.incised) {
+      this.crests.setAttribute('stroke', CLAY);
+      this.crests.setAttribute('stroke-width', '1.6');
+      this.crests.setAttribute('paint-order', 'stroke');
+      this.crests.setAttribute('stroke-linejoin', 'round');
+    }
     this.body = s('g');
     this.body.appendChild(s('rect', { x: -220, y: y + this.h - 0.6, width: 440, height: 260, fill: INK }));
     let d = '';

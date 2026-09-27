@@ -13,7 +13,7 @@ import { s } from '../lib/dom';
 import { gsap } from '../lib/motion';
 import { clamp, lerp, sampleSpline, type Vec } from '../lib/geometry';
 import { Figure, POSES, pose, INK, CLAY, WHITE } from '../art/figure';
-import { sea, rock, sun, inscription, fillers } from '../art/kit';
+import { sea, rock, sun, inscription, fillers, splash } from '../art/kit';
 import { greekText } from '../art/letters';
 import { Siren, bone, skull } from './sirenler.art';
 import { Galley } from './sirenler.galley';
@@ -80,7 +80,7 @@ export const scene: SceneFactory = (ctx) => {
   const ox = galley.mastX + 4.6;
   const ody = new Figure(
     { hat: 'pilos', garment: 'short', cloak: true, scale: OS },
-    pose({ ...POSES.stand(ox / OS, G / OS + 0.2), armF: [30, 30], armB: [-14, 16], head: -4 }),
+    pose({ ...POSES.stand(ox, G / OS + 0.2), armF: [30, 30], armB: [-14, 16], head: -4 }),
   );
   galley.deck.appendChild(ody.g);
   const odyLabel = inscription('ΟΔΥΣΣΕΥΣ', galley.mastX - 9, -96, { size: 5.5, angle: 90 });
@@ -139,6 +139,17 @@ export const scene: SceneFactory = (ctx) => {
   crestPath?.setAttribute('paint-order', 'stroke');
   root.appendChild(water.g);
   const tile = 576 / Math.round(576 / (16 * 1.4));
+  // Dolphins incised through the black water (idle life).
+  const dolphins = [[-66, 128, 1], [58, 142, -1]].map(([x, y, f]) => {
+    const g = s('g', { class: 'sir-dolphin' });
+    g.appendChild(s('path', {
+      d: 'M-15 0C-10 -5 0 -7 8 -5C12 -4 14 -2 16 -1L20 -0.5L16 0.7C13 1.8 8 3 0 3C-6 3 -11 2 -15 0ZM-15 0L-20.5 -4.5L-18.4 0L-20.5 4.5ZM-2 -6L-6.5 -11L2 -6.3M4 2.2L0.5 7.4L7 2.6',
+      fill: 'none', stroke: CLAY, 'stroke-width': 0.8, 'stroke-linejoin': 'round', opacity: 0.75,
+    }));
+    g.appendChild(s('circle', { cx: 12.4, cy: -2.4, r: 0.8, fill: CLAY, opacity: 0.75 }));
+    water.g.appendChild(g);
+    return { g, x, y, f };
+  });
 
   /* ---------------- Song ---------------- */
   const songG = s('g', { class: 'sir-song', opacity: 0 });
@@ -160,7 +171,7 @@ export const scene: SceneFactory = (ctx) => {
       songG.appendChild(g);
       return g;
     });
-  const lettersA = mkLetters(SONG_A);
+  const lettersA = mkLetters([...SONG_A].reverse().join(''));
   const lettersB = mkLetters(SONG_B);
 
   /* ---------------- State & the idle driver ---------------- */
@@ -180,6 +191,7 @@ export const scene: SceneFactory = (ctx) => {
     crest: 0,
     lastP: 0,
     lastSfx: -10,
+    nod: 0, // extra head bow (begging with his brows)
   };
   galley.place(S.x, W);
 
@@ -189,13 +201,15 @@ export const scene: SceneFactory = (ctx) => {
     const a = S.agitation;
     const k = S.strain;
     const w = Math.sin(t * (6 + a * 5));
+    const jerk = Math.sin(t * 13.7) * Math.sin(t * 2.3);
     ody.set({
-      lean: lerp(odyBase.lean, 7 + a * 7 + w * (2 + a * 5), k),
-      head: lerp(odyBase.head, -14 + Math.sin(t * 3.2) * 4 - a * 6, k),
-      armF: [lerp(-26, -34, a) + w * 5 * a, 26],
-      armB: [lerp(-34, -42, a) - w * 5 * a, 20],
-      legF: [8 + a * 4, 6],
-      legB: [-6, 4],
+      lean: lerp(odyBase.lean, 6 + a * 11 + w * (2 + a * 6) + jerk * a * 4, k),
+      head: lerp(odyBase.head, -14 + Math.sin(t * 3.2) * 4 - a * 10 + jerk * a * 6, k) + S.nod,
+      armF: [lerp(-26, -40, a) + w * 7 * a, 26 + a * 14],
+      armB: [lerp(-34, -48, a) - w * 7 * a, 20 + a * 10],
+      legF: [8 + a * 6 + jerk * a * 3, 6 + a * 4],
+      legB: [-6 - a * 3, 4],
+      footB: a * 18,
     });
   };
 
@@ -239,7 +253,7 @@ export const scene: SceneFactory = (ctx) => {
     const pts: Vec[] = [];
     const n = 28;
     for (let i = 0; i <= n; i++) {
-      const u = i / n;
+      const u = (i / n) * 0.9;
       const env = Math.sin(Math.PI * Math.min(1, u * 1.15)) ** 0.8;
       const bulge = Math.sin(Math.PI * u) * (lane * 9 - 10);
       const wv = Math.sin(u * 12 - t * 3.2 + lane * 2.1) * amp * env;
@@ -341,6 +355,11 @@ export const scene: SceneFactory = (ctx) => {
       cake.setAttribute('cx', (hx + 1.5).toFixed(1));
       cake.setAttribute('cy', (hy - 2.2).toFixed(1));
     }
+    dolphins.forEach((d, i) => {
+      const ph = t * 0.55 + i * 2.1;
+      const dx = Math.sin(ph) * 12 * d.f, dy = -Math.abs(Math.sin(ph * 2)) * 3.5;
+      d.g.setAttribute('transform', `translate(${(d.x + dx).toFixed(1)} ${(d.y + dy).toFixed(1)}) scale(${d.f} 1) rotate(${(Math.cos(ph * 2) * 7).toFixed(1)})`);
+    });
     renderSirens(t);
     renderSong(t);
     if (S.song > 0.5 && t - S.lastSfx > 3.9 && S.droop < 0.2) {
@@ -364,14 +383,14 @@ export const scene: SceneFactory = (ctx) => {
   const flyWax = (k: number): Promise<void> => {
     const c = crew[k];
     const dab = dabs[k];
-    const pellet = s('circle', { r: 1.6, fill: WHITE, stroke: INK, 'stroke-width': 0.35 });
+    const pellet = s('circle', { r: 2.1, fill: WHITE, stroke: INK, 'stroke-width': 0.4 });
     galley.top.appendChild(pellet);
     const from: Vec = [+(cake.getAttribute('cx') ?? 0), +(cake.getAttribute('cy') ?? 0)];
     const pr = { u: 0 };
     const tl = st.timeline();
     tl.to(pr, {
       u: 1,
-      duration: 0.42,
+      duration: 0.55,
       ease: 'power1.inOut',
       onUpdate: () => {
         const to = galley.ear(c.fig);
@@ -459,8 +478,9 @@ export const scene: SceneFactory = (ctx) => {
         const tl = st.timeline();
         tl.add(ody.to({ armF: [-26, 26], armB: [-34, 20], head: -8 }, { duration: 0.45 }), 0);
         tl.call(() => {
-          near[0].extra = { lean: -10, head: -14, armF: [150, 30], armB: [140, 40] };
+          near[0].extra = { lean: -18, head: 14, armF: [-118, -16], armB: [-104, -8] };
           near[1].extra = { lean: 14, head: -10, armF: [120, 20], armB: [110, 30] };
+          near.forEach((r) => (r.free = true));
         }, [], 0.1);
         wraps.slice(0, 5).forEach((w, k) => {
           tl.to(w, { reveal: 1, duration: 0.32, ease: 'power1.inOut' }, 0.45 + k * 0.27);
@@ -470,6 +490,7 @@ export const scene: SceneFactory = (ctx) => {
         tl.call(() => {
           near[0].extra = {};
           near[1].extra = {};
+          near.forEach((r) => (r.free = false));
         }, [], 2.0);
         tl.to(S, { strain: 1, duration: 0.5 }, 1.8);
         return st.play(tl);
@@ -501,17 +522,39 @@ export const scene: SceneFactory = (ctx) => {
 
       if (i === 4) {
         // He begs with his brows; they bind him tighter and row away. The song dies.
-        ctx.audio.sfx('depart');
         const tl = st.timeline();
+        S.follow = 9;
         tl.to(wraps[5], { reveal: 1, duration: 0.4 }, 0.1)
-          .to(S, { agitation: 0.15, duration: 1.4 }, 0.4)
-          .to(S, { song: 0, duration: 1.4, ease: 'power1.in' }, 0.3)
-          .to(S, { droop: 1, duration: 1.8, ease: 'power2.inOut' }, 0.5)
-          .to(odyBase, { head: 14, duration: 1 }, 1.2)
-          .to(S, { strain: 0.4, duration: 1.2 }, 1.2);
-        S.follow = 0.7;
-        setX(X_AWAY);
-        tl.to({}, { duration: 2.4 }, 0);
+          .to(S, { nod: 26, duration: 0.28, yoyo: true, repeat: 3, ease: 'sine.inOut' }, 0)
+          .to(S, { agitation: 0.1, duration: 1.2 }, 0.3)
+          .to(S, { song: 0, duration: 1.2, ease: 'power1.in' }, 0.4)
+          .to(S, { droop: 1, duration: 1.8, ease: 'power2.inOut' }, 0.9)
+          .to(odyBase, { head: 12, duration: 0.8 }, 1.3)
+          .to(S, { strain: 0.5, duration: 1.2 }, 1.2)
+          .call(() => ctx.audio.sfx('depart'), [], 0.5)
+          .to(S, { tx: X_AWAY, duration: 2.3, ease: 'power2.in' }, 0.5);
+        // The lyre slips from the silent Siren and drops into the sea.
+        const lyre = sirenA.lyre;
+        if (lyre) {
+          const fall = { y: 0, r: 0 };
+          const base = lyre.getAttribute('transform') ?? '';
+          tl.to(fall, {
+            y: 84,
+            r: -70,
+            duration: 0.9,
+            ease: 'power2.in',
+            onUpdate: () => lyre.setAttribute('transform', `translate(0 ${fall.y.toFixed(1)}) ${base} rotate(${fall.r.toFixed(1)})`),
+          }, 1.9);
+          tl.call(() => {
+            const sp = s('g');
+            sp.appendChild(splash(-93, SEA_Y + 4, 0.55));
+            water.g.appendChild(sp);
+            ctx.audio.sfx('splash');
+            st.timeline().fromTo(sp, { scale: 0.3, svgOrigin: `-93 ${SEA_Y + 4}`, opacity: 1 }, { scale: 1, duration: 0.35, ease: 'power2.out' }).to(sp, { opacity: 0, duration: 0.6 }, 0.3);
+            lyre.setAttribute('opacity', '0');
+          }, [], 2.8);
+        }
+        if (ctx.reduced) setX(X_AWAY);
         return st.play(tl);
       }
     },

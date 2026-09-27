@@ -14,16 +14,15 @@
  */
 import { s } from '../lib/dom';
 import { gsap } from '../lib/motion';
-import { clamp, type Vec } from '../lib/geometry';
+import type { Vec } from '../lib/geometry';
 import { POSES, pose, INK, WHITE, type Pose } from '../art/figure';
 import { Beast } from '../art/animals';
 import { exergue, inscription, flames, glow, kylix, amphora, sea, SEA_TILE, splash, cloud, rock, fillers } from '../art/kit';
 import { ship, rowing, BLACK_FIGURE } from '../art/ship';
 import { stage } from './tools';
 import type { SceneFactory } from '../story/types';
-import {
-  GROUND, Actor, poseTo, gait, writeIn, cave, boulder, cheeseBasket, milkPail, fence, hearthStones, stake, trident,
-} from './kyklop.art';
+import { GROUND, cave, boulder, cheeseBasket, milkPail, fence, hearthStones, stake, trident, seatRock } from './kyklop.art';
+import { Actor, poseTo, walkTo, beastTo, writeIn } from './kyklop.rig';
 
 const MAN = 1.15;
 const GIANT = 2.1;
@@ -96,7 +95,7 @@ export const scene: SceneFactory = (ctx) => {
   const c3 = new Actor({ head: 'bearded', garment: 'short', garmentColor: INK, facing: -1 }, walkPose(), 338, GROUND, MAN);
   const c4 = new Actor({ head: 'youth', garment: 'short', facing: -1 }, walkPose(), 370, GROUND, MAN);
   menLayer.append(c4.g, c3.g, c2.g, c1.g, odysseus.g);
-  const odyLabel = inscription('ΟΔΥΣΣΕΥΣ', 0, -112, { size: 5.6, align: 'middle' });
+  const odyLabel = inscription('ΟΔΥΣΣΕΥΣ', 17, -92, { size: 5.4, angle: 90 });
   odysseus.g.appendChild(odyLabel);
   // The wine amphora on c1's shoulder.
   const amphWrap = s('g');
@@ -111,53 +110,14 @@ export const scene: SceneFactory = (ctx) => {
 
   /* ---------------- The giant ---------------- */
   const giant = new Actor({ head: 'cyclops', garment: 'none', facing: -1 }, walkPose(), 320, GROUND, GIANT, 'polyphemos');
-  giantLayer.appendChild(giant.g);
+  const seat = seatRock([[84, GROUND + 2], [86, 64], [96, 52], [114, 49], [130, 55], [138, 72], [140, GROUND + 2]]);
+  seat.style.opacity = '0';
+  giantLayer.append(seat, giant.g);
   const giantLabel = inscription('ΠΟΛΥΦΑΜΟΣ', 13, -97, { size: 3.3, angle: 90 });
   giantLabel.style.opacity = '0';
   giant.g.appendChild(giantLabel);
 
   /* ---------------- Helpers ---------------- */
-  /** Walk an actor to x, legs in step with the distance covered. */
-  const walkTo = (a: Actor, toX: number, dur: number, o: { stride?: number; ease?: string; arms?: boolean; onUpdate?: () => void } = {}) => {
-    const proxy = { t: 0 };
-    let x0 = 0;
-    const stride = (o.stride ?? 34) * a.k;
-    return gsap.to(proxy, {
-      t: 1,
-      duration: dur,
-      ease: o.ease ?? 'power1.inOut',
-      onStart: () => {
-        x0 = a.x;
-      },
-      onUpdate: function (this: gsap.core.Tween) {
-        a.x = x0 + (toX - x0) * proxy.t;
-        a.place();
-        const lin = this.progress();
-        const amp = Math.min(1, lin * 6 + 0.25, (1 - lin) * 5);
-        gait(a.fig, Math.abs(a.x - x0) / stride, amp, o.arms ?? true);
-        o.onUpdate?.();
-      },
-    });
-  };
-  /** Walk a beast to x, stepping with the distance covered. */
-  const beastTo = (b: Beast, toX: number, dur: number, ease = 'none', onUpdate?: () => void) => {
-    const proxy = { t: 0 };
-    let x0 = 0;
-    return gsap.to(proxy, {
-      t: 1,
-      duration: dur,
-      ease,
-      onStart: () => {
-        x0 = b.x;
-      },
-      onUpdate: () => {
-        const x = x0 + (toX - x0) * proxy.t;
-        b.moveTo(x);
-        b.step((Math.abs(x - x0) / (30 * b.scale)) % 1);
-        onUpdate?.();
-      },
-    });
-  };
   /** Background motion that may outlive a beat (killed on destroy; finished at once for reduced motion). */
   const later = <T extends gsap.core.Animation>(a: T, delay = 0): T => {
     const tl = st.timeline({ delay });
@@ -242,43 +202,82 @@ export const scene: SceneFactory = (ctx) => {
   const seaPic = s('g', { class: 'kyk-sea' });
   seaPic.style.display = 'none';
   world.appendChild(seaPic);
+  seaPic.appendChild(fillers([[-22, -128], [34, -144], [-52, -96], [8, -90]], 4.4));
+  // Poseidon's trident thrust down out of a cloud bank (revealed at the end).
   const looming = s('g', { class: 'kyk-looming' });
   looming.style.opacity = '0';
-  const triWrap = s('g', { transform: 'translate(170 -196) rotate(204)' });
-  triWrap.appendChild(trident(178));
-  looming.append(triWrap, cloud(128, -112, 120, INK));
+  const triWrap = s('g', { transform: 'translate(206 -228) rotate(212) scale(1.45)' });
+  triWrap.appendChild(trident(170));
+  looming.append(triWrap, cloud(146, -98, 150, INK), cloud(84, -122, 110, INK), cloud(40, -146, 90, INK));
   seaPic.appendChild(looming);
-  seaPic.appendChild(fillers([[-30, -122], [26, -140], [-4, -96]], 4.4));
-  const waves = sea(66, { crestHeight: 18 });
+  const waves = sea(60, { crestHeight: 18 });
   seaPic.appendChild(waves.g);
   const vessel = ship({ palette: BLACK_FIGURE, sail: 'full', oars: 11, crew: 6 });
   const shipWrap = s('g');
-  const shipPos = { x: 70, y: 84, rot: 0, lurch: 0 };
-  const placeShip = () => shipWrap.setAttribute('transform', `translate(${shipPos.x.toFixed(1)} ${shipPos.y.toFixed(1)}) rotate(${(shipPos.rot + shipPos.lurch).toFixed(2)}) scale(1.8)`);
+  const shipPos = { x: 60, y: 77, rot: 0, lurch: 0 };
+  const placeShip = () => shipWrap.setAttribute('transform', `translate(${shipPos.x.toFixed(1)} ${shipPos.y.toFixed(1)}) rotate(${(shipPos.rot + shipPos.lurch).toFixed(2)}) scale(2.15)`);
   placeShip();
   shipWrap.appendChild(vessel.g);
-  const hero = new Actor({ hat: 'pilos', garment: 'short', cloak: true, facing: -1 }, pose({ ...POSES.stand(0, 0), armF: [40, 30], armB: [-20, 20] }), -31, -4, 0.42);
+  const hero = new Actor({ hat: 'pilos', garment: 'short', cloak: true, facing: -1 }, pose({ ...POSES.stand(0, 0), armF: [40, 30], armB: [-20, 20] }), -31, -4, 0.37);
   shipWrap.appendChild(hero.g);
   seaPic.appendChild(shipWrap);
-  seaPic.appendChild(rock([[-200, 200], [-200, 16], [-168, 16], [-132, 17], [-108, 20], [-94, 34], [-86, 56], [-76, 72], [-70, 110], [-68, 200]], { lines: 5, seed: 23 }));
-  const thrower = new Actor({ head: 'cyclops', garment: 'none', facing: 1 }, pose({ ...POSES.stand(0, 0), armF: [150, 40], armB: [150, 30] }), -138, 18, 0.98);
+  seaPic.appendChild(rock([[-200, 200], [-200, 28], [-166, 28], [-128, 29], [-104, 32], [-92, 44], [-86, 60], [-78, 72], [-72, 110], [-70, 200]], { lines: 5, seed: 23 }));
+  const thrower = new Actor({ head: 'cyclops', garment: 'none', facing: 1 }, pose({ ...POSES.stand(0, 0), armF: [150, 40], armB: [150, 30] }), -124, 30, 1.1);
   thrower.fig.blind = true;
   thrower.fig.render();
-  thrower.g.appendChild(inscription('ΠΟΛΥΦΑΜΟΣ', -24, -96, { size: 6.2, angle: 90 }));
+  thrower.g.appendChild(inscription('ΠΟΛΥΦΑΜΟΣ', -22, -98, { size: 5.6, angle: 90 }));
   seaPic.appendChild(thrower.g);
-  const crag = boulder(13, 4);
+  const crag = boulder(16, 4);
   const cragPos = { x: 0, y: 0, rot: 0 };
   const placeCrag = () => crag.setAttribute('transform', `translate(${cragPos.x.toFixed(1)} ${cragPos.y.toFixed(1)}) rotate(${cragPos.rot.toFixed(1)})`);
+  crag.style.opacity = '0';
   seaPic.appendChild(crag);
   const splashG = s('g');
   const splashInner = s('g');
-  splashInner.appendChild(splash(0, 0, 1.7));
+  splashInner.appendChild(splash(0, 0, 2.2));
   splashG.appendChild(splashInner);
   splashG.style.opacity = '0';
   seaPic.appendChild(splashG);
-  const shout = inscription('ΟΔΥΣΣΕΥΣ', -74, -44, { size: 10.5, angle: -7 });
+  const shout = inscription('ΟΔΥΣΣΕΥΣ', -64, -40, { size: 11, angle: -8 });
   shout.style.opacity = '0';
   seaPic.appendChild(shout);
+
+  /** The sleeping giant: sitting against his door stone, chin on his chest. */
+  const SLEEP: Partial<Pose> = { y: -12, lean: -26, head: 32, armF: [14, 26], armB: [-30, 50], legF: [106, 86], legB: [98, 76], footF: 8, footB: 10 };
+  /** Raise the great cup to the lips (`tilt` 0..1.4) while the head moves; `armEnd` releases the arm to a pose. */
+  const drink = (dur: number, head: Partial<Pose>, tilt: number, armEnd?: [number, number]) => {
+    const proxy = { t: 0 };
+    let t0: number | null = null;
+    let a0: [number, number] = [0, 0];
+    const tw = poseTo(giant.fig, head, { duration: dur });
+    const tl = gsap.timeline();
+    tl.add(tw, 0);
+    tl.to(proxy, {
+      t: 1,
+      duration: dur,
+      ease: 'power2.inOut',
+      onUpdate: () => {
+        if (t0 === null) {
+          t0 = cupTilt.v;
+          a0 = [giant.fig.pose.armF[0], giant.fig.pose.armF[1]];
+        }
+        const k = proxy.t;
+        cupTilt.v = t0 + (tilt - t0) * k;
+        if (armEnd) {
+          giant.fig.set({ armF: [a0[0] + (armEnd[0] - a0[0]) * k, a0[1] + (armEnd[1] - a0[1]) * k] });
+        } else {
+          const m = giant.mouth();
+          const rest = giant.hand('F');
+          const w = Math.min(1, cupTilt.v);
+          giant.reach('F', [rest[0] + (m[0] - 16 - rest[0]) * w, rest[1] + (m[1] + 12 - rest[1]) * w]);
+        }
+        const [gx, gy] = giant.hand('F');
+        placeCup([gx - 3, gy - 7], 60 * cupTilt.v);
+      },
+    }, 0);
+    return tl;
+  };
+  const cupTilt = { v: 0 };
 
   /* ================================================================ */
   /* Beats                                                             */
@@ -315,10 +314,17 @@ export const scene: SceneFactory = (ctx) => {
         tl.call(() => ctx.audio.sfx('bleat'), [], 0.4);
         // The men scatter to the back and cower.
         const hide: Array<[Actor, number]> = [[odysseus, -128], [c1, -100], [c2, -72], [c3, -40], [c4, -12]];
+        const cower: Array<Partial<Pose>> = [
+          { ...POSES.lunge(0, 0), lean: -8, head: -10, armF: [118, 24], armB: [-40, 40] },
+          { ...POSES.plead(0, 0), lean: 24, head: 6, armF: [150, 130], armB: [140, 140] },
+          { ...POSES.plead(0, 0), head: -14, armF: [122, 30], armB: [98, 40] },
+          { ...POSES.plead(0, 0), lean: 30, head: 10, armF: [96, 60], armB: [80, 70] },
+          { ...POSES.plead(0, 0), head: -18, armF: [128, 20], armB: [104, 30] },
+        ];
         hide.forEach(([a, x], k) => {
           tl.add(walkTo(a, x, 0.7, { stride: 40, ease: 'power2.out', arms: a !== c1 }), 0.05 + k * 0.05);
           tl.call(() => a.face(1), [], 0.78 + k * 0.04);
-          tl.add(poseTo(a.fig, { ...POSES.plead(0, 0), head: -14, armF: [122, 30], armB: [98, 40] }, { duration: 0.35 }), 0.8 + k * 0.04);
+          tl.add(poseTo(a.fig, cower[k], { duration: 0.35 }), 0.8 + k * 0.04);
         });
         tl.to(amphWrap, { opacity: 0, duration: 0.3 }, 0.7);
         // Polyphemos strides in.
@@ -412,8 +418,8 @@ export const scene: SceneFactory = (ctx) => {
           },
         }, 1.58);
         tl.add(poseTo(odysseus.fig, { armF: [70, 40], armB: [36, 30], head: -18 }, { duration: 0.5 }), 1.95);
-        tl.add(poseTo(giant.fig, { armF: [118, 70], head: -26 }, { duration: 0.45, onUpdate: cupOnGiant(-40) }), 2.1);
-        tl.add(poseTo(giant.fig, { armF: [76, 40], head: 0 }, { duration: 0.45, onUpdate: cupOnGiant(0) }), 2.6);
+        tl.add(drink(0.5, { head: -24, lean: -12 }, 1), 2.1);
+        tl.add(drink(0.5, { head: 0, lean: -8 }, 0, [76, 40]), 2.65);
         await st.play(tl);
 
         // “Adın ne?” — the cunning man will not give his true name.
@@ -439,8 +445,8 @@ export const scene: SceneFactory = (ctx) => {
         tl2.add(writeIn(outis, 1.0), 0);
         tl2.add(poseTo(odysseus.fig, { armB: [118, 20], head: -10 }, { duration: 0.5 }), 0);
         // He drains the cup…
-        tl2.add(poseTo(giant.fig, { armF: [134, 76], head: -40, lean: -14 }, { duration: 0.6, onUpdate: cupOnGiant(-64) }), 0.9);
-        tl2.to({}, { duration: 0.5, onUpdate: cupOnGiant(-74) }, 1.5);
+        tl2.add(drink(0.6, { head: -34, lean: -16 }, 1.25), 0.9);
+        tl2.add(drink(0.5, { head: -40, lean: -18 }, 1.35), 1.5);
         // …the cup slips from his fingers and he sinks back asleep.
         const fall = { t: 0 };
         let c0: Vec = [0, 0];
@@ -452,10 +458,10 @@ export const scene: SceneFactory = (ctx) => {
           t: 1,
           duration: 0.55,
           ease: 'power2.in',
-          onUpdate: () => placeCup([c0[0] - 26 * fall.t, c0[1] + (GROUND - 5 - c0[1]) * fall.t], -74 + 164 * fall.t),
+          onUpdate: () => placeCup([c0[0] - 26 * fall.t, c0[1] + (GROUND - 5 - c0[1]) * fall.t], 70 - 250 * fall.t),
         }, 2.0);
         tl2.call(() => ctx.audio.sfx('thud'), [], 2.55);
-        tl2.add(poseTo(giant.fig, { y: -10, lean: -36, head: 26, armF: [26, 30], armB: [-44, 66], legF: [84, 16], legB: [76, 6], footF: 6, footB: 4 }, { duration: 1.0 }), 2.0);
+        tl2.add(poseTo(giant.fig, SLEEP, { duration: 1.0 }), 2.0);
         tl2.add(poseTo(odysseus.fig, { armF: [30, 20], armB: [-10, 20], head: 0 }, { duration: 0.4 }), 2.6);
         tl2.call(() => odysseus.face(-1), [], 2.6);
         tl2.add(walkTo(odysseus, -96, 0.8, { stride: 32 }), 2.6);
@@ -463,7 +469,7 @@ export const scene: SceneFactory = (ctx) => {
         tl2.to(outis, { opacity: 0, duration: 0.8 }, 3.2);
         await st.play(tl2);
         // Snoring: a slow, heavy breath.
-        giantIdle = st.loop(poseTo(giant.fig, { lean: -32, head: 22 }, { duration: 1.7, ease: 'sine.inOut', yoyo: true, repeat: -1 }));
+        giantIdle = st.loop(poseTo(giant.fig, { lean: -23, head: 27 }, { duration: 1.7, ease: 'sine.inOut', yoyo: true, repeat: -1 }));
         return;
       }
 
@@ -574,18 +580,18 @@ export const scene: SceneFactory = (ctx) => {
         tl.to(survivors.map((a) => a.g), { opacity: 0, duration: 0.4 }, 0);
         tl.call(() => {
           giant.x = 104;
-          giant.fig.set(pose({ ...POSES.sit(0, 0), lean: 14, head: 10, armF: [58, 20], armB: [40, 40] }));
+          giant.fig.set(pose({ ...POSES.sit(0, 0), y: -24, lean: 14, head: 10, armF: [58, 20], armB: [40, 40] }));
           giant.place();
           giantLabel.setAttribute('transform', 'translate(-14 -104) rotate(90)');
         }, [], 0.4);
-        tl.to(giant.g, { opacity: 1, duration: 0.5 }, 0.5);
+        tl.to([giant.g, seat], { opacity: 1, duration: 0.5 }, 0.5);
         // The rams, each with a man bound beneath.
         const rams = [new Beast('ram', { x: -250, y: GROUND, scale: 1.75 }), new Beast('ram', { x: -250, y: GROUND, scale: 1.7 })];
         const riders = [c1, c2];
         const clinging = (): Pose => pose({ x: 0, y: -20, lean: -90, head: 0, armF: [180, 0], armB: [172, 8], legF: [150, 90], legB: [140, 108] });
         const underRam = (man: Actor, r: Beast) => {
-          man.x = r.x - 6 * r.scale;
-          man.y = GROUND - 1;
+          man.x = r.x - 7 * r.scale;
+          man.y = GROUND + 1;
           man.place();
         };
         rams.forEach((r, k) => {
@@ -593,10 +599,10 @@ export const scene: SceneFactory = (ctx) => {
           const man = riders[k];
           man.fig.set(clinging());
           man.face(-1);
-          man.k = 0.72;
+          man.k = 0.74;
           underRam(man, r);
           man.g.style.opacity = '1';
-          exitLayer.insertBefore(man.g, r.g);
+          exitLayer.insertBefore(man.g, ramHit);
           later(beastTo(r, 250, 6.4, 'none', () => underRam(man, r)), 0.8 + k * 1.9);
         });
         tl.call(() => ctx.audio.sfx('bleat'), [], 1.2);
@@ -644,19 +650,19 @@ export const scene: SceneFactory = (ctx) => {
         const tl2 = st.timeline();
         tl2.to(odysseus.g, { opacity: 0, duration: 0.25 }, 0);
         tl2.call(() => {
-          exitLayer.insertBefore(odysseus.g, ramHit);
+          exitLayer.appendChild(odysseus.g);
           odysseus.fig.set(clinging());
           odysseus.face(-1);
-          odysseus.k = 0.8;
-          odysseus.x = bigRam.x - 8;
-          odysseus.y = GROUND - 1;
+          odysseus.k = 0.86;
+          odysseus.x = bigRam.x - 16;
+          odysseus.y = GROUND + 3;
           odysseus.place();
           odyLabel.style.opacity = '0';
         }, [], 0.25);
         tl2.to(odysseus.g, { opacity: 1, duration: 0.3 }, 0.3);
         tl2.call(() => ctx.audio.sfx('bleat'), [], 0.5);
         tl2.add(beastTo(bigRam, 250, 5.2, 'power1.in', () => {
-          odysseus.x = bigRam.x - 8;
+          odysseus.x = bigRam.x - 16;
           odysseus.place();
         }), 0.6);
         await st.wait(3.6);
@@ -684,23 +690,24 @@ export const scene: SceneFactory = (ctx) => {
         // Polyphemos wrenches up a crag and hurls it.
         tl.call(() => {
           const [hx, hy] = thrower.hand('F');
-          cragPos.x = hx;
-          cragPos.y = hy - 12;
+          cragPos.x = hx + 2;
+          cragPos.y = hy - 14;
           placeCrag();
         }, [], 0);
+        tl.to(crag, { opacity: 1, duration: 0.3 }, 0.5);
         tl.add(poseTo(thrower.fig, { lean: -18, head: -10, armF: [196, 30], armB: [190, 36], legF: [22, 4], legB: [-22, 4] }, {
           duration: 0.5,
           onUpdate: () => {
             const [hx, hy] = thrower.hand('F');
             cragPos.x = hx + 2;
-            cragPos.y = hy - 12;
+            cragPos.y = hy - 14;
             placeCrag();
           },
         }), 0.7);
         tl.add(poseTo(thrower.fig, { lean: 26, head: 8, armF: [96, 10], armB: [80, 20], legF: [40, 30], legB: [-30, 4] }, { duration: 0.22, ease: 'power3.in' }), 1.3);
         const fly = { t: 0 };
         let a0: Vec = [0, 0];
-        const land: Vec = [-8, 70];
+        const land: Vec = [-18, 64];
         tl.call(() => {
           a0 = [cragPos.x, cragPos.y];
           ctx.audio.sfx('boulder');
@@ -748,4 +755,3 @@ export const scene: SceneFactory = (ctx) => {
   };
 };
 
-void clamp;

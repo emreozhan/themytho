@@ -63,7 +63,7 @@ export function makeHermes(o: HermesOptions): HermesActor {
   a.label = null;
   if (o.label !== false) {
     const [hx, hy] = a.headPoint();
-    const lab = inscription('ΗΕΡΜΕΣ', hx + facing * 14, hy - 4, { size: 6, angle: 90 });
+    const lab = inscription('ΗΕΡΜΕΣ', hx - facing * 17, hy - 6, { size: 5.6, angle: 90 });
     a.front.appendChild(lab);
     a.label = lab;
   }

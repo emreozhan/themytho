@@ -387,3 +387,17 @@ export function fortress(y: number, o: { from: number; to: number; height: numbe
   g.appendChild(studPath);
   return { g, gateL, gateR, studs: studPath };
 }
+
+/** Apollo's bronze tripod: a cauldron with ring handles on three legs; feet at (0,0), ~34 tall. */
+export function tripod(k = 1): SVGGElement {
+  const g = s('g', { class: 'tripod', transform: `scale(${k})` });
+  g.appendChild(s('path', { d: 'M-12 -26C-12 -18 -7 -14 0 -14C7 -14 12 -18 12 -26Z', fill: INK }));
+  g.appendChild(s('path', { d: 'M-13 -26.6H13', stroke: INK, 'stroke-width': 1.6 }));
+  // Legs with lion feet, and a strut.
+  g.appendChild(s('path', { d: 'M-10 -22L-15 0M10 -22L15 0M0 -14V0M-12.6 -9H12.6', fill: 'none', stroke: INK, 'stroke-width': 1.5, 'stroke-linecap': 'round' }));
+  g.appendChild(s('path', { d: 'M-17.6 0h5l-1 -1.6h-3zM12.6 0h5l-1.4 -1.6h-3zM-2.4 0h4.8l-0.8 -1.6h-3.2z', fill: INK }));
+  // Ring handles standing on the rim.
+  g.appendChild(s('path', { d: 'M-9 -26.6A4.2 4.2 0 1 1 -9 -34.6A4.2 4.2 0 1 1 -9 -26.6M9 -26.6A4.2 4.2 0 1 1 9 -34.6A4.2 4.2 0 1 1 9 -26.6', fill: 'none', stroke: INK, 'stroke-width': 1.3 }));
+  g.appendChild(s('path', { d: 'M-10 -21.5Q0 -18.5 10 -21.5', fill: 'none', stroke: CLAY, 'stroke-width': 0.6 }));
+  return g;
+}

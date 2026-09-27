@@ -290,13 +290,13 @@ export function wand(): { g: SVGGElement; tip: SVGGElement } {
 }
 
 /** A short Greek sword (xiphos), grip at origin, blade along +x. */
-export function sword(): SVGGElement {
+export function sword(color = INK, detail = CLAY): SVGGElement {
   const g = s('g', { class: 'xiphos' });
-  g.appendChild(s('path', { d: 'M-5 -1.2H0V1.2H-5Z', fill: INK }));
-  g.appendChild(s('path', { d: 'M-6.4 -1.8a1.6 1.6 0 0 0 0 3.6Z', fill: INK }));
-  g.appendChild(s('path', { d: 'M0 -3.6H2V3.6H0Z', fill: INK }));
-  g.appendChild(s('path', { d: 'M2 -1.5C10 -2.2 18 -2.6 26 -1.4L30 0L26 1.4C18 2.6 10 2.2 2 1.5Z', fill: INK }));
-  g.appendChild(s('path', { d: 'M3 0H26.6', stroke: CLAY, 'stroke-width': 0.45 }));
+  g.appendChild(s('path', { d: 'M-5 -1.2H0V1.2H-5Z', fill: color }));
+  g.appendChild(s('path', { d: 'M-6.4 -1.8a1.6 1.6 0 0 0 0 3.6Z', fill: color }));
+  g.appendChild(s('path', { d: 'M0 -3.6H2V3.6H0Z', fill: color }));
+  g.appendChild(s('path', { d: 'M2 -1.5C10 -2.2 18 -2.6 26 -1.4L30 0L26 1.4C18 2.6 10 2.2 2 1.5Z', fill: color, stroke: detail === CLAY ? 'none' : detail, 'stroke-width': 0.4 }));
+  g.appendChild(s('path', { d: 'M3 0H26.6', stroke: detail, 'stroke-width': 0.45 }));
   return g;
 }
 

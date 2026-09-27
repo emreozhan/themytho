@@ -101,6 +101,8 @@ export class Siren {
   /** The playing hand (plucks the lyre / fingers the pipes). */
   readonly hand: SVGGElement;
   readonly mouth: SVGCircleElement;
+  /** The lyre, when she plays one (it can be dropped). */
+  readonly lyre: SVGGElement | null = null;
   readonly instrument: 'lyre' | 'aulos' | 'none';
   readonly x: number;
   readonly y: number;
@@ -226,6 +228,7 @@ export class Siren {
       // The lyre leans back against the breast, held by the far arm.
       const lyre = lyreShape();
       lyre.setAttribute('transform', 'translate(29.5 -15.5) rotate(-22) scale(1.25)');
+      this.lyre = lyre;
       front.appendChild(s('path', { d: upper([15.5, -33], [22.5, -31]) + fore([22.5, -31], [26.8, -34.2]), ...arm }));
       front.appendChild(lyre);
       front.appendChild(s('path', { d: upper([17, -30.5], [21, -22.5]), ...arm }));

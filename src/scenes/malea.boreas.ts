@@ -36,7 +36,7 @@ const STYLE: Record<WindName, { head: HeadKind; garment: 'short' | 'none'; color
 };
 
 /** A flying pose, leaning into the blow (a fresh object each call). */
-export const flyPose = (): Pose => pose({ x: 0, y: -36, lean: 30, head: 8, armF: [112, 6], armB: [96, 20], legF: [66, 78], legB: [-24, 88], footF: 10, footB: 44 });
+export const flyPose = (): Pose => pose({ x: 0, y: -36, lean: 30, head: -2, armF: [158, -8], armB: [58, 36], legF: [66, 78], legB: [-24, 88], footF: 10, footB: 44, grip: 0 });
 
 /** One sickle wing of ribboned feathers, root at (0,0), rising up and back. */
 function wing(scale = 1): { g: SVGGElement } {
@@ -79,7 +79,10 @@ function wing(scale = 1): { g: SVGGElement } {
   return { g };
 }
 
-export function windGod(name: WindName, opts: { breath?: string; phase?: number } = {}): WindGod {
+export function windGod(name: WindName, opts: { breath?: string; phase?: number; wingScale?: number; wingSweep?: number } = {}): WindGod {
+  /** Degrees the wings are swept back from upright (negative = backwards). */
+  const wingSweep = opts.wingSweep ?? 0;
+  const ws = opts.wingScale ?? 1;
   const st = STYLE[name];
   const g = s('g', { class: `wind-god wind-god--${name}` });
   const fig = new Figure({ head: st.head, garment: st.garment, garmentColor: st.color }, flyPose());
@@ -87,8 +90,8 @@ export function windGod(name: WindName, opts: { breath?: string; phase?: number 
   const root = j.armB.S;
   // Two wings behind the body: the far one a little higher and turned back.
   const wingsG = s('g');
-  const far = wing(0.96);
-  const near = wing(1.05);
+  const far = wing(0.96 * ws);
+  const near = wing(1.05 * ws);
   const farG = s('g');
   farG.appendChild(far.g);
   const nearG = s('g');
@@ -108,7 +111,7 @@ export function windGod(name: WindName, opts: { breath?: string; phase?: number 
   const cheekLine = s('path', { fill: 'none', stroke: CLAY, 'stroke-width': 0.6, 'stroke-linecap': 'round' });
   const face = s('g');
   face.append(cheek, cheekLine);
-  const lips = hf.at(10.6, 3.1);
+  const lips = hf.at(10.2, 3.4);
   const breathColor = opts.breath ?? WHITE;
   const breath = s('g', { class: 'wind-breath', fill: 'none', stroke: breathColor, 'stroke-linecap': 'round' });
   const breathLines: SVGPathElement[] = [];
@@ -134,22 +137,24 @@ export function windGod(name: WindName, opts: { breath?: string; phase?: number 
 
   const phase = opts.phase ?? 0;
   const drawCheek = (puff: number) => {
-    const c = hf.at(4.4, 3.6);
-    const r = 3.6 + puff * 1.3;
-    const lip = hf.at(8.4 + puff * 0.8, 3.1);
+    // A swelling in front of the mouth and small pursed lips; an incised ring marks the round cheek.
+    const c = hf.at(4.4 + puff * 0.3, 4.2);
+    const r = 3.3 + puff * 0.9;
+    const lip = hf.at(8.4 + puff * 0.5, 3.4);
     cheek.setAttribute(
       'd',
       `M${f1(c[0] - r)} ${f1(c[1])}a${f1(r)} ${f1(r)} 0 1 0 ${f1(r * 2)} 0a${f1(r)} ${f1(r)} 0 1 0 ${f1(-r * 2)} 0Z` +
-        `M${f1(lip[0] - 1.5)} ${f1(lip[1])}a1.5 1.3 0 1 0 3 0a1.5 1.3 0 1 0 -3 0Z`,
+        `M${f1(lip[0] - 1.2)} ${f1(lip[1])}a1.2 1.05 0 1 0 2.4 0a1.2 1.05 0 1 0 -2.4 0Z`,
     );
-    const q0 = hf.at(2.6, 1.2), q1 = hf.at(5.4 + puff, 3.8), q2 = hf.at(3.2, 6.6);
-    cheekLine.setAttribute('d', `M${f1(q0[0])} ${f1(q0[1])}Q${f1(q1[0])} ${f1(q1[1])} ${f1(q2[0])} ${f1(q2[1])}`);
+    const cc = hf.at(3.8, 4.4);
+    const rr = 1.9 + puff * 0.7;
+    cheekLine.setAttribute('d', `M${f1(cc[0] - rr)} ${f1(cc[1])}a${f1(rr)} ${f1(rr)} 0 1 0 ${f1(rr * 2)} 0a${f1(rr)} ${f1(rr)} 0 1 0 ${f1(-rr * 2)} 0`);
   };
 
   const update = (t: number, blow = 1) => {
     const beat = Math.sin(t * 5.2 + phase * 6.28);
-    farG.setAttribute('transform', `translate(${f1(root[0] - 1)} ${f1(root[1] - 3)}) rotate(${f1(-16 + beat * 7)})`);
-    nearG.setAttribute('transform', `translate(${f1(root[0] + 1)} ${f1(root[1])}) rotate(${f1(4 + beat * 9)})`);
+    farG.setAttribute('transform', `translate(${f1(root[0] - 1)} ${f1(root[1] - 3)}) rotate(${f1(wingSweep - 18 + beat * 7)})`);
+    nearG.setAttribute('transform', `translate(${f1(root[0] + 1)} ${f1(root[1])}) rotate(${f1(wingSweep + beat * 9)})`);
     drawCheek(0.6 + 0.4 * Math.sin(t * 3.1 + phase * 3));
     breath.setAttribute('opacity', f1(Math.max(0, Math.min(1, blow))));
     breathLines.forEach((p, i) => {

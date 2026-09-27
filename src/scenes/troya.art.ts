@@ -162,6 +162,8 @@ export class Hoplite {
   aim: number;
   /** Shield offset from the forearm (pose frame). */
   shieldShift: Vec = [2.6, 0];
+  /** Extra props to re-place after every pose change. */
+  onSync: (() => void) | null = null;
   constructor(style: FigureStyle, p: Pose, opts: HopliteOptions = {}) {
     this.fig = new Figure(style, p);
     this.aim = opts.aim ?? 0;
@@ -208,6 +210,7 @@ export class Hoplite {
       }
       this.greaves.setAttribute('d', d);
     }
+    this.onSync?.();
   }
 
   set(p: Partial<Pose>, aim?: number): void {

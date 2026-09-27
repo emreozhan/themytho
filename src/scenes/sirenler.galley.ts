@@ -12,7 +12,7 @@
 import { s } from '../lib/dom';
 import { lerp, smoothstep, type Vec } from '../lib/geometry';
 import { ship, BLACK_FIGURE, type ShipParts } from '../art/ship';
-import { Figure, pose, INK, CLAY, WHITE, type Pose, type FigureStyle } from '../art/figure';
+import { Figure, pose, INK, CLAY, type Pose, type FigureStyle } from '../art/figure';
 
 const f1 = (v: number) => Math.round(v * 10) / 10;
 
@@ -39,9 +39,9 @@ export interface Rower {
   lag: number;
   /** Extra pose added on top of the stroke (head turns etc.). */
   extra: Partial<Pose>;
-  /** Weight of the stroke (0 = resting, 1 = rowing). */
-  effort: number;
-  /** Rower is gone (snatched): skip his oar. */
+  /** Hands busy elsewhere: the oar is left resting in the tholes. */
+  free: boolean;
+  /** Rower is gone (snatched): his oar trails in the water. */
   gone: boolean;
 }
 
@@ -110,10 +110,10 @@ export class Galley {
       this.crew.appendChild(fig.g);
       const oar = s('path', { fill: INK, stroke: CLAY, 'stroke-width': 0.6, 'paint-order': 'stroke', 'stroke-linejoin': 'round' });
       this.oars.appendChild(oar);
-      this.rowers.push({ fig, x, thole: [x - 13 * rs, this.gunwale + 0.6], oar, lag: i * 0.025, extra: {}, effort: 0, gone: false });
+      this.rowers.push({ fig, x, thole: [x - 13 * rs, this.gunwale + 0.6], oar, lag: i * 0.025, extra: {}, free: false, gone: false });
     });
     if (o.helmsman) {
-      const hx = -35 * K;
+      const hx = -32 * K;
       this.helmsman = new Figure({ head: 'bearded', garment: 'short', facing: 1, scale: rs }, pose({ x: hx, y: seatY / rs - 1, lean: -6, head: 4, legF: [84, 70], legB: [80, 66], armF: [30, 20], armB: [-60, 40] }));
       this.crew.insertBefore(this.helmsman.g, this.crew.firstChild);
     }
@@ -140,7 +140,7 @@ export class Galley {
   row(phase: number, effort: number, breath = 0): void {
     for (const r of this.rowers) {
       if (r.gone) continue;
-      const e = effort * (r.effort >= 0 ? 1 : 0);
+      const e = effort;
       const ph = (((phase - r.lag) % 1) + 1) % 1;
       // Drive fast (0 → 0.42), recover slower.
       const u = ph < 0.42 ? smoothstep(0, 1, ph / 0.42) : 1 - smoothstep(0, 1, (ph - 0.42) / 0.58);
@@ -170,7 +170,7 @@ export class Galley {
   }
 
   drawOar(r: Rower): void {
-    if (r.gone) {
+    if (r.gone || r.free) {
       // Unmanned oar: trailing in the water.
       const [tx, ty] = r.thole;
       const B: Vec = [tx - this.oarLen * 0.62, ty + this.oarLen * 0.62];
@@ -221,4 +221,3 @@ function oarPath(H: Vec, T: Vec, k: number, len?: number): string {
   );
 }
 
-export { WHITE };

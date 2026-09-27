@@ -11,7 +11,7 @@
 import { s } from '../lib/dom';
 import { gsap } from '../lib/motion';
 import { smoothstep, type Vec } from '../lib/geometry';
-import { Figure, POSES, pose, INK, PURPLE, bowPath, type Pose } from '../art/figure';
+import { Figure, POSES, pose, INK, CLAY, PURPLE, bowPath, type Pose } from '../art/figure';
 import { groundLine, sea, SEA_TILE, sun, moon, stars, nightVeil, inscription, fillers } from '../art/kit';
 import { ship, BLACK_FIGURE } from '../art/ship';
 import { stage } from './tools';
@@ -54,18 +54,21 @@ export const scene: SceneFactory = (ctx) => {
 
   /* ---------------- On the walls: Trojans watching, Paris ---------------- */
   const onWall = s('g', { class: 'troya-onwall' });
+  /** A figure standing on the walkway behind the breastwork; returns the animatable inner group. */
   const perch = (x: number, k: number, fig: Figure) => {
     const g = s('g', { transform: `translate(${x} ${walls.walk + 15}) scale(${k})` });
-    g.appendChild(fig.g);
+    const inner = s('g');
+    inner.appendChild(fig.g);
+    g.appendChild(inner);
     onWall.appendChild(g);
-    return g;
+    return inner;
   };
   const andromache = new Figure({ head: 'woman', garment: 'peplos', hat: 'veil', garmentColor: INK }, pose({ ...POSES.stand(0, 0), armF: [60, 60], armB: [30, 80] }));
   const priam = new Figure({ head: 'old', garment: 'long', cloak: true, facing: -1 }, pose({ ...POSES.stand(0, 0), armF: [40, 40] }));
   perch(4, 0.36, andromache);
   perch(22, 0.38, priam);
   // Paris waits below the battlements; he rises to shoot in beat 2.
-  const PARIS_X = 70;
+  const PARIS_X = 68;
   const PARIS_K = 0.42;
   const paris = new Figure({ head: 'youth', garment: 'short', garmentColor: INK, facing: -1 }, pose({ ...POSES.stand(0, 0), lean: 4, armF: [40, 30], armB: [20, 40] }));
   const parisG = perch(PARIS_X, PARIS_K, paris);
@@ -75,7 +78,7 @@ export const scene: SceneFactory = (ctx) => {
   const nocked = arrowShape(24);
   bow.append(bowString, bowLimb, nocked);
   paris.g.appendChild(bow);
-  const parisLab = inscription('ΠΑΡΙΣ', PARIS_X + 12, walls.walk - 26, { size: 4.6 });
+  const parisLab = inscription('ΠΑΡΙΣ', PARIS_X - 18, walls.walk - 36, { size: 4.6, angle: 90 });
   onWall.appendChild(parisLab);
   parisG.style.opacity = '0';
   parisLab.style.opacity = '0';
@@ -176,12 +179,19 @@ export const scene: SceneFactory = (ctx) => {
   const ODY_X = -100;
   const odysseus = new Figure({ hat: 'pilos', garment: 'short', cloak: true }, POSES.walk(ODY_X - 56, GROUND));
   odysseus.g.style.opacity = '0';
-  const labO = inscription('ΟΔΥΣΣΕΥΣ', -136, -30, { size: 6.2, angle: 90 });
+  const labO = inscription('ΟΔΥΣΣΕΥΣ', -78, 14, { size: 6, angle: 90 });
+  const labA2 = inscription('ΑΧΙΛΛΕΥΣ', -52, -2, { size: 6 });
+  labA2.style.opacity = '0';
   labO.style.opacity = '0';
-  plain.append(odysseus.g, aShield, labO);
+  plain.append(odysseus.g, aShield, labO, labA2);
 
   /* ---------------- The arrow in flight (scene space) ---------------- */
-  const flight = arrowShape(24);
+  const flight = s('g', { class: 'arrow-flight' });
+  const halo = arrowShape(24, CLAY);
+  halo.setAttribute('stroke', CLAY);
+  halo.setAttribute('stroke-width', '1.6');
+  halo.querySelectorAll('path').forEach((el) => el.setAttribute('stroke', CLAY));
+  flight.append(halo, arrowShape(24));
   flight.style.display = 'none';
   root.appendChild(flight);
 
@@ -311,10 +321,10 @@ export const scene: SceneFactory = (ctx) => {
             gsap.set(hShield, { x: sc[0], y: sc[1], rotation: 0, svgOrigin: '0 0' });
             gsap.set(hSpear, { x: sc[0] + 6, y: sc[1] - 24, rotation: -150, svgOrigin: '0 0' });
             st.timeline()
-              .to(hShield, { x: 108, y: GROUND - 20, rotation: 40, duration: 0.7, ease: 'bounce.out' })
+              .to(hShield, { x: 114, y: GROUND - 20, rotation: 40, duration: 0.7, ease: 'bounce.out' })
               .to(hSpear, { x: 96, y: GROUND - 1.5, rotation: 176, duration: 0.6, ease: 'power2.in' }, 0.05);
           }, [], 0.6)
-          .add(hector.to(POSES.fallen(56, GROUND), { duration: 0.75, ease: 'power2.in' }), 0.62)
+          .add(hector.to(POSES.fallen(64, GROUND), { duration: 0.75, ease: 'power2.in' }), 0.62)
           .add(poseTo(andromache, { armF: [150, 150], armB: [140, 160], head: 14 }, { duration: 0.5 }), 0.8)
           .add(poseTo(priam, { head: 24, lean: 8, armF: [120, 60] }, { duration: 0.6 }), 0.9);
 
@@ -325,7 +335,7 @@ export const scene: SceneFactory = (ctx) => {
 
         // 3 — Paris rises on the wall, draws and looses.
         tl.to(parisG, { opacity: 1, duration: 0.3 }, 1.3)
-          .fromTo(parisG, { y: 6 }, { y: 0, duration: 0.4, ease: 'power2.out' }, 1.3)
+          .fromTo(parisG, { y: 14 }, { y: 0, duration: 0.45, ease: 'power2.out' }, 1.3)
           .to(parisLab, { opacity: 1, duration: 0.4 }, 1.5)
           .add(poseTo(paris, { lean: 16, head: 10, armF: [42, 0], armB: [96, -64] }, { duration: 0.45, onUpdate: renderBow }), 1.45)
           .to(archery, { draw: 1, duration: 0.5, ease: 'power2.inOut', onUpdate: renderBow }, 1.6);
@@ -361,15 +371,19 @@ export const scene: SceneFactory = (ctx) => {
             // The arrow stands in his heel; he staggers.
             flight.style.display = 'none';
             ctx.audio.sfx('thud');
-            const stuck = arrowShape(16);
-            const j = achilles.fig.joints();
-            const l = j.legB;
-            const dir = down(l.fa);
-            const heel: Vec = [l.A[0] - dir[0] * 2.4, l.A[1] - dir[1] * 2.4 + 0.6];
-            // Direction of flight in the hero's (mirrored) frame.
-            const ang = Math.atan2(to[1] - from[1], -(to[0] - from[0])) * (180 / Math.PI);
-            stuck.setAttribute('transform', `translate(${heel[0].toFixed(1)} ${heel[1].toFixed(1)}) rotate(${ang.toFixed(1)})`);
+            const stuck = arrowShape(19);
             achilles.fig.g.appendChild(stuck);
+            // Direction of flight in the hero's (mirrored) frame, kept relative to his foot.
+            const flightAng = Math.atan2(to[1] - from[1], -(to[0] - from[0])) * (180 / Math.PI);
+            const footAng = () => 90 - achilles.fig.joints().legB.fa;
+            const rel = flightAng - footAng();
+            achilles.onSync = () => {
+              const l = achilles.fig.joints().legB;
+              const dir = down(l.fa);
+              const heel: Vec = [l.A[0] - dir[0] * 1.6, l.A[1] - dir[1] * 1.6 + 0.6];
+              stuck.setAttribute('transform', `translate(${heel[0].toFixed(1)} ${heel[1].toFixed(1)}) rotate(${(footAng() + rel).toFixed(1)})`);
+            };
+            achilles.sync();
           }, [], 2.78)
           .add(poseTo(paris, { lean: 6, armF: [60, 20], armB: [30, 40], head: 0 }, { duration: 0.5, onUpdate: renderBow }), 2.9);
 
@@ -392,8 +406,8 @@ export const scene: SceneFactory = (ctx) => {
 
         // 5 — Odysseus comes from the ships and lifts the great shield.
         const walk = { p: 0 };
-        tl.set(odysseus.g, { opacity: 1 }, 3.3)
-          .add(poseTo(odysseus, POSES.walk(ODY_X, GROUND), { duration: 0.8, ease: 'power1.out' }), 3.3)
+        tl.set(odysseus.g, { opacity: 1 }, 3.1)
+          .add(poseTo(odysseus, POSES.walk(ODY_X, GROUND), { duration: 0.8, ease: 'power1.out' }), 3.1)
           .to(walk, {
             p: 1,
             duration: 0.8,
@@ -402,25 +416,26 @@ export const scene: SceneFactory = (ctx) => {
               const sw = Math.sin(walk.p * Math.PI * 3);
               odysseus.set({ legF: [22 * sw, 8], legB: [-18 * sw, 10] });
             },
-          }, 3.3)
-          .add(poseTo(odysseus, pose({ x: ODY_X, y: GROUND - 44, lean: 34, head: 10, armF: [70, 4], armB: [60, 10], legF: [36, 30], legB: [-16, 8] }), { duration: 0.45, ease: 'power2.inOut' }), 4.1);
+          }, 3.1)
+          .add(poseTo(odysseus, pose({ x: ODY_X, y: GROUND - 44, lean: 34, head: 10, armF: [70, 4], armB: [60, 10], legF: [36, 30], legB: [-16, 8] }), { duration: 0.45, ease: 'power2.inOut' }), 3.9);
         const lift = { t: 0 };
         let shieldFrom: Vec = [0, 0];
         const holdShield = () => {
           const a = odysseus.hand('F');
           const b = odysseus.hand('B');
-          const target: Vec = [(a[0] + b[0]) / 2 + 2, (a[1] + b[1]) / 2 - 8 * lift.t];
+          const target: Vec = [(a[0] + b[0]) / 2 + 5 * lift.t, (a[1] + b[1]) / 2 - 15 * lift.t];
           const x = shieldFrom[0] + (target[0] - shieldFrom[0]) * Math.min(1, lift.t * 3);
           const y = shieldFrom[1] + (target[1] - shieldFrom[1]) * Math.min(1, lift.t * 3);
           gsap.set(aShield, { x, y, rotation: -25 + 25 * lift.t });
         };
         tl.call(() => {
           shieldFrom = [Number(gsap.getProperty(aShield, 'x')), Number(gsap.getProperty(aShield, 'y'))];
-        }, [], 4.5)
-          .add(poseTo(odysseus, pose({ x: ODY_X + 2, y: GROUND - 50, lean: -4, head: -14, armF: [168, 8], armB: [158, 16], legF: [14, 6], legB: [-12, 6] }), { duration: 0.75, ease: 'power2.out', onUpdate: holdShield }), 4.55)
-          .to(lift, { t: 1, duration: 0.75, ease: 'power2.out', onUpdate: holdShield }, 4.55)
+        }, [], 4.3)
+          .add(poseTo(odysseus, pose({ x: ODY_X + 2, y: GROUND - 50, lean: -4, head: -16, armF: [156, 12], armB: [148, 18], legF: [14, 6], legB: [-12, 6] }), { duration: 0.75, ease: 'power2.out', onUpdate: holdShield }), 4.35)
+          .to(lift, { t: 1, duration: 0.75, ease: 'power2.out', onUpdate: holdShield }, 4.35)
           .to(labA, { opacity: 0, duration: 0.4 }, 3.4);
-        write(labO, 4.6, tl);
+        write(labO, 4.4, tl);
+        write(labA2, 3.9, tl);
         await st.play(tl);
         // Idle: the shield held high sways a little.
         st.loop(
@@ -431,7 +446,7 @@ export const scene: SceneFactory = (ctx) => {
             repeat: -1,
             ease: 'sine.inOut',
             onUpdate: () => {
-              odysseus.set({ armF: [168 - (1 - lift.t) * 20, 8], armB: [158 - (1 - lift.t) * 20, 16] });
+              odysseus.set({ armF: [156 - (1 - lift.t) * 20, 12], armB: [148 - (1 - lift.t) * 20, 18] });
               holdShield();
             },
           }),

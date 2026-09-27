@@ -10,7 +10,7 @@
 import { s } from '../lib/dom';
 import { gsap } from '../lib/motion';
 import { Figure, POSES, pose, INK, CLAY, WHITE, PURPLE } from '../art/figure';
-import { inscription, fillers, cloud, lightning, stars, moon } from '../art/kit';
+import { inscription, fillers, cloud, lightning, stars, moon, sun } from '../art/kit';
 import { waveRing } from '../art/ornaments';
 import { rng, range } from '../lib/random';
 import { clamp, lerp, smoothPath, type Vec } from '../lib/geometry';
@@ -91,8 +91,12 @@ export const scene: SceneFactory = (ctx) => {
   sky.appendChild(night);
   const title = inscription('ΜΑΛΕΙΑ', -150, -52, { size: 8 });
   sky.appendChild(title);
+  const sunG = sun(92, -98, 12);
+  sky.appendChild(sunG);
 
   // Gulls round the cape.
+  const gullsG = s('g');
+  sky.appendChild(gullsG);
   const gulls = [
     [-120, -64, 0.8],
     [-86, -86, 0.6],
@@ -101,7 +105,7 @@ export const scene: SceneFactory = (ctx) => {
     const g = s('g');
     const wings = s('path', { d: 'M0 0C-3 -5 -8 -7 -12 -6C-8 -4 -4 -1 -1 1.4ZM0 0C3 -5 8 -7 12 -6C8 -4 4 -1 1 1.4Z', fill: INK });
     g.append(wings, s('path', { d: 'M-3 0.4C-1 -1 1 -1 3.4 0L5 -0.4L3.6 1C1 2 -1 2 -3 0.4Z', fill: INK }));
-    sky.appendChild(g);
+    gullsG.appendChild(g);
     return { pp: puppet(g, { x, y, s: k }), wings };
   });
 
@@ -114,7 +118,7 @@ export const scene: SceneFactory = (ctx) => {
   world.appendChild(clouds);
 
   // Boreas.
-  const boreas = windGod('boreas', { phase: 0.2 });
+  const boreas = windGod('boreas', { phase: 0.2, wingScale: 0.82, wingSweep: -38 });
   const borG = s('g');
   borG.appendChild(boreas.g);
   const borLabel = inscription('ΒΟΡΕΑΣ', 0, 0, { size: 6.6 });
@@ -173,7 +177,7 @@ export const scene: SceneFactory = (ctx) => {
   odyLabelG.appendChild(inscription('ΟΔΥΣΣΕΥΣ', 0, 0, { size: 5.4, angle: 90 }));
   world.appendChild(odyLabelG);
 
-  const seaFront = new RollingSea(66, { h: 24, ripples: 20, foam: true, seed: 9 });
+  const seaFront = new RollingSea(66, { h: 24, ripples: 20, foam: true, seed: 9, incised: true });
   world.appendChild(seaFront.g);
 
   // Rain (two sheets) and lightning.
@@ -287,15 +291,17 @@ export const scene: SceneFactory = (ctx) => {
         tl.to(veil, { opacity: 0.42, duration: 1.6 }, 0)
           .to(clouds, { opacity: 1, duration: 1.2 }, 0)
           .fromTo(clouds, { x: -60 }, { x: 0, duration: 2, ease: 'power2.out' }, 0)
-          .to(bor.p, { x: -122, y: -34, s: 1.12, r: 16, o: 1, duration: 1.6, ease: 'power3.out', onUpdate: bor.apply }, 0.2)
-          .to(borL.p, { x: -60, y: -150, o: 1, duration: 0.6, onUpdate: borL.apply }, 1.2)
+          .to(bor.p, { x: -100, y: -12, s: 1.5, r: 22, o: 1, duration: 1.6, ease: 'power3.out', onUpdate: bor.apply }, 0.2)
+          .to(borL.p, { x: 2, y: -128, o: 1, duration: 0.6, onUpdate: borL.apply }, 1.2)
           .to(S, { blow: 1, duration: 0.8 }, 1.2)
           .to(S, { rain: 0.85, duration: 1.2 }, 0.6)
           .to(S, { storm: 0.7, duration: 2.2, ease: 'power1.in' }, 0.4)
           // The wind comes round ahead: the sail is taken aback.
           .to(S, { wind: -1, duration: 1.2, ease: 'power2.inOut' }, 1.4)
-          .to(title, { opacity: 0.35, duration: 1 }, 0.4)
-          .to(othersG, { opacity: 0.35, x: 30, duration: 2.4 }, 0.6);
+          .to(title, { opacity: 0, duration: 1 }, 0.4)
+          .to(sunG, { opacity: 0, duration: 1.4 }, 0.2)
+          .to(othersG, { opacity: 0, x: 40, duration: 2.2 }, 0.6)
+          .to(gullsG, { opacity: 0, duration: 1 }, 0.4);
         rowing.pause();
         await st.play(tl);
         // The storm keeps growing whatever the helmsman does.

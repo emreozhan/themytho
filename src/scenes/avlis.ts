@@ -154,6 +154,10 @@ export const scene: SceneFactory = (ctx) => {
     mk({ x, scale: 1.35, mast: nearMasts[k], sailH: 44, crew: 6, oars: 11, phase: 0.61 + k * 0.29 }),
   );
   const reserves = [...far.slice(5), ...near.slice(4)];
+  // The back rank is still arriving when the cup rises: it rows in during beat 0.
+  const LATE = 200;
+  const latecomers = far.slice(0, 5).reverse();
+  latecomers.forEach((gl) => (gl.x += LATE));
   reserves.forEach((gl) => gsap.set(gl.g, { opacity: 0 }));
   const ranks = [far, near];
   const ships = [...far, ...near];
@@ -209,7 +213,7 @@ export const scene: SceneFactory = (ctx) => {
   sceptre.appendChild(s('path', { d: `M${sceptreX} ${SHORE}L${sceptreX} ${SHORE - 122}`, stroke: INK, 'stroke-width': 1.6, 'stroke-linecap': 'round' }));
   sceptre.appendChild(s('path', { d: `M${sceptreX} ${SHORE - 121}c-4 -2 -5 -7 -2 -10c1 3 2 3 2 3c0 0 1 0 2 -3c3 3 2 8 -2 10Z`, fill: INK }));
   agaWrap.append(sceptre, aga.g);
-  const agaLabel = inscription('ΑΓΑΜΕΜΝΩΝ', -82, -122, { size: 5.8, angle: 90 });
+  const agaLabel = inscription('ΑΓΑΜΕΜΝΩΝ', -68, -126, { size: 5.8, angle: 90 });
   shore.appendChild(agaLabel);
 
   /* =================== Tableau B: Skyros =================== */
@@ -316,6 +320,8 @@ export const scene: SceneFactory = (ctx) => {
   const frame = (t: number) => {
     const dt = clamp(t - lastT, 0, 0.1);
     lastT = t;
+    // Nothing to animate while the harbour is hidden behind the Skyros tableau.
+    if (A.style.visibility === 'hidden') return;
     sea.offset -= dt * S.speed;
     sea.amp = S.amp;
     sea.place();
@@ -343,7 +349,7 @@ export const scene: SceneFactory = (ctx) => {
   frame(0);
   const redraw = () => frame(clock.t);
   // Drifting birds.
-  birdsA.forEach((b, i) => st.loop(gsap.to(b.g, { x: i % 2 ? -14 : 16, y: i % 2 ? 6 : -5, duration: 4 + i, ease: 'sine.inOut', yoyo: true, repeat: -1 })));
+  birdsA.forEach((b, i) => st.loop(gsap.to(b.g, { x: i % 2 ? '-=14' : '+=16', y: i % 2 ? '+=6' : '-=5', duration: 4 + i, ease: 'sine.inOut', yoyo: true, repeat: -1 })));
   swimmers.forEach((sw, k) =>
     st.loop(gsap.to(sw.p, { y: '+=4', r: -3, x: '+=8', duration: 2.6 + k * 0.7, ease: 'sine.inOut', yoyo: true, repeat: -1, onUpdate: sw.apply })),
   );
@@ -369,9 +375,12 @@ export const scene: SceneFactory = (ctx) => {
 
     async beat(i) {
       if (i === 0) {
-        // Agamemnon lifts his hand over the fleet.
+        // More ships row in to join the muster; Agamemnon lifts his hand over the fleet.
         aga.to({ armF: [112, -30], head: -4 }, { duration: 1 });
-        return st.wait(1);
+        const tl = st.timeline();
+        latecomers.forEach((gl, k) => tl.to(gl, { x: gl.x - LATE, duration: 1.7, ease: 'power2.out' }, k * 0.14));
+        tl.to(S, { flag: 0.45, duration: 1.2 }, 0.4);
+        return st.play(tl);
       }
       if (i === 1) {
         // Skyros: the pedlar's trumpet and the maiden who seizes the arms.

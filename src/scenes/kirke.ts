@@ -21,7 +21,7 @@ import { makeHermes, swoop, flyingPose } from './kirke.hermes';
 
 const GROUND = 90;
 const KA = 1.22;
-const KB = 1.26;
+const KB = 1.42;
 const fill = (k: number) => `translate(0 ${GROUND}) scale(${k}) translate(0 ${-GROUND})`;
 
 /** A companion on all fours, on the way to becoming a pig (facing -1 frame). */
@@ -29,7 +29,7 @@ const allFours = (x: number): Pose =>
   pose({ x, y: GROUND - 33, lean: 70, head: -56, armF: [4, 6], armB: [-6, 8], legF: [36, 86], legB: [14, 72], footF: 16, footB: 6, grip: 1 });
 
 /** Pigs stand at slightly different depths so the herd does not merge into one mass. */
-const PIG_LIFT = [0, 4.5, 1];
+const PIG_LIFT = [0, 6, 1.5];
 
 const FACE_PARTS: PartName[] = ['beard', 'hairBack', 'hat', 'hatDetail', 'faceLines', 'eye'];
 
@@ -83,20 +83,20 @@ export const scene: SceneFactory = (ctx) => {
 
   // The tame beasts.
   const lionB = lion();
-  lionB.g.setAttribute('transform', `translate(-82 ${GROUND}) scale(0.68)`);
+  lionB.g.setAttribute('transform', `translate(-92 ${GROUND}) scale(0.7)`);
   const wolfB = wolf();
   wolfB.g.setAttribute('transform', `translate(112 ${GROUND}) scale(-0.74 0.74)`);
   ta.append(lionB.g, wolfB.g);
 
   // Kirke, facing the door (right): her brew in one hand, the wand raised in the other.
-  const kirke = new Actor({ head: 'woman', hat: 'diadem', garment: 'peplos', garmentColor: INK, cloak: false }, pose({ ...POSES.stand(-36, GROUND), armF: [74, 22], armB: [148, 8] }), 'kirke');
+  const kirke = new Actor({ head: 'woman', hat: 'diadem', garment: 'peplos', garmentColor: INK, cloak: false }, pose({ ...POSES.stand(-44, GROUND), armF: [74, 22], armB: [148, 8] }), 'kirke');
   const brew = skyphos();
   kirke.hold(brew, 'F', { mode: 'upright', angle: 0, along: 3.4 });
   const rod = wand();
   kirke.hold(rod.g, 'B', { mode: 'grip', angle: 34, along: 2 });
   const tipSpark = s('path', { d: sparkPath(4.2), fill: WHITE, opacity: 0.9 });
   rod.tip.appendChild(tipSpark);
-  const kirkeLabel = inscription('ΚΙΡΚΗ', -54, -26, { size: 6.5, angle: 90 });
+  const kirkeLabel = inscription('ΚΙΡΚΗ', -62, -26, { size: 6.5, angle: 90 });
   ta.append(kirke.g, kirkeLabel);
   // Vapours of the brew.
   const vapour = s('g', { class: 'kirke-vapour' });
@@ -143,30 +143,53 @@ export const scene: SceneFactory = (ctx) => {
   const rod2 = wand();
   kirke2.hold(rod2.g, 'B', { mode: 'grip', angle: 30, along: 2 });
   const kirke2Label = inscription('ΚΙΡΚΗ', 14, -24, { size: 6.5, angle: 90 });
-  const ody = new Actor({ hat: 'pilos', garment: 'short', garmentColor: PURPLE, cloak: true, cloakColor: INK }, pose({ ...POSES.stand(-58, GROUND), armF: [60, 60], armB: [-8, 14] }), 'odysseus');
+  const ody = new Actor({ hat: 'pilos', garment: 'short', garmentColor: PURPLE, cloak: true, cloakColor: INK }, pose({ ...POSES.stand(-58, GROUND), armF: [60, 60], armB: [34, 46] }), 'odysseus');
   const odyCup = cup();
   ody.hold(odyCup, 'F', { mode: 'upright', along: 2.6 });
   const blade = sword();
   blade.style.opacity = '0';
-  ody.hold(blade, 'F', { mode: 'grip', angle: -10, along: 1.2 });
+  ody.hold(blade, 'F', { mode: 'grip', angle: -18, along: 1.2 });
+  // Hermes's herb, held in his other hand: the milk-white flower shows beside him.
+  const charm = moly();
+  charm.root.style.opacity = '1';
+  const charmHold = s('g', { class: 'kirke-charm' });
+  const charmInner = s('g', { transform: 'translate(0 8) scale(0.42)' });
+  charmInner.appendChild(charm.g);
+  charmHold.appendChild(charmInner);
+  ody.hold(charmHold, 'B', { mode: 'upright', angle: 0, along: 1 });
   const odyLabel = inscription('ΟΔΥΣΣΕΥΣ', -84, -30, { size: 6.5, angle: 90 });
-  a2.append(odyLabel, kirke2Label);
+  const odyLabel2 = inscription('ΟΔΥΣΣΕΥΣ', -36, 6, { size: 6, angle: 90 });
+  odyLabel2.style.opacity = '0';
+  a2.append(odyLabel, odyLabel2, kirke2Label);
   // Odysseus faces left later (looking towards the dead): a mirrored twin.
   const odyL = new Actor({ hat: 'pilos', garment: 'short', garmentColor: PURPLE, cloak: true, cloakColor: INK, facing: -1 }, pose({ ...POSES.stand(-58, GROUND), armF: [50, 40], armB: [10, 20] }), 'odysseus');
-  const bladeL = sword();
-  odyL.hold(bladeL, 'B', { mode: 'grip', angle: -60, along: 1.2 });
   odyL.g.style.opacity = '0';
-  const kirke3 = new Actor({ head: 'woman', hat: 'diadem', garment: 'peplos', garmentColor: INK, facing: -1 }, pose({ ...POSES.stand(-2, GROUND), armF: [40, 30], armB: [20, 20] }), 'kirke');
-  kirke3.g.style.opacity = '0';
-  const bowl = s('g', { transform: `translate(26 ${GROUND})`, opacity: 0 });
+  const bowl = s('g', { transform: `translate(24 ${GROUND})`, opacity: 0 });
   bowl.appendChild(krater(0.9));
-  a2.append(bowl, ody.g, odyL.g, kirke2.g, kirke3.g);
+  // Kirke first, so that Odysseus and his sword are painted over her.
+  a2.append(bowl, kirke2.g, ody.g, odyL.g);
   const fx2 = s('g', { class: 'kirke-fx2' });
   a2.appendChild(fx2);
 
   // The way to the dead: darkness gathering at the left edge, with fluttering shades.
   const dark = s('g', { class: 'kirke-dark', opacity: 0 });
-  dark.appendChild(s('path', { d: 'M-200 -200H-128C-112 -150 -140 -120 -118 -86C-100 -58 -130 -30 -112 0C-96 24 -124 50 -106 76L-104 200H-200Z', fill: INK }));
+  /** A bank of cloud whose right edge billows in scallops. */
+  const bank = (edge: number, amp: number, phase: number): string => {
+    let d = `M-200 -200L${edge} -200`;
+    let y = -200;
+    let k = phase;
+    while (y < 200) {
+      const h = 22 + ((k * 7) % 4) * 4;
+      const bulge = edge + amp * (0.7 + 0.3 * Math.sin(k * 1.7));
+      d += `C${bulge.toFixed(1)} ${(y + h * 0.1).toFixed(1)} ${bulge.toFixed(1)} ${(y + h * 0.9).toFixed(1)} ${edge} ${(y + h).toFixed(1)}`;
+      y += h;
+      k++;
+    }
+    return d + 'L-200 200Z';
+  };
+  dark.appendChild(s('path', { d: bank(-104, 16, 1), fill: INK, opacity: 0.55 }));
+  dark.appendChild(s('path', { d: bank(-118, 14, 3), fill: INK }));
+  dark.appendChild(s('path', { d: 'M-128 -120q10 8 2 18M-122 -40q9 8 1 18M-126 40q10 8 2 18', fill: 'none', stroke: CLAY, 'stroke-width': 0.7, opacity: 0.5 }));
   const shades = s('g', { class: 'kirke-shades' });
   const shadeD = 'M0 -6.4a2.2 2.4 0 1 1 0.2 0M-2 -3.6C-2.8 0 -2 4 0 7.4C2 4 2.8 0 2 -3.6ZM-1.6 -3L-7 -6.6L-4.4 -1.6ZM1.6 -3L6.6 -7.4L4.2 -1.8Z';
   const shadeSpots: Array<[number, number, number]> = [[-150, -70, 1.2], [-136, -20, 1], [-152, 30, 1.1], [-132, 62, 0.9]];
@@ -177,13 +200,13 @@ export const scene: SceneFactory = (ctx) => {
   /* ================= Tableau B: the wood, Hermes and the moly ================= */
   const B = s('g', { class: 'kirke-b', opacity: 0 });
   B.style.display = 'none';
-  B.appendChild(fillers([[-40, -108], [30, -122], [-96, -60], [8, -60]], 4.4));
+  B.appendChild(fillers([[-24, -118], [44, -128], [-104, -84], [96, -104]], 4.4));
   const tb = s('g', { transform: fill(KB) });
   B.appendChild(tb);
   root.appendChild(B);
-  tb.appendChild(oliveTree(98, GROUND, 1.25, 31));
-  tb.appendChild(reeds(-96, GROUND, 6, 20));
-  tb.appendChild(reeds(62, GROUND, 4, 14));
+  tb.appendChild(oliveTree(104, GROUND, 1.05, 31));
+  tb.appendChild(reeds(-84, GROUND, 6, 18));
+  tb.appendChild(reeds(70, GROUND, 4, 12));
   // Soil clip: whatever is below the ground stays hidden until pulled out.
   const soilId = `kirke-soil-${Math.random().toString(36).slice(2, 7)}`;
   const soil = s('clipPath', { id: soilId, 'data-scene': '' });
@@ -195,20 +218,20 @@ export const scene: SceneFactory = (ctx) => {
   const herb = moly();
   molyMove.appendChild(herb.g);
   molyWrap.appendChild(molyMove);
-  const MOLY_X = -10;
+  const MOLY_X = -6;
   const molyBase = { x: MOLY_X, y: GROUND, r: 0, k: 1.05 };
   const placeMoly = () => molyMove.setAttribute('transform', `translate(${molyBase.x.toFixed(2)} ${molyBase.y.toFixed(2)}) rotate(${molyBase.r.toFixed(2)}) scale(${molyBase.k})`);
   placeMoly();
   herb.g.style.opacity = '0';
-  const molyLabel = inscription('ΜΩΛΥ', MOLY_X + 12, GROUND - 58, { size: 5.5 });
+  const molyLabel = inscription('ΜΩΛΥ', MOLY_X + 8, GROUND - 57, { size: 5, align: 'middle' });
   molyLabel.style.opacity = '0';
   const clods = s('g', { class: 'kirke-clods' });
-  const odyB = new Actor({ hat: 'pilos', garment: 'short', garmentColor: PURPLE, cloak: true, cloakColor: INK, facing: -1 }, pose({ ...POSES.stand(46, GROUND), armF: [30, 20], armB: [-10, 20] }), 'odysseus');
+  const odyB = new Actor({ hat: 'pilos', garment: 'short', garmentColor: PURPLE, cloak: true, cloakColor: INK, facing: -1 }, pose({ ...POSES.stand(42, GROUND), armF: [30, 20], armB: [-10, 20] }), 'odysseus');
   const bladeB = sword();
   odyB.hold(bladeB, 'B', { mode: 'grip', angle: -70, along: 1.2 });
-  const odyBLabel = inscription('ΟΔΥΣΣΕΥΣ', 66, -32, { size: 6.5, angle: 90 });
+  const odyBLabel = inscription('ΟΔΥΣΣΕΥΣ', 25, -44, { size: 5.6, angle: 90 });
   odyB.front.appendChild(odyBLabel);
-  const hermes = makeHermes({ x: -52, ground: GROUND, facing: 1 });
+  const hermes = makeHermes({ x: -50, ground: GROUND, facing: 1 });
   hermes.g.style.opacity = '0';
   tb.append(molyWrap, molyLabel, odyB.g, hermes.g, clods);
 
@@ -239,7 +262,7 @@ export const scene: SceneFactory = (ctx) => {
         ease: 'power2.in',
         onUpdate: () => {
           const y = y0 + (floorY - y0) * p.t;
-          el.setAttribute('transform', `translate(${(x0 + f * 6 * p.t).toFixed(2)} ${y.toFixed(2)}) scale(${f} 1) rotate(${(f * 80 * p.t).toFixed(1)})`);
+          el.setAttribute('transform', `translate(${(x0 + f * 6 * p.t).toFixed(2)} ${y.toFixed(2)}) scale(${f} 1) rotate(${(-100 * p.t).toFixed(1)})`);
         },
       }, tl.time());
     }, [], at);
@@ -266,7 +289,7 @@ export const scene: SceneFactory = (ctx) => {
   const toMan = (c: Companion, tl: gsap.core.Timeline, t0: number) => {
     tl.add(shimmer(fx2, c.x - 10, GROUND - 22, 22, 18, { n: 10, duration: 0.9, seed: 11 + c.x }), t0);
     tl.to(c.pig.g, { opacity: 0, duration: 0.3 }, t0 + 0.2).to(c.a.g, { opacity: 1, duration: 0.3 }, t0 + 0.15);
-    tl.add(c.a.to({ ...POSES.stand(c.x, GROUND), armF: [60, 30], armB: [-10, 20] }, { duration: 0.75, ease: 'power2.out' }), t0 + 0.45);
+    tl.add(c.a.to({ ...POSES.stand(c.x, GROUND), armF: [36, 50], armB: [-8, 18] }, { duration: 0.75, ease: 'power2.out' }), t0 + 0.45);
     tl.to(c.skull, { morphSVG: c.human, duration: 0.75, ease: 'power2.inOut' }, t0 + 0.45)
       .to(c.feats, { opacity: 0, duration: 0.3 }, t0 + 0.45)
       .to(fadeParts(c), { opacity: 1, duration: 0.4 }, t0 + 0.85)
@@ -371,6 +394,21 @@ export const scene: SceneFactory = (ctx) => {
         hex.add(shimmer(fx, 24, GROUND - 60, 44, 30, { n: 26, duration: 1.4, seed: 5, size: 4 }), 0.3);
         comps.forEach((c, k) => toSwine(c, hex, 0.45 + k * 0.3));
         hex.add(kirke.to({ armB: [148, 8], lean: 0 }, { duration: 0.8, ease: 'power2.inOut' }), 2.2);
+        // The new swine shuffle apart, grunting.
+        const shuffle = (c: Companion, dx: number, at: number) => {
+          const w = { x: c.pig.x };
+          let walker: gsap.core.Tween | null = null;
+          hex.to(w, {
+            x: c.pig.x + dx,
+            duration: 0.7,
+            ease: 'sine.inOut',
+            onStart: () => { walker = st.loop(c.pig.walk(1.6)); },
+            onUpdate: () => c.pig.moveTo(w.x),
+            onComplete: () => { walker?.kill(); c.pig.step(0); },
+          }, at);
+        };
+        shuffle(comps[0], -8, 2.75);
+        shuffle(comps[2], 9, 3.35);
         await st.play(hex);
         startPigIdle();
         return;
@@ -387,10 +425,10 @@ export const scene: SceneFactory = (ctx) => {
         const walk = st.loop(odyB.walk(0.85, 18));
         cut.fromTo(odyB.g, { x: 90 }, { x: 0, duration: 1.6, ease: 'power1.out' }, 0.6);
         cut.call(() => walk.kill(), [], 2.2);
-        cut.add(odyB.to({ ...POSES.stand(46, GROUND), armF: [30, 20], armB: [-10, 20] }, { duration: 0.3 }), 2.2);
+        cut.add(odyB.to({ ...POSES.stand(42, GROUND), armF: [30, 20], armB: [-10, 20] }, { duration: 0.3 }), 2.2);
         cut.set(hermes.g, { opacity: 1 }, 1.2);
-        hermes.set(flyingPose(-52, GROUND));
-        cut.add(swoop(hermes, [-120, -150], { ...POSES.stand(-52, GROUND), armF: [70, 20], armB: [30, 70] }, 1.8), 1.2);
+        hermes.set(flyingPose(-50, GROUND));
+        cut.add(swoop(hermes, [-110, -140], { ...POSES.stand(-50, GROUND), armF: [70, 20], armB: [30, 70] }, 1.8), 1.2);
         cut.call(() => ctx.audio.sfx('wind'), [], 1.25);
         // Hermes points at the ground: the herb grows.
         cut.add(hermes.to({ armF: [60, 10], lean: 6 }, { duration: 0.5 }), 3.0);
@@ -417,7 +455,8 @@ export const scene: SceneFactory = (ctx) => {
             const dx = gsap.utils.random(-22, 22);
             pull.to(c, { attr: { cx: `+=${dx}` }, duration: 0.7, ease: 'none' }, pull.time())
               .to(c, { attr: { cy: GROUND - gsap.utils.random(14, 30) }, duration: 0.32, ease: 'power2.out' }, pull.time())
-              .to(c, { attr: { cy: GROUND - 1 }, duration: 0.38, ease: 'power2.in' }, pull.time() + 0.32);
+              .to(c, { attr: { cy: GROUND - 1 }, duration: 0.38, ease: 'power2.in' }, pull.time() + 0.32)
+              .to(c, { opacity: 0, duration: 0.8 }, pull.time() + 1.2);
           }
         }, [], 0.5);
         pull.set(soilRect, { attr: { y: -600, height: 1200 } }, 1.3);
@@ -483,20 +522,25 @@ export const scene: SceneFactory = (ctx) => {
           .fromTo(A, { opacity: 0 }, { opacity: 1, duration: 0.7, ease: 'power2.out' });
         idleA.forEach((a) => a.resume());
         // He drinks: nothing happens.
-        cut.add(ody.to({ armF: [26, 128], head: -16, lean: -6 }, { duration: 0.55 }), 1.1);
-        cut.add(kirke2.to({ armB: [120, 20], lean: -4 }, { duration: 0.4 }), 1.3);
-        cut.add(kirke2.to({ armB: [70, 0], lean: 6 }, { duration: 0.25, ease: 'power3.in' }), 1.75);
-        cut.call(() => ctx.audio.sfx('magic'), [], 1.8);
-        cut.add(shimmer(fx2, -56, GROUND - 70, 14, 16, { n: 8, duration: 0.6, seed: 17 }), 1.95);
-        // Sword out, lunge; Kirke falls to her knees.
-        cut.to(odyCup, { opacity: 0, duration: 0.2 }, 2.25).set(blade, { opacity: 1 }, 2.3);
-        cut.add(ody.to({ ...POSES.lunge(-52, GROUND), armF: [78, 4], armB: [-40, 50] }, { duration: 0.4, ease: 'power3.out' }), 2.25);
-        cut.call(() => ctx.audio.sfx('twang'), [], 2.3);
-        cut.to([brew2, rod2.g], { opacity: 0, duration: 0.25 }, 2.4);
-        cut.add(kirke2.to({ ...POSES.plead(6, GROUND), armF: [120, 20], armB: [104, 30] }, { duration: 0.55, ease: 'power2.inOut' }), 2.4);
-        cut.to(kirke2Label, { y: 22, duration: 0.55 }, 2.4);
-        cut.call(() => ctx.audio.sfx('magic'), [], 3.0);
-        comps.forEach((c, k) => toMan(c, cut, 3.0 + k * 0.2));
+        cut.add(ody.to({ armF: [26, 128], head: -16, lean: -6 }, { duration: 0.5 }), 0.9);
+        cut.add(kirke2.to({ armB: [124, 20], lean: -4 }, { duration: 0.4 }), 1.1);
+        cut.add(kirke2.to({ armB: [72, 0], lean: 6 }, { duration: 0.22, ease: 'power3.in' }), 1.55);
+        cut.call(() => ctx.audio.sfx('magic'), [], 1.6);
+        cut.add(shimmer(fx2, -58, GROUND - 70, 14, 16, { n: 8, duration: 0.6, seed: 17 }), 1.72);
+        cut.call(() => {
+          // The herb flares: the spell glances off.
+          const h = ody.handFrame('B', 1);
+          cut.add(burst(fx2, h.x + 4, h.y - 14, 12), cut.time());
+        }, [], 1.75);
+        // Sword out and raised; Kirke runs in and clasps his knees.
+        cut.to(odyCup, { opacity: 0, duration: 0.2 }, 2.0).set(blade, { opacity: 1 }, 2.05);
+        cut.add(ody.to({ ...POSES.lunge(-54, GROUND), lean: 2, armF: [150, 30], armB: [30, 50] }, { duration: 0.45, ease: 'power3.out' }), 2.0);
+        cut.call(() => ctx.audio.sfx('twang'), [], 2.05);
+        cut.to([brew2, rod2.g], { opacity: 0, duration: 0.25 }, 2.15);
+        cut.add(kirke2.to({ ...POSES.plead(-10, GROUND), armF: [58, 8], armB: [50, 16] }, { duration: 0.55, ease: 'power2.inOut' }), 2.15);
+        cut.to(kirke2Label, { x: 8, y: 10, duration: 0.55 }, 2.15);
+        cut.call(() => ctx.audio.sfx('magic'), [], 2.8);
+        comps.forEach((c, k) => toMan(c, cut, 2.8 + k * 0.2));
         await st.play(cut);
         return;
       }
@@ -514,16 +558,17 @@ export const scene: SceneFactory = (ctx) => {
         comps.forEach((c, k) => {
           tl.to(c.wreath, { opacity: 1, duration: 0.4 }, 0.3 + k * 0.1);
           tl.to(c.cup, { opacity: 1, duration: 0.3 }, 0.2);
-          tl.add(c.a.to({ armF: [150, 16], head: -6 }, { duration: 0.45, ease: 'back.out(1.6)' }), 0.35 + k * 0.12);
+          tl.add(c.a.to({ armF: [96, 44], head: -6, lean: -3 }, { duration: 0.45, ease: 'back.out(1.6)' }), 0.35 + k * 0.12);
         });
-        tl.add(ody.to({ ...POSES.stand(-58, GROUND), armF: [40, 30], armB: [-8, 14] }, { duration: 0.5 }), 0);
+        tl.to(blade, { opacity: 0, duration: 0.3 }, 0);
+        tl.add(ody.to({ ...POSES.stand(-58, GROUND), armF: [40, 30], armB: [34, 46] }, { duration: 0.5 }), 0);
         tl.call(() => ctx.audio.sfx('success'), [], 0.4);
         // Kirke rises and points west, into the dark.
-        tl.set(kirke2.g, { opacity: 0 }, 1.25).set(kirke3.g, { opacity: 1 }, 1.25);
-        tl.to(kirke2Label, { y: 0, duration: 0.5 }, 1.25);
-        tl.add(kirke3.to({ armF: [104, -8], lean: -3, head: -4 }, { duration: 0.6, ease: 'power2.out' }), 1.3);
+        tl.add(kirke2.to({ ...POSES.stand(-4, GROUND), armF: [104, -8], armB: [10, 20], lean: -3, head: -4 }, { duration: 0.8, ease: 'power2.inOut' }), 1.1);
+        tl.to(kirke2Label, { x: 12, y: -24, duration: 0.6 }, 1.1);
         tl.to(dark, { opacity: 1, duration: 1.2, ease: 'power1.inOut' }, 1.4)
           .fromTo(dark, { x: -60 }, { x: 0, duration: 1.4, ease: 'power2.out' }, 1.4);
+        tl.to(odyLabel, { opacity: 0, duration: 0.4 }, 1.5).to(odyLabel2, { opacity: 1, duration: 0.5 }, 2.0);
         tl.set(ody.g, { opacity: 0 }, 1.9).set(odyL.g, { opacity: 1 }, 1.9);
         tl.add(odyL.to({ head: -8, armF: [70, 30] }, { duration: 0.5 }), 1.95);
         tl.call(() => ctx.audio.sfx('ghost'), [], 1.6);
