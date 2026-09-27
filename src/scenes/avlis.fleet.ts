@@ -68,8 +68,6 @@ export class Galley {
   readonly rig: RigState;
   /** Layer between sail and hull: people standing in the ship (the hull hides their feet). */
   readonly deck: SVGGElement;
-  /** Layer above the hull. */
-  readonly top: SVGGElement;
   x: number;
   y: number;
   scale: number;
@@ -123,10 +121,8 @@ export class Galley {
       rigG.appendChild(this.pennantEl);
     }
     this.deck = s('g', { class: 'galley__deck' });
-    this.top = s('g', { class: 'galley__top' });
     this.g.insertBefore(rigG, this.parts.hull);
     this.g.insertBefore(this.deck, this.parts.hull);
-    this.g.appendChild(this.top);
     if (o.halo) {
       // Incise the oars too, so they stay legible where they cross black water.
       this.parts.oars.querySelectorAll<SVGGElement>('.oar').forEach((oar) => {
@@ -193,10 +189,6 @@ export class Galley {
     return this.oarAnim;
   }
 
-  /** Hold the oars still (level) — or ship them. */
-  restOars(): void {
-    this.oarAnim?.pause();
-  }
 
   /** Re-draw the rig for time `t` (seconds; drives breathing and flapping). */
   draw(t: number): void {
@@ -429,11 +421,6 @@ export class RollingSea {
     this.foam?.setAttribute('transform', tr);
     this.cover?.setAttribute('y', f1(base - 1.6));
     this.body.setAttribute('transform', `translate(0 ${f1(this.heave)})`);
-  }
-
-  /** Height of the sea surface (crest base) at the current heave. */
-  get base(): number {
-    return this.y + this.h + this.heave;
   }
 }
 

@@ -238,7 +238,8 @@ export const scene: SceneFactory = (ctx) => {
     clipped.appendChild(ship({ palette: BLACK_FIGURE, sail: k === 0 ? 'full' : 'torn', oars: 11, crew: 6 }).g);
     wrap.appendChild(clipped);
     wrap.style.display = 'none';
-    voyage.appendChild(wrap);
+    // Behind the waves, so the broken hull sinks into the sea.
+    voyage.insertBefore(wrap, waves2.g);
     return { wrap, pos: { rot: 0, dy: 0, dx: 0 } };
   });
   const placeHalves = () =>
@@ -438,7 +439,7 @@ export const scene: SceneFactory = (ctx) => {
           localShake(7);
         }, [], 0.45);
         tl.set(strike, { opacity: 1 }, 0.45).to(strike, { opacity: 0, duration: 0.5, ease: 'power2.in' }, 0.6);
-        tl.fromTo(flashRect, { opacity: 0.85 }, { opacity: 0, duration: 0.8, ease: 'power2.out' }, 0.45);
+        tl.fromTo(flashRect, { opacity: 0.85 }, { opacity: 0, duration: 0.8, ease: 'power2.out', immediateRender: false }, 0.45);
         tl.to(bolt, { opacity: 0, duration: 0.35 }, 0.85);
         // The ship breaks apart and goes down with her crew.
         tl.call(() => {
@@ -452,7 +453,7 @@ export const scene: SceneFactory = (ctx) => {
           splashG.setAttribute('transform', `translate(${shipPos.x.toFixed(1)} ${shipPos.y - 16})`);
           ctx.audio.sfx('splash');
         }, [], 1.3);
-        tl.fromTo(splashG, { opacity: 1 }, { opacity: 0, duration: 0.9 }, 1.3);
+        tl.fromTo(splashG, { opacity: 1 }, { opacity: 0, duration: 0.9, immediateRender: false }, 1.3);
         tl.call(() => {
           debrisPos.x = shipPos.x + 30;
           debrisPos.y = shipPos.y - 20;

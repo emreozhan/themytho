@@ -106,9 +106,6 @@ export class Actor {
   face(f: 1 | -1): void {
     this.fig.style.facing = f;
     this.fig.render();
-    // Figure.render() hands `transform: null` to attr(), which ignores nulls,
-    // so a figure turning back to facing 1 would keep its mirror: clear it.
-    if (f === 1 && (this.fig.style.scale ?? 1) === 1) this.fig.g.removeAttribute('transform');
   }
   /** World → figure-local (before facing). */
   toLocal(w: Vec): Vec {

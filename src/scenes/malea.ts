@@ -86,7 +86,7 @@ export const scene: SceneFactory = (ctx) => {
   world.appendChild(veil);
   const sky = s('g', { class: 'malea-sky' });
   world.appendChild(sky);
-  const fill0 = fillers([[30, -128], [96, -102], [-20, -150], [128, -40]], 4.2);
+  const fill0 = fillers([[30, -128], [-58, -112], [-20, -150], [52, -64]], 4.2);
   sky.appendChild(fill0);
   const starry = stars(34, { x: -150, y: -160, w: 300, h: 190 }, 31);
   const luna = moon(-70, -104, 9);

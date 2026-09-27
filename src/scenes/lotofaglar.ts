@@ -74,7 +74,7 @@ export const scene: SceneFactory = (ctx) => {
 
   /* ---------------- The Lotophagoi ---------------- */
   const woman = new Actor({ head: 'woman', garment: 'peplos', hat: 'veil', garmentColor: INK }, pose({ ...POSES.stand(0, 0), armF: [78, 34], armB: [66, 44] }), -104, GROUND, MAN);
-  const elder = new Actor({ head: 'old', garment: 'long', garmentColor: PURPLE, cloak: true }, pose({ ...POSES.stand(0, 0), lean: 4, armF: [80, 14], armB: [8, 26] }), -64, GROUND, MAN);
+  const elder = new Actor({ head: 'old', garment: 'long', garmentColor: PURPLE, hat: 'wreath', cloak: true }, pose({ ...POSES.stand(0, 0), lean: 4, armF: [80, 14], armB: [8, 26] }), -64, GROUND, MAN);
   const basket = fruitBasket(1.1);
   const basketWrap = s('g');
   basketWrap.appendChild(basket);
@@ -169,7 +169,7 @@ export const scene: SceneFactory = (ctx) => {
   const clump2 = lotusPlant(-80, 62, 62, 7);
   away.appendChild(clump2.g);
   const wavers = [
-    new Actor({ head: 'old', garment: 'long', garmentColor: PURPLE, cloak: true }, pose({ ...POSES.stand(0, 0), armF: [150, 20], armB: [20, 20] }), -124, 62, 1.05),
+    new Actor({ head: 'old', garment: 'long', garmentColor: PURPLE, hat: 'wreath', cloak: true }, pose({ ...POSES.stand(0, 0), armF: [150, 20], armB: [20, 20] }), -124, 62, 1.05),
     new Actor({ head: 'woman', garment: 'peplos', hat: 'veil', garmentColor: INK }, pose({ ...POSES.stand(0, 0), armF: [160, 10], armB: [120, 30] }), -98, 62, 1.05),
   ];
   wavers.forEach((w) => away.appendChild(w.g));
