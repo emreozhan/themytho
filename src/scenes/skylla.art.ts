@@ -10,7 +10,7 @@
  * speed around a black gullet. Above it, the fig tree on its rock.
  */
 import { s } from '../lib/dom';
-import { ribbon, sampleSpline, smoothPath, type Vec } from '../lib/geometry';
+import { ribbon, sampleSpline, type Vec } from '../lib/geometry';
 import { waveRing } from '../art/ornaments';
 import { INK, CLAY, WHITE, PURPLE } from '../art/figure';
 import { band } from './sirenler.art';
@@ -265,6 +265,3 @@ export function figTree(base: Vec, crown: Vec, seed = 3): SVGGElement {
   g.appendChild(s('path', { d: figs, fill: PURPLE, stroke: INK, 'stroke-width': 0.4 }));
   return g;
 }
-
-/** Smooth closed outline helper (re-exported for the scene's rocks). */
-export const outline = (pts: Vec[]) => smoothPath(pts, true, 0.2);

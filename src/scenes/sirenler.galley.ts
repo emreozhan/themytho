@@ -189,12 +189,6 @@ export class Galley {
     const ex = -2.4, ey = 0.3;
     return fig.toWorld([j.HC[0] + ex * Math.cos(a) - ey * Math.sin(a), j.HC[1] + ex * Math.sin(a) + ey * Math.cos(a)]);
   }
-
-  /** Top of a rower's head (galley space). */
-  crown(r: Rower): Vec {
-    const j = r.fig.joints();
-    return r.fig.toWorld([j.HC[0], j.HC[1] - 9]);
-  }
 }
 
 /** Shaft from the hand through the thole, with a leaf blade at the end. */

@@ -2,25 +2,27 @@
  * ΙΖʹ Skheria — the land of the Phaeacians.
  *
  * Four pictures in one cup:
- *  A. Storm: Poseidon rises from the waves with his trident; the raft breaks;
- *     Ino-Leukothea hands Odysseus her immortal veil and he swims for land.
- *  B. The river mouth: Odysseus asleep under the olive thicket; Nausicaa and
- *     her maidens play ball beside the washing spread on the stones. Tap the
- *     ball — it flies into the river; the girls scream and run; Odysseus rises
- *     with a leafy branch; Nausicaa alone stands firm.
- *  C. Alkinoos's hall: blind Demodokos sings of the wooden horse and Odysseus
- *     weeps under his purple cloak.
- *  D. Night: the Phaeacian ship, white-sailed, glowing and without a helmsman,
- *     carries the sleeping Odysseus over a starry sea toward Ithaca.
+ *  A. Storm (enter + beat 0): Poseidon rises from the waves with his trident;
+ *     a great wave breaks the raft; Ino-Leukothea hands Odysseus her immortal
+ *     veil and he swims for land.
+ *  B. The river mouth: at night he sleeps in a bed of leaves under the olive
+ *     thicket; at dawn Nausicaa and her maidens come to wash and play ball.
+ *     Tap the ball — it flies into the river; the girls scream and run;
+ *     Odysseus rises holding a leafy branch; Nausicaa alone stands firm.
+ *  C. King Alkinoos's hall: blind Demodokos sings of the wooden horse and
+ *     Odysseus weeps, his purple cloak drawn over his head.
+ *  D. Night: the Phaeacian ship, white-sailed, glowing, with no helmsman and
+ *     oars that pull by themselves, carries the sleeping Odysseus toward
+ *     Ithaca; not even a falcon can keep up.
  */
 import { s } from '../lib/dom';
 import { gsap } from '../lib/motion';
-import { lerp, sampleSpline, type Vec } from '../lib/geometry';
+import { lerp, ribbon, sampleSpline, type Vec } from '../lib/geometry';
 import { Figure, POSES, pose, INK, CLAY, WHITE, PURPLE } from '../art/figure';
 import { sea, exergue, cloud, rain, lightning, oliveTree, reeds, splash, column, inscription, fillers, stars, moon, glow, nightVeil, rock, sun } from '../art/kit';
 import { ship, rowing, BLACK_FIGURE } from '../art/ship';
 import { greekText } from '../art/letters';
-import { trident, breakableRaft, veilBand, ball, clothOnStone, oliveBranch, kithara, throne, stool, feastTable, krater, falcon } from './skheria.art';
+import { trident, breakableRaft, ball, clothOnStone, oliveBranch, kithara, throne, stool, feastTable, krater, falcon } from './skheria.art';
 import { stage } from './tools';
 import type { SceneFactory } from '../story/types';
 
@@ -54,14 +56,17 @@ export const scene: SceneFactory = (ctx) => {
     { head: 'bearded', garment: 'long', garmentColor: PURPLE, cloak: true, scale: PS },
     pose({ x: -96, y: 60 / PS, lean: -6, head: -6, armF: [172, 4], armB: [96, 6] }),
   );
+  // The trident is drawn once around the hand and carried by it.
   const tri = s('g');
+  tri.appendChild(trident([3, 46], [-2, -64], 2.2));
   const poseidonG = s('g', { class: 'skh-poseidon' });
   poseidonG.append(poseidon.g, tri);
   poseidonG.appendChild(inscription('ΠΟΣΕΙΔΩΝ', -142, -40, { size: 7, angle: 90 }));
   tA.appendChild(poseidonG);
   const drawTrident = () => {
     const [hx, hy] = poseidon.hand('F');
-    tri.replaceChildren(trident([hx + 3, hy + 46], [hx - 2, hy - 64], 2.2));
+    const a = poseidon.pose.armF[0] + poseidon.pose.armF[1] - 172;
+    tri.setAttribute('transform', `translate(${hx.toFixed(1)} ${hy.toFixed(1)}) rotate(${a.toFixed(1)})`);
   };
   drawTrident();
   // Ino-Leukothea, hidden under the waves until beat 0.
@@ -103,7 +108,7 @@ export const scene: SceneFactory = (ctx) => {
   const swimG = s('g', { class: 'skh-swimmer', opacity: 0 });
   swimG.append(swimmer.g, sash);
   tA.appendChild(swimG);
-  const veil = s('g', { class: 'skh-veil' });
+  const veil = s('path', { class: 'skh-veil', fill: PURPLE, stroke: INK, 'stroke-width': 0.5 });
   tA.appendChild(veil);
   // His name rides in a plain wrapper so it can follow him into the water.
   const odyLabelA = s('g');
@@ -228,10 +233,8 @@ export const scene: SceneFactory = (ctx) => {
   tCin.appendChild(fillers([[-40, -10], [36, -18], [4, 16]], 3.2));
   // Demodokos on his chair, the lyre on his knees.
   tCin.appendChild(throne(-80, GROUND, 1));
-  const bard = new Figure({ head: 'old', hat: 'none', garment: 'long', garmentColor: PURPLE, cloak: true, cloakColor: INK }, pose({ ...POSES.sit(-74, GROUND), lean: -4, head: -10, armF: [62, 70], armB: [70, 50] }));
+  const bard = new Figure({ head: 'old', hat: 'wreath', garment: 'long', garmentColor: PURPLE, cloak: true, cloakColor: INK }, pose({ ...POSES.sit(-74, GROUND), lean: -4, head: -10, armF: [62, 70], armB: [70, 50] }));
   tCin.appendChild(bard.g);
-  const wreath = s('path', { fill: INK, stroke: CLAY, 'stroke-width': 0.35, 'paint-order': 'stroke' });
-  tCin.appendChild(wreath);
   const lyre = kithara();
   tCin.appendChild(lyre);
   // Closed eyes of the blind singer (drawn over the incised eye).
@@ -250,7 +253,12 @@ export const scene: SceneFactory = (ctx) => {
     pose({ ...POSES.sit(18, GROUND), lean: -2, head: -4, armF: [70, 40], armB: [10, 60] }),
   );
   tCin.appendChild(alkinoos.g);
+  // His sceptre, drawn once around the hand and carried by it.
   const sceptre = s('g');
+  sceptre.append(
+    s('line', { x1: 0, y1: 26, x2: 0.5, y2: -36, stroke: INK, 'stroke-width': 1.4, 'stroke-linecap': 'round' }),
+    s('path', { d: 'M0.5 -41l2.6 3.2l-2.6 3.2l-2.6 -3.2Z', fill: INK }),
+  );
   tCin.appendChild(sceptre);
   tCin.appendChild(inscription('ΑΛΚΙΝΟΟΣ', 42, 34, { size: 5, angle: 90 }));
   // Odysseus on a stool, weeping, his purple cloak drawn over his head.
@@ -263,7 +271,7 @@ export const scene: SceneFactory = (ctx) => {
   const hood = s('path', { fill: PURPLE, stroke: INK, 'stroke-width': 0.55, 'stroke-linejoin': 'round' });
   const hoodLines = s('path', { fill: 'none', stroke: INK, 'stroke-width': 0.4, opacity: 0.75 });
   tCin.append(hood, hoodLines);
-  // The hand that holds the cloak to his face, drawn over the hood.
+  // Tears (added white) fall from under the hood.
   const tears = s('g', { class: 'skh-tears' });
   tCin.appendChild(tears);
   tCin.appendChild(inscription('ΟΔΥΣΣΕΥΣ', 104, 12, { size: 5.5, angle: 90 }));
@@ -342,7 +350,6 @@ export const scene: SceneFactory = (ctx) => {
     raftX: -14,
     raftBreak: 0,
     swimX: -14,
-    swim: 0,
     inoRise: 0,
     posRise: 0,
     veil: 0,
@@ -400,9 +407,9 @@ export const scene: SceneFactory = (ctx) => {
       const to: Vec = [lerp(from[0], chest[0], S.veil), lerp(from[1], chest[1], S.veil)];
       const mid: Vec = [(from[0] + to[0]) / 2, Math.min(from[1], to[1]) - 18 + Math.sin(t * 3) * 4];
       const q: Vec = [lerp(mid[0], to[0], 0.5), lerp(mid[1], to[1], 0.5) + Math.sin(t * 3 + 1) * 4];
-      veil.replaceChildren(veilBand([from, mid, q, to], 3.2));
+      veil.setAttribute('d', ribbon([from, mid, q, to], [[0, 2.2], [0.5, 3.2], [1, 2.6]], 36));
       veil.setAttribute('opacity', (1 - S.tie).toFixed(2));
-    } else veil.replaceChildren();
+    } else if (veil.getAttribute('d')) veil.removeAttribute('d');
     // The sash round his chest once tied.
     if (S.tie > 0) {
       const j = swimmer.joints();
@@ -443,21 +450,7 @@ export const scene: SceneFactory = (ctx) => {
     const j = bard.joints();
     const knee = bard.toWorld(j.legF.K);
     lyre.setAttribute('transform', `translate(${(knee[0] - 3).toFixed(1)} ${(knee[1] - 1).toFixed(1)}) rotate(-10) scale(1.12)`);
-    // A laurel wreath of little leaves round his head, and the closed eye of the blind.
-    let wd = '';
-    for (let i = 0; i < 7; i++) {
-      const u = i / 6;
-      const x = lerp(-8, 5.4, u), y = -5.6 - Math.sin(u * Math.PI) * 3.2;
-      const c = headPt(bard, x, y);
-      const tip = headPt(bard, x + 2.8, y - 2.6 + u * 0.8);
-      const tip2 = headPt(bard, x + 2.6, y + 1.6);
-      for (const tp of [tip, tip2]) {
-        const mx = (c[0] + tp[0]) / 2, my = (c[1] + tp[1]) / 2;
-        const nx = -(tp[1] - c[1]) * 0.3, ny = (tp[0] - c[0]) * 0.3;
-        wd += `M${c[0].toFixed(1)} ${c[1].toFixed(1)}Q${(mx + nx).toFixed(1)} ${(my + ny).toFixed(1)} ${tp[0].toFixed(1)} ${tp[1].toFixed(1)}Q${(mx - nx).toFixed(1)} ${(my - ny).toFixed(1)} ${c[0].toFixed(1)} ${c[1].toFixed(1)}Z`;
-      }
-    }
-    wreath.setAttribute('d', wd);
+    // The closed eye of the blind singer.
     const e0 = headPt(bard, 2.2, -2.2), e1 = headPt(bard, 4.3, -1.3), e2 = headPt(bard, 6.2, -2.3);
     bardEye.setAttribute('d', `M${e0[0].toFixed(1)} ${e0[1].toFixed(1)}Q${e1[0].toFixed(1)} ${e1[1].toFixed(1)} ${e2[0].toFixed(1)} ${e2[1].toFixed(1)}`);
     // Weeping Odysseus: shoulders heave under the cloak drawn over his head.
@@ -488,10 +481,7 @@ export const scene: SceneFactory = (ctx) => {
     // The king breathes, sceptre upright.
     alkinoos.set({ head: -4 + Math.sin(t * 0.7) * 1.5, lean: -2 + Math.sin(t * 0.9) * 0.8 });
     const [kx, ky] = alkinoos.hand('F');
-    sceptre.replaceChildren(
-      s('line', { x1: kx.toFixed(1), y1: (ky + 26).toFixed(1), x2: (kx + 0.5).toFixed(1), y2: (ky - 36).toFixed(1), stroke: INK, 'stroke-width': 1.4, 'stroke-linecap': 'round' }),
-      s('path', { d: `M${(kx + 0.5).toFixed(1)} ${(ky - 41).toFixed(1)}l2.6 3.2l-2.6 3.2l-2.6 -3.2Z`, fill: INK }),
-    );
+    sceptre.setAttribute('transform', `translate(${kx.toFixed(1)} ${ky.toFixed(1)})`);
     // The song drifts across the hall toward him.
     if (S.songOn > 0) {
       const mouth = headPt(bard, 11, 1);
@@ -556,7 +546,6 @@ export const scene: SceneFactory = (ctx) => {
       sp += `M${x.toFixed(1)} ${y.toFixed(1)}h.1`;
     }
     sparks.setAttribute('d', sp);
-    theMoon.setAttribute('opacity', '1');
     // The falcon cannot keep up.
     const fx = S.ship + 70 - S.fly * 190, fy = -54 + Math.sin(t * 1.8) * 5 + S.fly * 10;
     hawkG.setAttribute('transform', `translate(${fx.toFixed(1)} ${fy.toFixed(1)}) scale(1.1)`);
@@ -564,6 +553,8 @@ export const scene: SceneFactory = (ctx) => {
   };
 
   let scene: 'A' | 'B' | 'C' | 'D' = 'A';
+  // Tableaux not on show are taken out of rendering, so they can never catch a tap.
+  for (const g of [tB, tC, tD]) g.style.display = 'none';
   const tick = (t: number) => {
     now = t;
     if (scene === 'A') renderStorm(t);
@@ -588,6 +579,7 @@ export const scene: SceneFactory = (ctx) => {
     tl.to(from, { opacity: 0, x: 30, duration: dur * 0.7, ease: 'power2.in' })
       .call(() => {
         from.style.display = 'none';
+        to.style.display = '';
         scene = next;
         tick(now);
       })

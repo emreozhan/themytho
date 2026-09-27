@@ -1,12 +1,13 @@
 /**
  * ΙΔʹ Skylla ile Kharybdis — the strait.
  *
- * Up on the left, Skylla's cliff rises into a cloud; six long necks writhe out
+ * On the left, Skylla's cliff rises out of the tondo; six long necks writhe out
  * of her cave, each with a snarling dog's head. Below, in the black water,
  * Kharybdis turns: rings of running waves around a black gullet, with the fig
  * tree on its rock above. Beat 2: the reader drags the galley through the gap
- * while the whirlpool tugs at it. Beat 3: as every eye watches the whirlpool,
- * the six heads dart down and carry off six rowers; the ship rows on.
+ * while the whirlpool tugs at it (the ship lags and dips as it passes over).
+ * Beat 3: as every eye watches the whirlpool, the six heads dart down and carry
+ * off six rowers into the cave; the ship rows on.
  */
 import { s } from '../lib/dom';
 import { gsap } from '../lib/motion';
@@ -17,7 +18,6 @@ import { Galley, type Rower } from './sirenler.galley';
 import { Neck, whirlpool, figTree } from './skylla.art';
 import { stage } from './tools';
 import type { SceneFactory } from '../story/types';
-
 const SEA_Y = 58; // crest top
 const W = 66; // galley waterline
 const K = 1.75;
@@ -28,7 +28,6 @@ const X_OUT = 72;
 const WHIRL: Vec = [-14, 122];
 const WHIRL_R = 56;
 const CAVE: Vec = [-90, -100];
-
 /** Six necks: root in the cave, then the idle pose (last point = head). */
 const NECKS: Vec[][] = [
   [[-96, -96], [-80, -80], [-66, -66], [-56, -52], [-50, -36]],
@@ -38,11 +37,9 @@ const NECKS: Vec[][] = [
   [[-92, -106], [-72, -122], [-48, -130], [-24, -130], [-6, -122]],
   [[-94, -104], [-80, -118], [-66, -136], [-46, -148], [-24, -150]],
 ];
-
 export const scene: SceneFactory = (ctx) => {
   const st = stage(ctx);
   const root = ctx.root;
-
   /* ---------------- Sky and the fig-tree rock (behind everything) ---------------- */
   root.appendChild(fillers([[62, -118], [84, -92], [40, -60], [66, -30]], 3.6));
   const figG = s('g', { class: 'sky-fig', opacity: 0 });
@@ -50,7 +47,6 @@ export const scene: SceneFactory = (ctx) => {
   figG.appendChild(figRock);
   figG.appendChild(figTree([150, 22], [108, -34], 7));
   root.appendChild(figG);
-
   /* ---------------- Skylla's cliff and cave ---------------- */
   const cliffG = s('g', { class: 'sky-cliff' });
   cliffG.appendChild(
@@ -69,7 +65,6 @@ export const scene: SceneFactory = (ctx) => {
   root.appendChild(cliffG);
   const skLabel = inscription('ΣΚΥΛΛΑ', -128, -78, { size: 8, angle: 90, color: CLAY });
   root.appendChild(skLabel);
-
   /* ---------------- Skylla's necks ---------------- */
   const neckG = s('g', { class: 'skylla' });
   const necks = NECKS.map((pts, i) => new Neck({ pts, width: 7.4, phase: i * 1.3 }, 1.05));
@@ -77,7 +72,6 @@ export const scene: SceneFactory = (ctx) => {
   [5, 4, 3, 2, 1, 0].forEach((i) => neckG.appendChild(necks[i].g));
   root.appendChild(neckG);
   const reach = necks.map(() => ({ v: 0 }));
-
   /* ---------------- The galley ---------------- */
   const galley = new Galley({
     k: K,
@@ -94,20 +88,14 @@ export const scene: SceneFactory = (ctx) => {
   const odx = 34 * K;
   const ody = new Figure({ hat: 'pilos', garment: 'short', cloak: true, facing: -1, scale: OS }, pose({ ...POSES.stand(odx, galley.gunwale / OS), armF: [70, 60], armB: [30, 40], head: 4 }));
   galley.deck.appendChild(ody.g);
-  const spears = s('g');
-  galley.deck.appendChild(spears);
-  const drawSpears = () => {
-    const [hx, hy] = ody.hand('F');
-    spears.replaceChildren(spear([hx + 3, hy + 16], [hx - 3, hy - 30], INK, 1), spear([hx + 6, hy + 15], [hx + 1, hy - 27], INK, 1));
-  };
-  drawSpears();
+  // Two spears in his hand (only his head moves in this scene, so they are drawn once).
+  const [hx, hy] = ody.hand('F');
+  galley.deck.append(spear([hx + 3, hy + 16], [hx - 3, hy - 30], INK, 1), spear([hx + 6, hy + 15], [hx + 1, hy - 27], INK, 1));
   const odyLabel = inscription('ΟΔΥΣΣΕΥΣ', odx + 14, -74, { size: 5, angle: 90 });
   galley.deck.appendChild(odyLabel);
-
   // Drag handle: the whole ship.
   const shipHit = s('rect', { x: -86, y: -70, width: 180, height: 76, fill: 'transparent' });
   galley.top.appendChild(shipHit);
-
   /* ---------------- Sea and Kharybdis ---------------- */
   const water = sea(SEA_Y, { crestHeight: 14 });
   const crestPath = water.crests.querySelector('path');
@@ -127,18 +115,14 @@ export const scene: SceneFactory = (ctx) => {
   const khLabel = inscription('ΧΑΡΥΒΔΙΣ', 54, 110, { size: 7.5, color: CLAY });
   khLabel.style.opacity = '0';
   water.g.appendChild(khLabel);
-
   // Prey: rowers carried off by the heads live in scene space, above all.
   const preyG = s('g', { class: 'sky-prey' });
   root.appendChild(preyG);
-
   /* ---------------- State and the idle driver ---------------- */
   const S = {
     x: X_ENTER,
     tx: X_ENTER,
     follow: 1.2,
-    y: 0,
-    rot: 0,
     effort: 1,
     phase: 0,
     crest: 0,
@@ -149,7 +133,6 @@ export const scene: SceneFactory = (ctx) => {
     look: 0, // eyes on the whirlpool
     dragging: false,
   };
-
   interface Prey {
     r: Rower;
     neck: Neck;
@@ -159,7 +142,6 @@ export const scene: SceneFactory = (ctx) => {
     fade: number;
   }
   const prey: Prey[] = [];
-
   const renderNecks = (t: number) => {
     necks.forEach((n, i) => {
       const e = reach[i].v;
@@ -171,7 +153,6 @@ export const scene: SceneFactory = (ctx) => {
       n.g.setAttribute('opacity', e < 0.02 ? '0' : '1');
     });
   };
-
   let prevT = 0;
   const tick = (t: number) => {
     const dt = Math.min(0.1, Math.max(0, t - prevT));
@@ -182,7 +163,6 @@ export const scene: SceneFactory = (ctx) => {
     galley.place(S.x, W + bob + S.pull * 10, Math.sin(t * 1.1) * 0.8 + S.pull * 5 + wob);
     S.phase += dt * 0.95 * (0.3 + 0.7 * S.effort);
     galley.row(S.phase, S.effort, 1);
-    drawSpears();
     // Sea runs past; Kharybdis turns (faster as the ship is tugged).
     S.crest = (S.crest - dt * (6 + S.pull * 10)) % tile;
     water.crests.setAttribute('transform', `translate(${S.crest.toFixed(2)} ${(Math.sin(t * 1.2) * 0.8).toFixed(2)})`);
@@ -219,7 +199,6 @@ export const scene: SceneFactory = (ctx) => {
   gsap.ticker.add(onFrame);
   ctx.signal.addEventListener('abort', () => gsap.ticker.remove(onFrame));
   tick(0);
-
   const snatch = (): gsap.core.Timeline => {
     const chosen = [0, 1, 2, 4, 5, 7].map((i) => galley.rowers[i]);
     // Match necks to rowers from left to right so they do not cross.
@@ -289,7 +268,6 @@ export const scene: SceneFactory = (ctx) => {
     }, [], 1.3);
     return tl;
   };
-
   return {
     enter() {
       S.tx = X_START;
@@ -298,7 +276,6 @@ export const scene: SceneFactory = (ctx) => {
       tl.from(cliffG, { opacity: 0, duration: 0.9 }, 0).to({}, { duration: 2 }, 0);
       return st.play(tl);
     },
-
     async beat(i) {
       if (i === 0) {
         // Skylla: the necks pour out of the cave, heads snapping.
@@ -309,7 +286,6 @@ export const scene: SceneFactory = (ctx) => {
           .to(S, { effort: 0.35, duration: 1 }, 0);
         return st.play(tl);
       }
-
       if (i === 1) {
         // Kharybdis: the black water starts to turn; the fig tree above it.
         ctx.audio.sfx('whirl');
@@ -323,7 +299,6 @@ export const scene: SceneFactory = (ctx) => {
           .to(khLabel, { opacity: 1, duration: 0.8 }, 1.1);
         return st.play(tl);
       }
-
       if (i === 2) {
         // Steer through: drag the ship right while Kharybdis tugs it down.
         S.effort = 1;
@@ -347,16 +322,13 @@ export const scene: SceneFactory = (ctx) => {
         tl.to(S, { pull: 0, duration: 0.6, ease: 'power2.out' }, 0);
         return st.play(tl);
       }
-
       if (i === 3) {
         return st.play(snatch());
       }
     },
-
     destroy() {
       gsap.ticker.remove(onFrame);
       st.destroy();
     },
   };
 };
-

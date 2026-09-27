@@ -2,12 +2,14 @@
  * ΙΓʹ Sirenler — Odysseus sails past the Sirens.
  *
  * Modelled on the British Museum "Siren Vase": a black galley between two
- * rocky islets, a woman-headed bird on each. Beat 1: the reader plugs every
- * crewman's ears with wax (one tap each). Beat 2: tap the mast and the ropes
- * coil round Odysseus. Beat 3 (hold): the Sirens sing — the song streams
- * toward the ship as painted words — and the ship rows past while Odysseus
- * strains at the ropes. Beat 4: the galley slips away behind the far islet,
- * the song dies and the Sirens droop.
+ * rocky islets strewn with bones, a woman-headed bird on each (one with a
+ * lyre, one with the aulos) and a third hovering over the strait. Beat 1: the
+ * reader plugs every crewman's ears with wax (one tap each). Beat 2: tap the
+ * mast and the ropes coil round Odysseus. Beat 3 (hold): the Sirens sing — the
+ * song streams toward him as painted words — and the ship rows past while he
+ * strains at the ropes (harder whenever the reader lets go, and the ship
+ * drifts back). Beat 4: the galley slips away behind the far islet, the song
+ * dies, the Sirens droop and, as on the vase, the third plunges into the sea.
  */
 import { s } from '../lib/dom';
 import { gsap } from '../lib/motion';
@@ -236,11 +238,7 @@ export const scene: SceneFactory = (ctx) => {
       [[j.P[0] + j.u[0] * 17, j.P[1] + j.u[1] * 17], 6.6],
     ];
     wraps.forEach((w, i) => {
-      if (w.reveal <= 0.001) {
-        w.under.setAttribute('d', '');
-        w.over.setAttribute('d', '');
-        return;
-      }
+      if (w.reveal <= 0.001) return;
       const [c, half] = pts[i];
       const front = ody.toWorld([c[0] + half + 1.2, c[1] - 1.6]);
       const mid = ody.toWorld([c[0], c[1] + 1.2]);
@@ -430,19 +428,18 @@ export const scene: SceneFactory = (ctx) => {
         pellet.setAttribute('cy', (a * from[1] + b * mid[1] + cc * to[1]).toFixed(1));
       },
     });
+    // The wax squashes into the ear; the man flinches.
     tl.call(() => {
       pellet.remove();
       dab.on = true;
       dab.el.setAttribute('opacity', '1');
       if (c.rower) c.rower.extra = { head: -16 };
-      else c.fig.to({ head: -12 }, { duration: 0.15 });
     });
+    if (!c.rower) tl.add(c.fig.to({ head: -12 }, { duration: 0.15 }), '<');
     tl.fromTo(dab, { sx: 1.9, sy: 0.45 }, { sx: 1, sy: 1, duration: 0.5, ease: 'elastic.out(1.2, 0.4)' });
     tl.to(cake, { attr: { rx: '-=0.35', ry: '-=0.25' }, duration: 0.2 }, '<');
-    tl.call(() => {
-      if (c.rower) c.rower.extra = {};
-      else c.fig.to({ head: 4 }, { duration: 0.3 });
-    }, [], '-=0.2');
+    if (c.rower) tl.call(() => void (c.rower && (c.rower.extra = {})), [], '-=0.2');
+    else tl.add(c.fig.to({ head: 4 }, { duration: 0.3 }), '-=0.2');
     return st.play(tl);
   };
 
@@ -487,7 +484,7 @@ export const scene: SceneFactory = (ctx) => {
           if (ctx.signal.aborted) return;
           const [ex, ey] = galley.ear(crew[k].fig);
           // Generous finger-sized target around the head (only one is live at a time).
-          const hit = s('rect', { x: (ex - 15).toFixed(1), y: (ey - 19).toFixed(1), width: 30, height: 36, fill: 'transparent', class: 'sir-hit' });
+          const hit = s('rect', { x: (ex - 19).toFixed(1), y: (ey - 24).toFixed(1), width: 38, height: 44, fill: 'transparent', class: 'sir-hit' });
           galley.top.appendChild(hit);
           await ctx.tap(hit, { label: `Kürekçinin kulağını balmumuyla tıka (${k + 1}/${crew.length})` });
           hit.remove();

@@ -63,13 +63,6 @@ export function breakableRaft(): Raft {
   return { g, logs, mast };
 }
 
-/** Ino-Leukothea's immortal veil: a long band (purple with a white-dotted border) along points. */
-export function veilBand(pts: Vec[], w = 5): SVGGElement {
-  const g = s('g', { class: 'kredemnon' });
-  g.appendChild(s('path', { d: ribbon(pts, [[0, w * 0.7], [0.5, w], [1, w * 0.8]], 36), fill: PURPLE, stroke: INK, 'stroke-width': 0.5 }));
-  return g;
-}
-
 /** A ball of stitched leather: white with purple segments. */
 export function ball(r = 4.4): SVGGElement {
   const g = s('g', { class: 'ball' });
