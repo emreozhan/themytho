@@ -2,7 +2,11 @@
 import { h } from '../lib/dom';
 import { gsap } from '../lib/motion';
 import { ICONS } from './icons';
+import { L, bind, tx, type Text } from '../i18n';
+import { langSwitch } from './lang-switch';
 import type { HudApi } from '../story/types';
+
+const SHIPS = L('gemi', 'ships');
 
 export class Hud implements HudApi {
   readonly el: HTMLElement;
@@ -14,13 +18,14 @@ export class Hud implements HudApi {
   private soundBtn: HTMLButtonElement;
   private year = { v: 0 };
   private ships = 12;
+  private soundOn = false;
   onSound: () => void = () => {};
   onIndex: () => void = () => {};
   onHome: () => void = () => {};
 
-  constructor(host: HTMLElement, title: string, volume: string, totalShips: number) {
+  constructor(host: HTMLElement, title: Text, volume: Text | (() => string), totalShips: number) {
     this.yearEl = h('span', { class: 'hud__year-num', 'aria-live': 'polite' }, ['0']);
-    this.shipsEl = h('span', { class: 'hud__ships', role: 'img', 'aria-label': `${totalShips} gemi` });
+    this.shipsEl = h('span', { class: 'hud__ships', role: 'img' });
     for (let i = 0; i < totalShips; i++) {
       const icon = h('span', { class: 'hud__ship' });
       icon.innerHTML = ICONS.ship;
@@ -28,27 +33,37 @@ export class Hud implements HudApi {
       this.shipIcons.push(icon);
     }
     this.ships = totalShips;
+    bind(this.shipsEl, () => `${this.ships} ${tx(SHIPS)}`, 'aria-label');
     this.shipsNum = h('span', { class: 'hud__ships-num', 'aria-hidden': 'true' }, [`×${totalShips}`]);
-    this.wrathEl = h('span', { class: 'hud__wrath', title: 'Poseidon’un gazabı', 'aria-hidden': 'true' });
+    this.wrathEl = h('span', { class: 'hud__wrath', 'aria-hidden': 'true' });
+    bind(this.wrathEl, L('Poseidon’un gazabı', 'Poseidon’s wrath'), 'title');
     this.wrathEl.innerHTML = ICONS.trident;
-    this.soundBtn = h('button', { class: 'icon-btn hud__sound', type: 'button', 'aria-pressed': 'false', 'aria-label': 'Sesi aç' });
+    this.soundBtn = h('button', { class: 'icon-btn hud__sound', type: 'button', 'aria-pressed': 'false' });
+    bind(this.soundBtn, () => tx(this.soundOn ? L('Sesi kapat', 'Turn sound off') : L('Sesi aç', 'Turn sound on')), 'aria-label');
     this.soundBtn.innerHTML = ICONS.lyreOff;
     this.soundBtn.addEventListener('click', () => this.onSound());
-    const indexBtn = h('button', { class: 'icon-btn hud__index', type: 'button', 'aria-label': 'Bölümler' });
+    const indexBtn = h('button', { class: 'icon-btn hud__index', type: 'button' });
+    bind(indexBtn, L('Bölümler', 'Chapters'), 'aria-label');
     indexBtn.innerHTML = ICONS.index;
     indexBtn.addEventListener('click', () => this.onIndex());
-    const home = h('button', { class: 'hud__brand', type: 'button', 'aria-label': 'Kapağa dön' }, [
+    const titleEl = h('span', { class: 'hud__title' });
+    const volumeEl = h('span', { class: 'hud__volume' });
+    bind(titleEl, title);
+    bind(volumeEl, volume);
+    const home = h('button', { class: 'hud__brand', type: 'button' }, [
       h('span', { class: 'hud__mark', 'aria-hidden': 'true' }),
-      h('span', { class: 'hud__brand-text' }, [h('span', { class: 'hud__title' }, [title]), h('span', { class: 'hud__volume' }, [volume])]),
+      h('span', { class: 'hud__brand-text' }, [titleEl, volumeEl]),
     ]);
+    bind(home, L('Kapağa dön', 'Back to the cover'), 'aria-label');
     home.addEventListener('click', () => this.onHome());
 
     this.el = h('header', { class: 'hud' }, [
       home,
       h('div', { class: 'hud__stats' }, [
-        h('div', { class: 'hud__stat hud__stat--year' }, [h('span', { class: 'hud__label' }, ['Yıl']), this.yearEl]),
-        h('div', { class: 'hud__stat hud__stat--ships' }, [h('span', { class: 'hud__label' }, ['Gemi']), this.shipsEl, this.shipsNum]),
+        h('div', { class: 'hud__stat hud__stat--year' }, [label(L('Yıl', 'Year')), this.yearEl]),
+        h('div', { class: 'hud__stat hud__stat--ships' }, [label(L('Gemi', 'Ships')), this.shipsEl, this.shipsNum]),
         this.wrathEl,
+        langSwitch('hud__lang'),
         this.soundBtn,
         indexBtn,
       ]),
@@ -74,7 +89,7 @@ export class Hud implements HudApi {
   setShips(n: number, animate = true): void {
     const prev = this.ships;
     this.ships = n;
-    this.shipsEl.setAttribute('aria-label', `${n} gemi`);
+    this.shipsEl.setAttribute('aria-label', `${n} ${tx(SHIPS)}`);
     this.shipsNum.textContent = `×${n}`;
     this.shipIcons.forEach((icon, i) => {
       const alive = i < n;
@@ -94,12 +109,19 @@ export class Hud implements HudApi {
   }
 
   setSound(on: boolean): void {
+    this.soundOn = on;
     this.soundBtn.innerHTML = on ? ICONS.lyre : ICONS.lyreOff;
     this.soundBtn.setAttribute('aria-pressed', String(on));
-    this.soundBtn.setAttribute('aria-label', on ? 'Sesi kapat' : 'Sesi aç');
+    this.soundBtn.setAttribute('aria-label', tx(on ? L('Sesi kapat', 'Turn sound off') : L('Sesi aç', 'Turn sound on')));
   }
 
   show(on: boolean): void {
     gsap.to(this.el, { autoAlpha: on ? 1 : 0, y: on ? 0 : -16, duration: 0.6, ease: 'power3.out' });
   }
+}
+
+function label(text: Text): HTMLElement {
+  const el = h('span', { class: 'hud__label' });
+  bind(el, text);
+  return el;
 }

@@ -11,6 +11,7 @@ import { exergue, oliveTree, inscription, fillers, sun, moon, glow } from '../ar
 import { argos, mound, doorway, loom, axes, bed, oliveBedTree, suitorCouch } from './nostos.art';
 import { stage } from './tools';
 import type { SceneFactory } from '../story/types';
+import { L } from '../i18n';
 
 const GROUND = 92;
 const fill = (k: number) => `translate(0 ${GROUND}) scale(${k}) translate(0 ${-GROUND})`;
@@ -254,7 +255,7 @@ export const scene: SceneFactory = (ctx) => {
         await cut(D);
         // Draw the great bow, then loose the arrow through the twelve axes.
         await ctx.drag(bowHandle, {
-          label: 'Yayı ger',
+          label: L('Yayı ger', 'Draw the bow'),
           axis: 'x',
           distance: -46,
           onProgress: drawBow,
@@ -287,16 +288,16 @@ export const scene: SceneFactory = (ctx) => {
       if (i === 5) {
         await cut(F);
         const options = [
-          { id: 'agir', label: 'Yatak çok ağır, taşınamaz' },
-          { id: 'zeytin', label: 'Bir ayağı kök salmış bir zeytin ağacıdır' },
-          { id: 'tanri', label: 'Yatak tanrıların armağanıdır' },
+          { id: 'agir', label: L('Yatak çok ağır, taşınamaz', 'The bed is too heavy to carry') },
+          { id: 'zeytin', label: L('Bir ayağı kök salmış bir zeytin ağacıdır', 'One of its posts is a rooted olive tree') },
+          { id: 'tanri', label: L('Yatak tanrıların armağanıdır', 'The bed is a gift of the gods') },
         ];
         for (;;) {
           const id = await ctx.choose(options);
           if (ctx.signal.aborted) return;
           if (id === 'zeytin') break;
           ctx.audio.sfx('fail');
-          ctx.say('Penelopeia başını sallar. Yalnızca ikisinin bildiği sırrı söyle…');
+          ctx.say(L('Penelopeia başını sallar. Yalnızca ikisinin bildiği sırrı söyle…', 'Penelope shakes her head. Tell the secret only the two of them know…'));
         }
         ctx.audio.sfx('success');
         // The secret: the living olive rises through the bed.

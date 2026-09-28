@@ -18,6 +18,7 @@ import { Galley, type Rower } from './sirenler.galley';
 import { Neck, whirlpool, figTree } from './skylla.art';
 import { stage } from './tools';
 import type { SceneFactory } from '../story/types';
+import { L } from '../i18n';
 const SEA_Y = 58; // crest top
 const W = 66; // galley waterline
 const K = 1.75;
@@ -303,7 +304,7 @@ export const scene: SceneFactory = (ctx) => {
         // Steer through: drag the ship right while Kharybdis tugs it down.
         S.effort = 1;
         await ctx.drag(shipHit, {
-          label: 'Gemiyi sürükle: Skylla’nın kayalığına yakın geç',
+          label: L('Gemiyi sürükle: Skylla’nın kayalığına yakın geç', 'Drag the ship: keep close to Scylla’s cliff'),
           axis: 'x',
           distance: X_END - X_START,
           onProgress: (p) => {

@@ -21,6 +21,7 @@ import { woodenHorse } from './tahta-at.horse';
 import { hut, ladder, Warrior, climbPose, peekingHead, flyingBird } from './tahta-at.art';
 import { spearShape, poseTo, Halo, smokePath } from './troya.art';
 import type { SceneFactory } from '../story/types';
+import { L } from '../i18n';
 
 const GROUND = 96;
 
@@ -578,7 +579,7 @@ export const scene: SceneFactory = (ctx) => {
         });
         cheerFigs.forEach((fig, k) => loopsB.push(st.loop(poseTo(fig, { armF: [112, 60], armB: [172, 8], head: -8 }, { duration: 0.55 + k * 0.08, delay: k * 0.18, yoyo: true, repeat: -1, ease: 'sine.inOut' }))));
         await ctx.drag(horseB.g, {
-          label: 'Atı Troya kapısından içeri sürükle',
+          label: L('Atı Troya kapısından içeri sürükle', 'Drag the horse through the gate of Troy'),
           axis: 'x',
           distance: DRAG,
           onProgress: (p) => {
@@ -649,7 +650,7 @@ export const scene: SceneFactory = (ctx) => {
         else tl.time(1.3);
         loopsC.push(st.loop(gsap.to(tt.flame.querySelectorAll('.kit-flame__tongue'), { scaleY: 1.25, transformOrigin: '50% 100%', duration: 0.25, yoyo: true, repeat: -1, ease: 'sine.inOut', stagger: 0.08 })));
         // The signal: Sinon's beacon (the warriors go on with their work meanwhile).
-        await ctx.tap(torchG, { label: 'İşaret ateşini yak' });
+        await ctx.tap(torchG, { label: L('İşaret ateşini yak', 'Light the signal fire') });
         if (ctx.signal.aborted) return;
         ctx.audio.sfx('fire');
         const fire = flames(0, 0, 1.3);

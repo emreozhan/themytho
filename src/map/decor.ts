@@ -8,11 +8,14 @@ import { rng, range } from '../lib/random';
 import { ribbon, type Vec } from '../lib/geometry';
 import { greekText } from '../art/letters';
 import { project, type LonLat } from './projection';
+import { bind, lang, type Loc } from '../i18n';
 
 export interface MapLabel {
   at: LonLat;
+  /** The ancient name, transliterated (with Turkish dotted capitals; plain I in English). */
   text: string;
-  sub?: string;
+  /** Today's name in the reading language. */
+  sub?: Loc;
   kind: 'land' | 'sea' | 'minor';
   size?: number;
   rotate?: number;
@@ -21,22 +24,22 @@ export interface MapLabel {
 }
 
 export const LABELS: MapLabel[] = [
-  { at: [21.85, 39.35], text: 'HELLAS', sub: 'Yunanistan', kind: 'land', size: 30 },
-  { at: [22.15, 37.5], text: 'PELOPONNESOS', sub: 'Mora', kind: 'land', size: 15, rotate: -8 },
-  { at: [24.35, 41.3], text: 'THRAKE', sub: 'Trakya', kind: 'land', size: 22 },
-  { at: [28.35, 38.55], text: 'ASİA', sub: 'Anadolu', kind: 'land', size: 28 },
-  { at: [24.75, 35.24], text: 'KRETE', sub: 'Girit', kind: 'land', size: 14, rotate: -6 },
-  { at: [14.25, 37.6], text: 'SİKELİA', sub: 'Sicilya', kind: 'land', size: 20, rotate: -4, west: true },
-  { at: [16.05, 40.65], text: 'İTALİA', sub: 'İtalya', kind: 'land', size: 22, rotate: -42, west: true },
-  { at: [9.05, 40.05], text: 'SARDO', sub: 'Sardinya', kind: 'land', size: 15, rotate: -80, west: true },
-  { at: [9.1, 42.25], text: 'KYRNOS', sub: 'Korsika', kind: 'land', size: 12, rotate: -80, west: true },
-  { at: [12.2, 32.4], text: 'LİBYE', sub: 'Kuzey Afrika', kind: 'land', size: 30, west: true },
+  { at: [21.85, 39.35], text: 'HELLAS', sub: { tr: 'Yunanistan', en: 'Greece' }, kind: 'land', size: 30 },
+  { at: [22.15, 37.5], text: 'PELOPONNESOS', sub: { tr: 'Mora', en: 'Peloponnese' }, kind: 'land', size: 15, rotate: -8 },
+  { at: [24.35, 41.3], text: 'THRAKE', sub: { tr: 'Trakya', en: 'Thrace' }, kind: 'land', size: 22 },
+  { at: [28.35, 38.55], text: 'ASİA', sub: { tr: 'Anadolu', en: 'Anatolia' }, kind: 'land', size: 28 },
+  { at: [24.75, 35.24], text: 'KRETE', sub: { tr: 'Girit', en: 'Crete' }, kind: 'land', size: 14, rotate: -6 },
+  { at: [14.25, 37.6], text: 'SİKELİA', sub: { tr: 'Sicilya', en: 'Sicily' }, kind: 'land', size: 20, rotate: -4, west: true },
+  { at: [16.05, 40.65], text: 'İTALİA', sub: { tr: 'İtalya', en: 'Italy' }, kind: 'land', size: 22, rotate: -42, west: true },
+  { at: [9.05, 40.05], text: 'SARDO', sub: { tr: 'Sardinya', en: 'Sardinia' }, kind: 'land', size: 15, rotate: -80, west: true },
+  { at: [9.1, 42.25], text: 'KYRNOS', sub: { tr: 'Korsika', en: 'Corsica' }, kind: 'land', size: 12, rotate: -80, west: true },
+  { at: [12.2, 32.4], text: 'LİBYE', sub: { tr: 'Kuzey Afrika', en: 'North Africa' }, kind: 'land', size: 30, west: true },
   { at: [20.1, 41.6], text: 'İLLYRİA', kind: 'land', size: 13, rotate: -60 },
-  { at: [25.35, 37.65], text: 'AİGAİON PELAGOS', sub: 'Ege Denizi', kind: 'sea', size: 15 },
-  { at: [18.4, 37.2], text: 'İONİON PELAGOS', sub: 'İyon Denizi', kind: 'sea', size: 17 },
-  { at: [12.45, 39.75], text: 'TYRSENİKON PELAGOS', sub: 'Tiren Denizi', kind: 'sea', size: 15, west: true },
-  { at: [17.2, 42.3], text: 'ADRİAS', sub: 'Adriyatik', kind: 'sea', size: 13, rotate: -36 },
-  { at: [21.8, 34.2], text: 'LİBYKON PELAGOS', sub: 'Libya Denizi', kind: 'sea', size: 15 },
+  { at: [25.35, 37.65], text: 'AİGAİON PELAGOS', sub: { tr: 'Ege Denizi', en: 'Aegean Sea' }, kind: 'sea', size: 15 },
+  { at: [18.4, 37.2], text: 'İONİON PELAGOS', sub: { tr: 'İyon Denizi', en: 'Ionian Sea' }, kind: 'sea', size: 17 },
+  { at: [12.45, 39.75], text: 'TYRSENİKON PELAGOS', sub: { tr: 'Tiren Denizi', en: 'Tyrrhenian Sea' }, kind: 'sea', size: 15, west: true },
+  { at: [17.2, 42.3], text: 'ADRİAS', sub: { tr: 'Adriyatik', en: 'Adriatic' }, kind: 'sea', size: 13, rotate: -36 },
+  { at: [21.8, 34.2], text: 'LİBYKON PELAGOS', sub: { tr: 'Libya Denizi', en: 'Libyan Sea' }, kind: 'sea', size: 15 },
   { at: [22.45, 40.24], text: 'Olympos', kind: 'minor', size: 9 },
   { at: [26.9, 39.54], text: 'İda', kind: 'minor', size: 9 },
   { at: [15.0, 37.58], text: 'Aitna', kind: 'minor', size: 9, west: true },
@@ -77,11 +80,11 @@ export function labelNode(l: MapLabel): SVGGElement {
   });
   const size = l.size ?? 16;
   const main = s('text', { class: 'map-label__main', 'font-size': size, 'text-anchor': 'middle', y: 0 });
-  main.textContent = l.text;
+  bind(main, () => (lang() === 'en' ? l.text.replace(/İ/g, 'I') : l.text));
   g.appendChild(main);
   if (l.sub) {
     const sub = s('text', { class: 'map-label__sub', 'font-size': Math.max(7, size * 0.52), 'text-anchor': 'middle', y: size * 0.72 });
-    sub.textContent = l.sub;
+    bind(sub, l.sub);
     g.appendChild(sub);
   }
   return g;

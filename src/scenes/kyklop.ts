@@ -24,6 +24,8 @@ import type { SceneFactory } from '../story/types';
 import { GROUND, cave, boulder, cheeseBasket, milkPail, fence, hearthStones, stake, trident, seatRock } from './kyklop.art';
 import { Actor, poseTo, walkTo, beastTo, writeIn } from './kyklop.rig';
 import { stormCloud } from './thrinakia.art';
+import { L } from '../i18n';
+import type { ChoiceOption } from '../story/types';
 
 const MAN = 1.15;
 const GIANT = 2.1;
@@ -430,15 +432,15 @@ export const scene: SceneFactory = (ctx) => {
         await st.play(tl);
 
         // “Adın ne?” — the cunning man will not give his true name.
-        let options = [
+        let options: ChoiceOption[] = [
           { id: 'odysseus', label: 'Odysseus' },
-          { id: 'kimse', label: 'Kimse (Outis)' },
+          { id: 'kimse', label: L('Kimse (Outis)', 'Nobody (Outis)') },
         ];
         for (;;) {
           const id = await ctx.choose(options);
           if (ctx.signal.aborted) return;
           if (id === 'kimse') break;
-          ctx.say('Kurnaz Odysseus gerçek adını söylemez. Başka bir ad dene…');
+          ctx.say(L('Kurnaz Odysseus gerçek adını söylemez. Başka bir ad dene…', 'Cunning Odysseus will not give his real name. Try another…'));
           ctx.audio.sfx('fail');
           // The giant leans in, suspicious.
           st.timeline()
@@ -525,7 +527,7 @@ export const scene: SceneFactory = (ctx) => {
         await st.play(tl);
         if (ctx.signal.aborted) return;
         await ctx.drag(stakeGrip, {
-          label: 'Kızgın kazığı Kyklop’un gözüne sapla',
+          label: L('Kızgın kazığı Kyklop’un gözüne sapla', 'Drive the glowing stake into the Cyclops’s eye'),
           axis: 'x',
           distance: eye[0] - ready[0],
           onProgress: (p) => aimAt([ready[0] + (eye[0] - ready[0]) * p, ready[1] + (eye[1] - ready[1]) * p]),
@@ -650,7 +652,7 @@ export const scene: SceneFactory = (ctx) => {
         ramHit.appendChild(ramHitRect);
         const nod = { a: 0 };
         const wait = st.loop(gsap.to(nod, { a: 1, duration: 1.2, yoyo: true, repeat: -1, ease: 'sine.inOut', onUpdate: () => bigRam.nod(-6 + 14 * nod.a) }));
-        await ctx.tap(ramHit, { label: 'Koçun karnının altına saklan: koça dokun' });
+        await ctx.tap(ramHit, { label: L('Koçun karnının altına saklan: koça dokun', 'Hide under the ram’s belly: touch the ram') });
         wait.kill();
         bigRam.nod(0);
         ramHitRect.remove();

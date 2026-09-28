@@ -3,6 +3,7 @@ import { h } from '../lib/dom';
 import { gsap } from '../lib/motion';
 import { greekSvg, greekNumeral } from '../art/letters';
 import { ICONS } from './icons';
+import { L, bind, tx } from '../i18n';
 import type { Story } from '../story/types';
 
 export class Drawer {
@@ -13,7 +14,8 @@ export class Drawer {
   onJump: (i: number) => void = () => {};
 
   constructor(host: HTMLElement, story: Story) {
-    const close = h('button', { class: 'icon-btn drawer__close', type: 'button', 'aria-label': 'Kapat' });
+    const close = h('button', { class: 'icon-btn drawer__close', type: 'button' });
+    bind(close, L('Kapat', 'Close'), 'aria-label');
     close.innerHTML = ICONS.close;
     close.addEventListener('click', () => this.close());
     const list = h('ol', { class: 'drawer__list' });
@@ -22,12 +24,18 @@ export class Drawer {
       if (c.part !== lastPart) {
         lastPart = c.part;
         const part = story.parts.find((p) => p.id === c.part)!;
-        list.appendChild(h('li', { class: 'drawer__part', 'aria-hidden': 'true' }, [part.title]));
+        const li = h('li', { class: 'drawer__part', 'aria-hidden': 'true' });
+        bind(li, part.title);
+        list.appendChild(li);
       }
+      const title = h('span', { class: 'drawer__title' });
+      const year = h('span', { class: 'drawer__year' });
+      bind(title, c.title);
+      bind(year, () => `${tx(L('Yıl', 'Year'))} ${c.year}`);
       const btn = h('button', { class: 'drawer__item', type: 'button' }, [
         h('span', { class: 'drawer__num' }, [greekSvg(greekNumeral(i + 1), { size: 11, weight: 1.4, tracking: 1.4 })]),
-        h('span', { class: 'drawer__title' }, [c.title]),
-        h('span', { class: 'drawer__year' }, [`Yıl ${c.year}`]),
+        title,
+        year,
       ]);
       btn.addEventListener('click', () => {
         this.close();
@@ -36,14 +44,15 @@ export class Drawer {
       this.items.push(btn);
       list.appendChild(h('li', {}, [btn]));
     });
-    this.el = h('div', { class: 'drawer', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Bölümler', hidden: true }, [
+    const heading = h('h2', {});
+    const lede = h('p', { class: 'drawer__lede' });
+    bind(heading, L('Bölümler', 'Chapters'));
+    bind(lede, story.subtitle);
+    this.el = h('div', { class: 'drawer', role: 'dialog', 'aria-modal': 'true', hidden: true }, [
       h('div', { class: 'drawer__scrim' }),
-      h('div', { class: 'drawer__sheet' }, [
-        h('div', { class: 'drawer__head' }, [h('h2', {}, ['Bölümler']), close]),
-        h('p', { class: 'drawer__lede' }, [story.subtitle]),
-        list,
-      ]),
+      h('div', { class: 'drawer__sheet' }, [h('div', { class: 'drawer__head' }, [heading, close]), lede, list]),
     ]);
+    bind(this.el, L('Bölümler', 'Chapters'), 'aria-label');
     this.el.querySelector('.drawer__scrim')!.addEventListener('click', () => this.close());
     this.el.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') this.close();

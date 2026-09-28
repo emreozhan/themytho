@@ -18,6 +18,7 @@ import { ship, rowing, BLACK_FIGURE } from '../art/ship';
 import { stage } from './tools';
 import { breakClips, breakable, boulder, citadel, flotsam, xiphos, type Breakable } from './laistrygonlar.art';
 import type { SceneFactory } from '../story/types';
+import { L } from '../i18n';
 
 /** Width of one wave crest in the kit's sea strip of the given crest height. */
 const crestTile = (h: number) => 576 / Math.max(1, Math.round(576 / (1.6 * h)));
@@ -375,7 +376,7 @@ export const scene: SceneFactory = (ctx) => {
       void volley(leftGiant, 0);
       void volley(king, 0.9);
     }
-    await ctx.tap(ropeHit, { label: 'Halatı kes' });
+    await ctx.tap(ropeHit, { label: L('Halatı kes', 'Cut the rope') });
     raining = false;
     // Any stone still in the air lands at once, so the giants are free for the next volley.
     inFlight.forEach((h) => h.progress(1));

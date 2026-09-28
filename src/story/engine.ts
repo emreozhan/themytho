@@ -8,6 +8,7 @@
  * state for earlier chapters is then rebuilt instantly.
  */
 import { gsap, prefersReducedMotion } from '../lib/motion';
+import { L, bind, tx, type Loc } from '../i18n';
 import type { Vec } from '../lib/geometry';
 import { greekNumeral } from '../art/letters';
 import { project, type LonLat } from '../map/projection';
@@ -22,6 +23,8 @@ import type { Caption } from '../ui/caption';
 import { interactions, type Interactions } from './interactions';
 import type { AtlasApi, AudioApi, Chapter, Leg, Mood, Scene, SceneContext, SceneFactory, Story } from './types';
 import { RADIUS } from '../ui/medallion';
+
+const CONTINUE = L('Devam', 'Continue');
 
 export interface EngineUI {
   atlas: Atlas;
@@ -56,6 +59,7 @@ export class Engine {
   private ready = false;
   private scene: Scene | null = null;
   private ctrl: AbortController | null = null;
+  private unbindScene: (() => void) | null = null;
   inter: Interactions | null = null;
   private arrivals = new Map<number, LegRec>();
   private extras = new Map<string, LegRec>();
@@ -256,7 +260,7 @@ export class Engine {
     atlas.setWeather(style === 'storm' || style === 'blown' ? 'storm' : style === 'night' ? 'night' : 'none');
     if (style === 'night') this.setMood('night');
     if (style === 'storm') this.setMood('storm');
-    caption.show(c.title, leg.caption?.tr, leg.caption?.greek);
+    caption.show(c.title, leg.caption?.text, leg.caption?.greek);
     const box = rec.handle.box;
     const pad = 70;
     const target = atlas.camera.fit({ x: box.x - pad, y: box.y - pad, w: box.w + pad * 2, h: box.h + pad * 2 }, this.ui.voyageRect(), 4.2);
@@ -299,7 +303,8 @@ export class Engine {
     this.prefetch(i + 1);
     this.inter = interactions(medallion, panel, signal);
     medallion.clear();
-    medallion.el.setAttribute('aria-label', `Sahne: ${c.title}`);
+    this.unbindScene?.();
+    this.unbindScene = bind(medallion.el, () => `${tx(L('Sahne', 'Scene'))}: ${tx(c.title)}`, 'aria-label');
     const ctx = this.makeContext(i, signal, this.inter);
     try {
       const factory = await this.factory(c);
@@ -313,7 +318,7 @@ export class Engine {
     const part = this.story.parts.find((pt) => pt.id === c.part);
     panel.setChapter(c, greekNumeral(i + 1), part?.title ?? '', c.beats.length);
     panel.setPrev(i > 0);
-    panel.setNext('Devam', false);
+    panel.setNext(CONTINUE, false);
     const from = atlas.camera.toScreen(p);
     await Promise.all([medallion.emerge([from[0], from[1]]), panel.show()]);
     if (signal.aborted) return;
@@ -451,12 +456,13 @@ export class Engine {
     if (beat.gate) panel.nextBtn.focus({ preventScroll: true });
   }
 
-  private nextLabel(): string {
+  private nextLabel(): Loc {
     const c = this.chapter;
-    if (!c) return 'Devam';
-    if (this.beat < c.beats.length - 1) return 'Devam';
+    if (!c || this.beat < c.beats.length - 1) return CONTINUE;
     const next = this.story.chapters[this.index + 1];
-    return next ? `Yola çık · ${next.label ?? next.title}` : 'Eve dönüş';
+    if (!next) return L('Eve dönüş', 'Journey’s end');
+    const name = next.label ?? next.title;
+    return L(`Yola çık · ${name.tr}`, `Set sail · ${name.en}`);
   }
 
   private setHurry(on: boolean): void {

@@ -18,6 +18,7 @@ import type { SceneFactory } from '../story/types';
 import { Actor, shimmer } from './kirke.rig';
 import { sword } from './kirke.art';
 import { eidolon, bothros, oinochoe, fallenRam, asphodel, poplar, paleShield, wisp } from './hades.art';
+import { L } from '../i18n';
 
 const GROUND = 86;
 const K = 1.36;
@@ -294,7 +295,7 @@ export const scene: SceneFactory = (ctx) => {
       if (i === 0) return;
 
       if (i === 1) {
-        await ctx.tap(pit.g, { label: 'Teiresias’ın gölgesini çağır: çukura dokun' });
+        await ctx.tap(pit.g, { label: L('Teiresias’ın gölgesini çağır: çukura dokun', 'Summon the shade of Tiresias: touch the pit') });
         ctx.audio.sfx('ghost');
         const tl = st.timeline();
         // The libation stops; he rises and draws his sword against the swarm.
@@ -348,7 +349,7 @@ export const scene: SceneFactory = (ctx) => {
 
         const spots: Array<[number, number]> = [[40, 0], [60, -7], [80, -16]];
         const steps = [8, 22, 34];
-        const prompts = ['Annene sarıl.', 'Bir kez daha sarıl.', 'Son bir kez sarıl.'];
+        const prompts = [L('Annene sarıl.', 'Embrace your mother.'), L('Bir kez daha sarıl.', 'Embrace her once more.'), L('Son bir kez sarıl.', 'One last embrace.')];
         for (let k = 0; k < 3; k++) {
           if (k > 0) ctx.say(prompts[k]);
           await ctx.tap(antiWrap, { label: prompts[k] });

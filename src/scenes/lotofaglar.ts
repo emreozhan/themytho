@@ -19,6 +19,7 @@ import { stage } from './tools';
 import type { SceneFactory } from '../story/types';
 import { lotusPlant, lotusFlower, datePalm, fruitBasket, fruitSprig, fruit, kerykeion, tear, dolphin, type LotusParts } from './lotofaglar.art';
 import { Actor, poseTo, walkTo } from './kyklop.rig';
+import { L } from '../i18n';
 
 const GROUND = 96;
 const MAN = 1.3;
@@ -330,7 +331,7 @@ export const scene: SceneFactory = (ctx) => {
         eating.push(st.loop(poseTo(scout3.fig, { lean: -16, head: -32 }, { duration: 1.6, ease: 'sine.inOut', yoyo: true, repeat: -1, onUpdate: placeHeld })));
         // Tap each dreamer in turn: a comrade hauls him back to the ship.
         const order = [2, 1, 0];
-        const labels = ['Keşifçiye dokun (1/3)', 'Keşifçiye dokun (2/3)', 'Keşifçiye dokun (3/3)'];
+        const labels = [1, 2, 3].map((n) => L(`Keşifçiye dokun (${n}/3)`, `Touch the scout (${n}/3)`));
         for (let n = 0; n < 3; n++) {
           const k = order[n];
           const scout = scouts[k];

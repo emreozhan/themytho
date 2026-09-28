@@ -12,12 +12,13 @@ import { Fleet } from './fleet';
 import { COAST_TILES, LAND_COARSE_PATH, LAND_PATH, RIPPLE_TILES } from './data/land';
 import { LABELS, dolphin, ketos, labelNode, reliefLayer, seaPattern, windRose } from './decor';
 import { MAP_HEIGHT, MAP_WIDTH, project, type LonLat } from './projection';
+import { L, bind, type Text } from '../i18n';
 import type { LegStyle, Pictogram } from '../story/types';
 
 export interface MarkerSpec {
   id: string;
   at: LonLat;
-  name: string;
+  name: Text;
   greek: string;
   numeral: string;
   side?: 'right' | 'left' | 'top' | 'bottom';
@@ -57,9 +58,9 @@ export class Atlas {
     this.svg = s('svg', {
       class: 'atlas__svg',
       role: 'img',
-      'aria-label': 'Odysseus’un yolculuğunu gösteren Akdeniz haritası',
       preserveAspectRatio: 'xMidYMid meet',
     });
+    bind(this.svg, L('Odysseus’un yolculuğunu gösteren Akdeniz haritası', 'Map of the Mediterranean showing the voyage of Odysseus'), 'aria-label');
     this.el.appendChild(this.svg);
     host.appendChild(this.el);
     this.defs = s('defs');
@@ -137,7 +138,7 @@ export class Atlas {
     const gt = greekText('ΑΓΝΩΣΤΟΣ ΓΗ', { size: 26, weight: 1, align: 'middle', tracking: 4 });
     gt.g.setAttribute('transform', `translate(${ux} ${uy})`);
     const sub = s('text', { x: ux, y: uy + 34, 'text-anchor': 'middle', class: 'unknown-label__sub' });
-    sub.textContent = 'Bilinmeyen Diyarlar';
+    bind(sub, L('Bilinmeyen Diyarlar', 'Unknown Lands'));
     this.unknownLabel.append(gt.g, sub);
     layer('unknown').appendChild(this.unknownLabel);
 
@@ -182,7 +183,8 @@ export class Atlas {
 
   addMarker(m: MarkerSpec): void {
     const at = project(m.at[0], m.at[1]) as Vec;
-    const g = s('g', { class: 'marker is-hidden', 'data-id': m.id, tabindex: -1, role: 'button', 'aria-label': m.name });
+    const g = s('g', { class: 'marker is-hidden', 'data-id': m.id, tabindex: -1, role: 'button' });
+    bind(g, m.name, 'aria-label');
     g.appendChild(s('circle', { class: 'marker__hit', r: 22 }));
     g.appendChild(s('circle', { class: 'marker__pulse', r: 11 }));
     g.appendChild(s('circle', { class: 'marker__ring', r: 9 }));
@@ -192,7 +194,7 @@ export class Atlas {
     const anchor = side === 'left' ? 'end' : side === 'right' ? 'start' : 'middle';
     const off: Vec = side === 'left' ? [-16, 0] : side === 'right' ? [16, 0] : side === 'top' ? [0, -30] : [0, 26];
     const name = s('text', { class: 'marker__name', x: off[0], y: off[1] + 1, 'text-anchor': anchor });
-    name.textContent = m.name;
+    bind(name, m.name);
     label.appendChild(name);
     const gk = greekText(m.greek, { size: 7.5, weight: 1.2, tracking: 2.6, align: anchor === 'start' ? 'start' : anchor === 'end' ? 'end' : 'middle' });
     gk.g.setAttribute('transform', `translate(${off[0]} ${off[1] + 14})`);

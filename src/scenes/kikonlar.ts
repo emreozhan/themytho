@@ -21,6 +21,7 @@ import { waveStripPath } from '../art/ornaments';
 import { stage } from './tools';
 import { Dressed, alopekis, laurel, himation, pelta, krater, roast, fortress, tripod, Horse } from './kikonlar.art';
 import type { SceneFactory } from '../story/types';
+import { L } from '../i18n';
 
 const GROUND = 96;
 
@@ -666,7 +667,7 @@ export const scene: SceneFactory = (ctx) => {
         st.to(riderPos, { x: 104, duration: 16, ease: 'power1.out', onUpdate: placeRider }),
       );
     });
-    await ctx.tap(shipHit, { label: 'Yoldaşları gemilere çağır' });
+    await ctx.tap(shipHit, { label: L('Yoldaşları gemilere çağır', 'Call the companions to the ships') });
     called = true;
     if (dawn.progress() < 1) {
       dawn.timeScale(5);
@@ -830,7 +831,7 @@ export const scene: SceneFactory = (ctx) => {
         await st.play(cut);
         st.loop(gsap.to(surfMove, { x: -crestTile(11) * 2, duration: 2.6, ease: 'none', repeat: -1 }));
         idle.push(st.loop(odyB.to({ armF: [70, 30], head: 6 }, { duration: 1.6, ease: 'sine.inOut', yoyo: true, repeat: -1 })));
-        await ctx.tap(front[0].g, { label: 'Şarap testisini gemiye yükle' });
+        await ctx.tap(front[0].g, { label: L('Şarap testisini gemiye yükle', 'Load the wine jar onto the ship') });
         idle.forEach((a) => a.kill());
         return loadJars();
       }

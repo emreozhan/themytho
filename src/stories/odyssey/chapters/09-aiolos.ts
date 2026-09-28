@@ -5,10 +5,10 @@ const AIOLIA: [number, number] = [14.78, 38.44];
 export const aiolos: Chapter = {
   id: 'aiolos',
   part: 'donus',
-  title: 'Rüzgârların Efendisi',
-  label: 'Aiolia',
+  title: { tr: 'Rüzgârların Efendisi', en: 'Master of the Winds' },
+  label: { tr: 'Aiolia', en: 'Aeolia' },
   greek: 'ΑΙΟΛΟΣ',
-  place: 'Geleneğe göre Lipari (Aiolos) Adaları',
+  place: { tr: 'Geleneğe göre Lipari (Aiolos) Adaları', en: 'Traditionally the Lipari (Aeolian) Islands' },
   at: [14.95, 38.48],
   harbor: AIOLIA,
   labelSide: 'top',
@@ -20,7 +20,7 @@ export const aiolos: Chapter = {
   arrival: {
     id: 'sail',
     via: [[12.9, 38.35], [13.9, 38.45]],
-    caption: { tr: 'Yüzen bir adaya, tunç duvarlarla çevrili Aiolia’ya, rüzgârların efendisinin yurduna varırlar.' },
+    caption: { text: { tr: 'Yüzen bir adaya, tunç duvarlarla çevrili Aiolia’ya, rüzgârların efendisinin yurduna varırlar.', en: 'They reach a floating island, Aeolia, ringed with walls of bronze, home of the master of the winds.' } },
   },
   legs: [
     {
@@ -49,28 +49,49 @@ export const aiolos: Chapter = {
   end: { at: AIOLIA },
   beats: [
     {
-      text: 'Rüzgârların efendisi <strong>Aiolos</strong>’un yüzen, tunç duvarlı adasında bir ay konuk kalırlar. Odysseus ona Troya’yı, Akhaların dönüşünü anlatır.',
-    },
-    {
-      text: 'Ayrılırken Aiolos dokuz yaşında bir öküzün derisinden bir tulum diker ve bütün azgın rüzgârları içine bağlar. Yalnızca batı rüzgârı Zephyros serbesttir: onları eve götürsün diye.',
-      quote: {
-        greek: 'δῶκε δέ μ᾽ ἐκδείρας ἀσκὸν βοὸς ἐννεώροιο, / ἔνθα δὲ βυκτάων ἀνέμων κατέδησε κέλευθα',
-        tr: 'Dokuz yaşında bir öküzün derisini yüzüp bir tulum verdi bana; uğuldayan rüzgârların yollarını onun içine bağladı.',
-        ref: 'Odysseia 10.19–20',
+      text: {
+        tr: 'Rüzgârların efendisi <strong>Aiolos</strong>’un yüzen, tunç duvarlı adasında bir ay konuk kalırlar. Odysseus ona Troya’yı, Akhaların dönüşünü anlatır.',
+        en: 'For a month they are guests on the floating, bronze-walled island of <strong>Aeolus</strong>, master of the winds. Odysseus tells him about Troy and the Achaeans’ return.',
       },
     },
     {
-      text: 'Dokuz gün, dokuz gece yol alırlar. Onuncu gün İthaka görünür: kıyıda ateş yakanları seçecek kadar yakındırlar. Dümeni hiç bırakmayan Odysseus’u tatlı bir uyku alır.',
+      text: {
+        tr: 'Ayrılırken Aiolos dokuz yaşında bir öküzün derisinden bir tulum diker ve bütün azgın rüzgârları içine bağlar. Yalnızca batı rüzgârı Zephyros serbesttir: onları eve götürsün diye.',
+        en: 'At parting, Aeolus sews a bag from the hide of a nine-year-old ox and binds all the raging winds inside. Only Zephyrus, the west wind, is left free, to carry them home.',
+      },
+      quote: {
+        greek: 'δῶκε δέ μ᾽ ἐκδείρας ἀσκὸν βοὸς ἐννεώροιο, / ἔνθα δὲ βυκτάων ἀνέμων κατέδησε κέλευθα',
+        text: {
+          tr: 'Dokuz yaşında bir öküzün derisini yüzüp bir tulum verdi bana; uğuldayan rüzgârların yollarını onun içine bağladı.',
+          en: 'He flayed a nine-year-old ox and gave me a bag of its hide, and in it he bound the paths of the howling winds.',
+        },
+        ref: { tr: 'Odysseia 10.19–20', en: 'Odyssey 10.19–20' },
+      },
     },
     {
-      text: 'Yoldaşlar tulumda altın ve gümüş olduğunu sanır: “Neden hep o armağan alıyor da biz eli boş dönüyoruz?”',
-      gate: { kind: 'tap', prompt: 'Tulumun ipini çöz.' },
+      text: {
+        tr: 'Dokuz gün, dokuz gece yol alırlar. Onuncu gün İthaka görünür: kıyıda ateş yakanları seçecek kadar yakındırlar. Dümeni hiç bırakmayan Odysseus’u tatlı bir uyku alır.',
+        en: 'They sail for nine days and nine nights. On the tenth day Ithaca comes into view: they are close enough to make out men tending fires on the shore. Odysseus, who has never let go of the helm, falls into a sweet sleep.',
+      },
     },
     {
-      text: 'Kurtulan rüzgârlar gemileri yeniden Aiolos’un adasına savurur. Aiolos bu kez kapıyı yüzlerine kapatır: “Tanrıların nefret ettiği adama yardım edemem!”',
+      text: {
+        tr: 'Yoldaşlar tulumda altın ve gümüş olduğunu sanır: “Neden hep o armağan alıyor da biz eli boş dönüyoruz?”',
+        en: 'His companions think the bag is full of gold and silver: “Why does he always get the gifts, while we go home empty-handed?”',
+      },
+      gate: { kind: 'tap', prompt: { tr: 'Tulumun ipini çöz.', en: 'Untie the cord of the bag.' } },
+    },
+    {
+      text: {
+        tr: 'Kurtulan rüzgârlar gemileri yeniden Aiolos’un adasına savurur. Aiolos bu kez kapıyı yüzlerine kapatır: “Tanrıların nefret ettiği adama yardım edemem!”',
+        en: 'The winds burst free and hurl the ships back to Aeolus’s island. This time Aeolus shuts the gate in their faces: “I cannot help a man the gods hate!”',
+      },
       aside: {
-        title: 'Mitin izi · Eolyen',
-        text: 'Rüzgârla ilgili pek çok terim Aiolos’un adını taşır: jeolojide rüzgârın taşıyıp biriktirdiği çökeltilere “eolyen” denir; rüzgârla kendi kendine çalan <em>Aiolos arpı</em> da adını ondan alır.',
+        title: { tr: 'Mitin izi · Eolyen', en: 'Echo of the myth · Aeolian' },
+        text: {
+          tr: 'Rüzgârla ilgili pek çok terim Aiolos’un adını taşır: jeolojide rüzgârın taşıyıp biriktirdiği çökeltilere “eolyen” denir; rüzgârla kendi kendine çalan <em>Aiolos arpı</em> da adını ondan alır.',
+          en: 'Many words to do with wind carry Aeolus’s name: in geology, sediment carried and laid down by the wind is called “aeolian”, and the <em>Aeolian harp</em>, which plays by itself in the wind, is named after him.',
+        },
       },
     },
   ],

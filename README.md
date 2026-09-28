@@ -13,6 +13,8 @@ kendine akmaz: okuyucu dokunur, basılı tutar, sürükler ve karar verir.
 > follows Odysseus across a Mediterranean painted like a red-figure vase; every
 > stop opens a black-figure cup painting you interact with. Everything you see is
 > SVG generated in code; everything you hear is synthesised with Web Audio.
+> The whole story reads in Turkish or English (switch with **TR · EN** or the
+> `L` key); the Greek inscriptions and Homer’s lines stay in Greek.
 
 ## Öne çıkanlar
 
@@ -30,6 +32,10 @@ kendine akmaz: okuyucu dokunur, basılı tutar, sürükler ve karar verir.
   menderes bordürleri ve vazo yazıtı tarzı Yunan harfleri kodla çizilir.
 - **Ses** — deniz, lir (Dor modu), rüzgâr, gök gürültüsü, Sirenler… Web Audio
   ile sentezlenir, varsayılan olarak kapalıdır.
+- **İki dil** — bütün hikâye Türkçe ya da İngilizce okunabilir; dil her an
+  değiştirilebilir (**TR · EN** düğmesi ya da `L` tuşu) ve seçim hatırlanır.
+  Yunanca yazıtlar, Yunanca adlar ve Homeros’un dizeleri çevrilmez, her iki
+  dilde de özgün hâliyle kalır.
 - **Erişilebilirlik** — klavyeyle tam kullanım, `prefers-reduced-motion` desteği,
   ekran okuyucu duyuruları, mobil yerleşim.
 
@@ -42,8 +48,11 @@ kendine akmaz: okuyucu dokunur, basılı tutar, sürükler ve karar verir.
 | Basılı tutma kapıları | `Boşluk`’u basılı tut |
 | Ses aç/kapa | `M` veya lir simgesi |
 | Bölümler listesi | `B` veya menderes simgesi |
+| Dil (Türkçe / İngilizce) | `L` veya **TR · EN** |
 
-Her bölümün kalıcı bir adresi vardır, ör. `#/odysseia/kyklop`.
+Her bölümün kalıcı bir adresi vardır, ör. `#/odysseia/kyklop` (ya da kısaca
+`#kyklop`). İngilizce açmak için adrese `?lang=en` ekleyin:
+`?lang=en#kyklop`.
 
 ## Geliştirme
 
@@ -77,6 +86,7 @@ src/
   stories/    ciltler; odyssey/ altında 18 bölüm verisi
   ui/         kapak, üst bar, panel, zaman çizelgesi, bölüm listesi, final
   audio/      Web Audio sentezi
+  i18n.ts     okuma dili (tr/en): `{ tr, en }` metinleri, canlı dil değişimi
 docs/SCENE_GUIDE.md   yeni sahne çizme rehberi
 scripts/              kıyı çizgisi üreticisi
 ```
@@ -85,6 +95,8 @@ scripts/              kıyı çizgisi üreticisi
 
 1. `src/stories/<cilt>/` altında bölümleri tanımla: konum (boylam/enlem),
    liman, varış rotası (`arrival.via`), yıl, gemi sayısı, ritimler ve kapılar.
+   Okura görünen her metin `{ tr, en }` çiftidir; Yunanca alanlar (`greek`)
+   çevrilmez. `tests/i18n.test.ts` eksik çeviriyi yakalar.
 2. Her bölüm için `src/scenes/<id>.ts` sahnesini `docs/SCENE_GUIDE.md`’ye göre çiz.
 3. `routes.html` ile rotaların denizde kaldığını doğrula.
 4. Kapaktaki cilt listesini (`src/ui/cover.ts`) güncelle.
@@ -98,7 +110,8 @@ GitHub Pages’e yayınlar (Settings → Pages → Source: GitHub Actions).
 ## Kaynaklar ve lisanslar
 
 - Homeros, *İlyada* ve *Odysseia* (MÖ 8. yy); K. P. Kavafis, *İthaka* (1911).
-  Yunanca metinler kamu malıdır; Türkçe çeviriler bu proje için yapılmıştır.
+  Yunanca metinler kamu malıdır; Türkçe ve İngilizce çeviriler bu proje için
+  yapılmıştır.
 - Savaş öncesi bazı sahneler (Palamedes, Skyros’taki Akhilleus, İphigeneia)
   Homeros sonrası Epik Döngü’den gelir.
 - Haritadaki konumlar antik ve modern yorum geleneklerini izler; Odysseus’un

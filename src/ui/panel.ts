@@ -7,7 +7,11 @@ import { h, clear } from '../lib/dom';
 import { gsap, SplitText, prefersReducedMotion, t as dur } from '../lib/motion';
 import { greekSvg } from '../art/letters';
 import { ICONS } from './icons';
+import { L, bind, onLang, tx, type Loc, type Text } from '../i18n';
 import type { Beat, Chapter, ChoiceOption, Gate } from '../story/types';
+
+const YEAR = L('Yıl', 'Year');
+const HOLD = L('Basılı tut', 'Press and hold');
 
 export class Panel {
   readonly el: HTMLElement;
@@ -31,6 +35,15 @@ export class Panel {
   readonly prevBtn: HTMLButtonElement;
   private nextLabel: HTMLElement;
   private splits: SplitText[] = [];
+  /** What is on show, so it can be redrawn in another language. */
+  private chapter: Chapter | null = null;
+  private partTitle: Text = '';
+  private year = 0;
+  private beat: Beat | null = null;
+  private prompt: Text | null = null;
+  private nextText: Text = L('Devam', 'Continue');
+  private holdText: Text = HOLD;
+  private options: ChoiceOption[] = [];
   onNext: () => void = () => {};
   onPrev: () => void = () => {};
 
@@ -54,19 +67,21 @@ export class Panel {
     this.gateIcon = h('span', { class: 'panel__gate-icon', 'aria-hidden': 'true' });
     this.gateText = h('span', { class: 'panel__gate-text' });
     this.gate = h('div', { class: 'panel__gate', role: 'status' }, [this.gateIcon, this.gateText]);
-    this.choices = h('div', { class: 'panel__choices', role: 'group', 'aria-label': 'Seçenekler' });
+    this.choices = h('div', { class: 'panel__choices', role: 'group' });
+    bind(this.choices, L('Seçenekler', 'Choices'), 'aria-label');
     const ring = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     ring.setAttribute('viewBox', '0 0 64 64');
     ring.setAttribute('aria-hidden', 'true');
     ring.innerHTML = '<circle cx="32" cy="32" r="28" class="hold__track"/><circle cx="32" cy="32" r="28" class="hold__fill" pathLength="1"/>';
     this.holdRing = ring.querySelector('.hold__fill') as SVGCircleElement;
-    this.holdBtn = h('button', { class: 'hold', type: 'button' }, [h('span', { class: 'hold__label' }, ['Basılı tut'])]);
+    this.holdBtn = h('button', { class: 'hold', type: 'button' }, [h('span', { class: 'hold__label' }, [tx(HOLD)])]);
     this.holdBtn.prepend(ring);
     this.holdWrap = h('div', { class: 'panel__hold' }, [this.holdBtn]);
     this.dots = h('div', { class: 'panel__dots', 'aria-hidden': 'true' });
-    this.prevBtn = h('button', { class: 'btn btn--ghost panel__prev', type: 'button', 'aria-label': 'Önceki bölüm' });
+    this.prevBtn = h('button', { class: 'btn btn--ghost panel__prev', type: 'button' });
+    bind(this.prevBtn, L('Önceki bölüm', 'Previous chapter'), 'aria-label');
     this.prevBtn.innerHTML = ICONS.prev;
-    this.nextLabel = h('span', { class: 'btn__label' }, ['Devam']);
+    this.nextLabel = h('span', { class: 'btn__label' }, [tx(this.nextText)]);
     this.nextBtn = h('button', { class: 'btn btn--primary panel__next', type: 'button' }, [this.nextLabel]);
     this.nextBtn.insertAdjacentHTML('beforeend', ICONS.next);
     this.prevBtn.addEventListener('click', () => this.onPrev());
@@ -87,6 +102,28 @@ export class Panel {
     this.holdWrap.hidden = true;
     this.choices.hidden = true;
     gsap.set(this.el, { autoAlpha: 0, x: 40 });
+    onLang(() => this.relabel());
+  }
+
+  /** Redraw every word on show in the current language, without animation. */
+  private relabel(): void {
+    this.revert();
+    if (this.chapter) {
+      this.kickerPart.textContent = tx(this.partTitle);
+      this.kickerYear.textContent = `${tx(YEAR)} ${this.year}`;
+      this.title.textContent = tx(this.chapter.title);
+      this.place.textContent = tx(this.chapter.place);
+    }
+    if (this.beat) {
+      clear(this.body);
+      this.renderBeat(this.beat);
+    }
+    if (this.prompt !== null) this.gateText.textContent = tx(this.prompt);
+    this.nextLabel.textContent = tx(this.nextText);
+    (this.holdBtn.querySelector('.hold__label') as HTMLElement).textContent = tx(this.holdText);
+    [...this.choices.children].forEach((b, i) => {
+      if (this.options[i]) b.textContent = tx(this.options[i].label);
+    });
   }
 
   show(): Promise<void> {
@@ -106,18 +143,22 @@ export class Panel {
     this.splits = [];
   }
 
-  setChapter(ch: Chapter, numeral: string, partTitle: string, beats: number): void {
+  setChapter(ch: Chapter, numeral: string, partTitle: Loc | string, beats: number): void {
     this.revert();
+    this.chapter = ch;
+    this.partTitle = partTitle;
+    this.year = ch.year;
+    this.beat = null;
     clear(this.kickerNum);
     const num = greekSvg(numeral, { size: 13, weight: 1.4, tracking: 1.4 });
     this.kickerNum.appendChild(num);
-    this.kickerPart.textContent = partTitle;
-    this.kickerYear.textContent = `Yıl ${ch.year}`;
-    this.title.textContent = ch.title;
+    this.kickerPart.textContent = tx(partTitle);
+    this.kickerYear.textContent = `${tx(YEAR)} ${ch.year}`;
+    this.title.textContent = tx(ch.title);
     clear(this.greek);
     const gk = greekSvg(ch.greek, { size: 15, weight: 1.05, tracking: 3 });
     this.greek.appendChild(gk);
-    this.place.textContent = ch.place;
+    this.place.textContent = tx(ch.place);
     clear(this.body);
     clear(this.dots);
     for (let i = 0; i < beats; i++) this.dots.appendChild(h('span', { class: 'panel__dot' }));
@@ -135,7 +176,32 @@ export class Panel {
   }
 
   setYear(year: number): void {
-    this.kickerYear.textContent = `Yıl ${year}`;
+    this.year = year;
+    this.kickerYear.textContent = `${tx(YEAR)} ${year}`;
+  }
+
+  /** The note, Homer's line and the aside for a beat; returns the note and the extras. */
+  private renderBeat(beat: Beat): { p: HTMLElement; extra: HTMLElement[] } {
+    const p = h('p', { class: 'panel__text' });
+    p.innerHTML = tx(beat.text);
+    this.body.appendChild(p);
+    const extra: HTMLElement[] = [];
+    if (beat.quote) {
+      const q = h('figure', { class: 'panel__quote' }, [
+        h('blockquote', { lang: 'grc', class: 'panel__quote-gr' }, [beat.quote.greek]),
+        h('p', { class: 'panel__quote-tr' }, [tx(beat.quote.text)]),
+        h('figcaption', {}, [tx(beat.quote.ref)]),
+      ]);
+      this.body.appendChild(q);
+      extra.push(q);
+    }
+    if (beat.aside) {
+      const a = h('aside', { class: 'panel__aside' }, [h('h3', {}, [tx(beat.aside.title)]), h('p', {}, [])]);
+      (a.lastChild as HTMLElement).innerHTML = tx(beat.aside.text);
+      this.body.appendChild(a);
+      extra.push(a);
+    }
+    return { p, extra };
   }
 
   setBeat(beat: Beat, index: number): Promise<void> {
@@ -144,28 +210,11 @@ export class Panel {
       d.classList.toggle('is-current', i === index);
     });
     const old = [...this.body.children];
+    this.beat = beat;
     const build = () => {
       this.revert();
       clear(this.body);
-      const p = h('p', { class: 'panel__text' });
-      p.innerHTML = beat.text;
-      this.body.appendChild(p);
-      const extra: HTMLElement[] = [];
-      if (beat.quote) {
-        const q = h('figure', { class: 'panel__quote' }, [
-          h('blockquote', { lang: 'grc', class: 'panel__quote-gr' }, [beat.quote.greek]),
-          h('p', { class: 'panel__quote-tr' }, [beat.quote.tr]),
-          h('figcaption', {}, [beat.quote.ref]),
-        ]);
-        this.body.appendChild(q);
-        extra.push(q);
-      }
-      if (beat.aside) {
-        const a = h('aside', { class: 'panel__aside' }, [h('h3', {}, [beat.aside.title]), h('p', {}, [])]);
-        (a.lastChild as HTMLElement).innerHTML = beat.aside.text;
-        this.body.appendChild(a);
-        extra.push(a);
-      }
+      const { p, extra } = this.renderBeat(beat);
       this.scroll.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
       if (prefersReducedMotion()) return Promise.resolve();
       const split = new SplitText(p, { type: 'lines', mask: 'lines', linesClass: 'line' });
@@ -182,29 +231,33 @@ export class Panel {
     });
   }
 
-  setGate(gate: Gate | undefined, prompt?: string): void {
+  setGate(gate: Gate | undefined, prompt?: Text): void {
     const on = !!gate;
     this.gate.hidden = !on;
+    this.prompt = gate ? (prompt ?? gate.prompt) : null;
     if (!gate) return;
     this.gateIcon.innerHTML = ICONS[gate.kind === 'choice' ? 'choice' : gate.kind];
-    this.gateText.textContent = prompt ?? gate.prompt;
+    this.gateText.textContent = tx(this.prompt as Text);
     this.gate.classList.remove('is-done');
     gsap.fromTo(this.gate, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' });
   }
 
-  say(text: string): void {
+  say(text: Text): void {
     this.gate.hidden = false;
-    this.gateText.textContent = text;
+    this.prompt = text;
+    this.gateText.textContent = tx(text);
     gsap.fromTo(this.gateText, { opacity: 0.2 }, { opacity: 1, duration: 0.4 });
   }
 
-  gateDone(text = 'Tamam.'): void {
+  gateDone(text: Text = L('Tamam.', 'Done.')): void {
     this.gate.classList.add('is-done');
-    this.gateText.textContent = text;
+    this.prompt = text;
+    this.gateText.textContent = tx(text);
   }
 
-  setNext(label: string, enabled: boolean, emphasis = false): void {
-    this.nextLabel.textContent = label;
+  setNext(label: Text, enabled: boolean, emphasis = false): void {
+    this.nextText = label;
+    this.nextLabel.textContent = tx(label);
     this.nextBtn.disabled = !enabled;
     this.nextBtn.classList.toggle('is-ready', enabled && emphasis);
   }
@@ -217,9 +270,10 @@ export class Panel {
   choose(options: ChoiceOption[], signal: AbortSignal): Promise<string> {
     clear(this.choices);
     this.choices.hidden = false;
+    this.options = options;
     return new Promise((resolve) => {
       const buttons = options.map((o, i) => {
-        const b = h('button', { class: `ostrakon ostrakon--${i % 3}`, type: 'button' }, [o.label]);
+        const b = h('button', { class: `ostrakon ostrakon--${i % 3}`, type: 'button' }, [tx(o.label)]);
         b.addEventListener('click', () => {
           resolve(o.id);
         });
@@ -233,6 +287,7 @@ export class Panel {
 
   hideChoices(): void {
     this.choices.hidden = true;
+    this.options = [];
     clear(this.choices);
   }
 
@@ -245,9 +300,10 @@ export class Panel {
     if (!ok) gsap.fromTo(b, { x: -6 }, { x: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
   }
 
-  showHold(on: boolean, label = 'Basılı tut'): void {
+  showHold(on: boolean, label: Text = HOLD): void {
     this.holdWrap.hidden = !on;
-    (this.holdBtn.querySelector('.hold__label') as HTMLElement).textContent = label;
+    this.holdText = label;
+    (this.holdBtn.querySelector('.hold__label') as HTMLElement).textContent = tx(label);
     this.setHoldProgress(0);
     if (on) gsap.fromTo(this.holdBtn, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2)' });
   }

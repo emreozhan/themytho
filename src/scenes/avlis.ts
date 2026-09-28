@@ -16,6 +16,7 @@ import { clamp, lerp, type Vec } from '../lib/geometry';
 import { stage } from './tools';
 import { Galley, RollingSea, windPath, dolphin, armTo, headFrame, puppet, renderLoop, poser, type GalleyOptions } from './avlis.fleet';
 import type { SceneFactory } from '../story/types';
+import { L } from '../i18n';
 
 const f1 = (v: number) => (Math.round(v * 10) / 10).toString();
 
@@ -446,7 +447,7 @@ export const scene: SceneFactory = (ctx) => {
         await st.play(tl);
         let calm = true;
         await ctx.hold({
-          label: 'Rüzgârı bekle',
+          label: L('Rüzgârı bekle', 'Wait for the wind'),
           seconds: 3.2,
           onProgress: (p) => {
             S.fill = p;

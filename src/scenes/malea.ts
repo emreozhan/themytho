@@ -18,6 +18,7 @@ import { stage } from './tools';
 import { Galley, RollingSea, armTo, puppet, tondoFlash, shakeGroup, renderLoop, poser } from './avlis.fleet';
 import { windGod } from './malea.boreas';
 import type { SceneFactory } from '../story/types';
+import { L } from '../i18n';
 
 const f1 = (v: number) => (Math.round(v * 10) / 10).toString();
 /** Fractional part in [0, 1). */
@@ -309,7 +310,7 @@ export const scene: SceneFactory = (ctx) => {
         // The storm keeps growing whatever the helmsman does.
         const grow = st.to(S, { storm: 1.12, duration: 9, ease: 'none' });
         await ctx.hold({
-          label: 'Dümeni tut',
+          label: L('Dümeni tut', 'Hold the helm'),
           seconds: 3.4,
           onProgress: (p) => {
             S.hold = p;

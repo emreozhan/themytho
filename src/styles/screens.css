@@ -17,6 +17,11 @@
 .cover[hidden] {
   display: none;
 }
+.cover__lang {
+  position: absolute;
+  top: clamp(10px, 2.4vh, 22px);
+  right: var(--gutter);
+}
 .cover__inner {
   display: grid;
   grid-template-columns: minmax(280px, 1fr) minmax(320px, 560px);

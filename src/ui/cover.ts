@@ -9,22 +9,31 @@ import { meanderRing, waveRing, dotRing, rosette, waveStripPath } from '../art/o
 import { ship, rowing, BLACK_FIGURE } from '../art/ship';
 import { CLAY, INK } from '../art/figure';
 import { ICONS } from './icons';
+import { L, bind, type Loc } from '../i18n';
+import { langSwitch } from './lang-switch';
 import type { Story } from '../story/types';
 
 export interface Volume {
   numeral: string;
-  title: string;
-  note: string;
+  title: Loc;
+  note: Loc;
   ready: boolean;
 }
 
 export const VOLUMES: Volume[] = [
-  { numeral: 'I', title: 'Odysseia', note: 'Odysseus’un yolculuğu', ready: true },
-  { numeral: 'II', title: 'Argonautika', note: 'İason ve Altın Post', ready: false },
-  { numeral: 'III', title: 'Herakles', note: 'On iki görev', ready: false },
-  { numeral: 'IV', title: 'Theseus', note: 'Labirent ve Minotauros', ready: false },
-  { numeral: 'V', title: 'Perseus', note: 'Medusa’nın başı', ready: false },
+  { numeral: 'I', title: L('Odysseia', 'Odyssey'), note: L('Odysseus’un yolculuğu', 'The voyage of Odysseus'), ready: true },
+  { numeral: 'II', title: L('Argonautika', 'Argonautica'), note: L('İason ve Altın Post', 'Jason and the Golden Fleece'), ready: false },
+  { numeral: 'III', title: L('Herakles', 'Heracles'), note: L('On iki görev', 'The twelve labours'), ready: false },
+  { numeral: 'IV', title: L('Theseus', 'Theseus'), note: L('Labirent ve Minotauros', 'The Labyrinth and the Minotaur'), ready: false },
+  { numeral: 'V', title: L('Perseus', 'Perseus'), note: L('Medusa’nın başı', 'The head of Medusa'), ready: false },
 ];
+
+/** A text element that follows the reading language. */
+function t(tag: 'p' | 'span' | 'footer', cls: string, text: Loc): HTMLElement {
+  const el = h(tag, { class: cls });
+  bind(el, text);
+  return el;
+}
 
 function emblem(): { svg: SVGSVGElement; rings: SVGGElement[]; ship: SVGGElement; oars: SVGGElement; waves: SVGGElement; dolphins: SVGGElement[] } {
   const svg = s('svg', { class: 'cover__emblem-svg', viewBox: '-210 -210 420 420', 'aria-hidden': 'true' });
@@ -86,16 +95,17 @@ export class Cover {
     this.title = greekText(story.greekTitle, { size: 60, weight: 0.9, tracking: 3.2, align: 'middle' });
     const titleSvg = s('svg', { class: 'cover__title-svg', viewBox: '-260 -44 520 88', role: 'img', 'aria-label': story.greekTitle });
     titleSvg.appendChild(this.title.g);
-    this.startBtn = h('button', { class: 'btn btn--primary cover__start', type: 'button' }, [h('span', {}, ['Yolculuğa başla'])]);
+    this.startBtn = h('button', { class: 'btn btn--primary cover__start', type: 'button' }, [t('span', '', L('Yolculuğa başla', 'Begin the voyage'))]);
     this.startBtn.insertAdjacentHTML('beforeend', ICONS.next);
     this.startBtn.addEventListener('click', () => this.onStart());
-    const volumes = h('ul', { class: 'cover__volumes', 'aria-label': 'Atlasın ciltleri' });
+    const volumes = h('ul', { class: 'cover__volumes' });
+    bind(volumes, L('Atlasın ciltleri', 'Volumes of the atlas'), 'aria-label');
     VOLUMES.forEach((v) =>
       volumes.appendChild(
         h('li', { class: `cover__volume${v.ready ? ' is-ready' : ''}` }, [
-          h('span', { class: 'cover__vol-num' }, [`Cilt ${v.numeral}`]),
-          h('span', { class: 'cover__vol-title' }, [v.title]),
-          h('span', { class: 'cover__vol-note' }, [v.ready ? v.note : 'yakında']),
+          t('span', 'cover__vol-num', L(`Cilt ${v.numeral}`, `Volume ${v.numeral}`)),
+          t('span', 'cover__vol-title', v.title),
+          t('span', 'cover__vol-note', v.ready ? v.note : L('yakında', 'coming soon')),
         ]),
       ),
     );
@@ -103,25 +113,37 @@ export class Cover {
       h('div', { class: 'cover__inner' }, [
         h('div', { class: 'cover__emblem' }, [this.em.svg]),
         h('div', { class: 'cover__text' }, [
-          h('p', { class: 'cover__kicker' }, ['Mitos Atlası · Cilt I']),
-          h('h1', { class: 'cover__heading', id: 'cover-heading' }, [titleSvg, h('span', { class: 'sr-only' }, ['Odysseia'])]),
-          h('p', { class: 'cover__subtitle' }, ['Odysseus’un yirmi yıllık yolculuğu']),
-          h('p', { class: 'cover__lede' }, [
-            'İthaka’dan Troya’ya, oradan yeniden eve. Haritada gemileri izle; her durakta kupanın içine çizilmiş sahneyi aç, ',
-            'hikâyeye dokun, sürükle, karar ver.',
-          ]),
+          t('p', 'cover__kicker', L('Mitos Atlası · Cilt I', 'Atlas of Myths · Volume I')),
+          h('h1', { class: 'cover__heading', id: 'cover-heading' }, [titleSvg, t('span', 'sr-only', story.title)]),
+          t('p', 'cover__subtitle', L('Odysseus’un yirmi yıllık yolculuğu', 'The twenty-year voyage of Odysseus')),
+          t(
+            'p',
+            'cover__lede',
+            L(
+              'İthaka’dan Troya’ya, oradan yeniden eve. Haritada gemileri izle; her durakta kupanın içine çizilmiş sahneyi aç, hikâyeye dokun, sürükle, karar ver.',
+              'From Ithaca to Troy, and home again. Follow the ships across the map; at every stop, open the scene painted inside the cup, then touch, drag and decide.',
+            ),
+          ),
           h('blockquote', { class: 'cover__quote' }, [
             h('p', { class: 'cover__quote-gr', lang: 'grc' }, ['Ἄνδρα μοι ἔννεπε, Μοῦσα, πολύτροπον, ὃς μάλα πολλὰ / πλάγχθη, ἐπεὶ Τροίης ἱερὸν πτολίεθρον ἔπερσεν·']),
-            h('p', { class: 'cover__quote-tr' }, ['Anlat bana, ey Musa, o çok yönlü adamı; Troya’nın kutsal kalesini yıktıktan sonra nice diyarlarda savrulan adamı.']),
-            h('footer', {}, ['Odysseia 1.1–2']),
+            t(
+              'p',
+              'cover__quote-tr',
+              L(
+                'Anlat bana, ey Musa, o çok yönlü adamı; Troya’nın kutsal kalesini yıktıktan sonra nice diyarlarda savrulan adamı.',
+                'Tell me, Muse, of the man of many turns, who was driven far and wide after he had sacked the holy citadel of Troy.',
+              ),
+            ),
+            t('footer', '', L('Odysseia 1.1–2', 'Odyssey 1.1–2')),
           ]),
           h('div', { class: 'cover__actions' }, [
             this.startBtn,
-            h('p', { class: 'cover__hint' }, ['İlerlemek için → tuşu, kaydırma ya da “Devam”. Ses için lir simgesi.']),
+            t('p', 'cover__hint', L('İlerlemek için → tuşu, kaydırma ya da “Devam”. Ses için lir simgesi.', 'Press →, scroll or “Continue” to move on. The lyre turns on the sound.')),
           ]),
         ]),
       ]),
       volumes,
+      langSwitch('cover__lang'),
     ]);
     host.appendChild(this.el);
   }

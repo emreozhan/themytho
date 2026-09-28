@@ -24,9 +24,9 @@ describe('the Odyssey', () => {
       expect(typeof (c.scene ?? c.load), c.id).toBe('function');
       expect(parts.has(c.part), c.id).toBe(true);
       for (const b of c.beats) {
-        expect(b.text.length, c.id).toBeGreaterThan(10);
+        expect(b.text.tr.length, c.id).toBeGreaterThan(10);
         if (b.gate) expect(['tap', 'hold', 'drag', 'choice']).toContain(b.gate.kind);
-        if (b.quote) expect(b.quote.greek && b.quote.tr && b.quote.ref, c.id).toBeTruthy();
+        if (b.quote) expect(b.quote.greek && b.quote.text.tr && b.quote.ref.tr, c.id).toBeTruthy();
       }
     }
   });

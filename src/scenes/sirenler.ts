@@ -21,6 +21,7 @@ import { Siren, bone, skull } from './sirenler.art';
 import { Galley } from './sirenler.galley';
 import { stage } from './tools';
 import type { SceneFactory } from '../story/types';
+import { L } from '../i18n';
 
 const W = 86; // waterline of the galley
 const SEA_Y = 80; // top of the wave crests (in front of the hull)
@@ -486,7 +487,7 @@ export const scene: SceneFactory = (ctx) => {
           // Generous finger-sized target around the head (only one is live at a time).
           const hit = s('rect', { x: (ex - 19).toFixed(1), y: (ey - 24).toFixed(1), width: 38, height: 44, fill: 'transparent', class: 'sir-hit' });
           galley.top.appendChild(hit);
-          await ctx.tap(hit, { label: `Kürekçinin kulağını balmumuyla tıka (${k + 1}/${crew.length})` });
+          await ctx.tap(hit, { label: L(`Kürekçinin kulağını balmumuyla tıka (${k + 1}/${crew.length})`, `Stop the rower’s ears with wax (${k + 1}/${crew.length})`) });
           hit.remove();
           await flyWax(k);
         }
@@ -501,7 +502,7 @@ export const scene: SceneFactory = (ctx) => {
         // Tap the mast; the companions bind him standing, hands behind the mast.
         const hit = s('rect', { x: galley.mastX - 14, y: galley.mastTop + 4, width: 28, height: -galley.mastTop - 50, fill: 'transparent' });
         galley.top.appendChild(hit);
-        await ctx.tap(hit, { label: 'Direğe dokun: Odysseus’u bağla' });
+        await ctx.tap(hit, { label: L('Direğe dokun: Odysseus’u bağla', 'Touch the mast: bind Odysseus') });
         hit.remove();
         const near = [galley.rowers[1], galley.rowers[2]];
         const tl = st.timeline();
@@ -535,7 +536,7 @@ export const scene: SceneFactory = (ctx) => {
         S.lastP = 0;
         S.chorus = true;
         await ctx.hold({
-          label: 'Basılı tut',
+          label: L('Basılı tut', 'Press and hold'),
           seconds: 4.2,
           onProgress: (p) => {
             const released = p < S.lastP - 1e-4;

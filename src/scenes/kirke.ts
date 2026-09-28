@@ -18,6 +18,7 @@ import type { SceneFactory } from '../story/types';
 import { Actor, shimmer, burst, sparkPath, type PartName } from './kirke.rig';
 import { lion, wolf, moly, palace, door, skyphos, cup, wand, sword, krater, garland, MAN_HEAD, YOUTH_HEAD, PIG_HEAD, pigFeatures } from './kirke.art';
 import { makeHermes, swoop, flyingPose } from './kirke.hermes';
+import { L } from '../i18n';
 
 const GROUND = 90;
 const KA = 1.22;
@@ -399,7 +400,7 @@ export const scene: SceneFactory = (ctx) => {
         await st.play(tl);
 
         // Gate: the wand.
-        await ctx.tap(rod.g, { label: 'Kirke’nin değneğine dokun' });
+        await ctx.tap(rod.g, { label: L('Kirke’nin değneğine dokun', 'Touch Circe’s wand') });
         ctx.audio.sfx('magic');
         const hex = st.timeline();
         hex.add(kirke.to({ armB: [104, -6], lean: 8 }, { duration: 0.28, ease: 'power3.in' }), 0);
@@ -464,7 +465,7 @@ export const scene: SceneFactory = (ctx) => {
         const nod = st.loop(gsap.to(herb.flower, { rotation: 7, svgOrigin: '9.4 -40.6', duration: 1.6, yoyo: true, repeat: -1, ease: 'sine.inOut' }));
 
         // Gate: pull the moly out of the ground.
-        await ctx.tap(herb.g, { label: 'Moly otunu topraktan çek' });
+        await ctx.tap(herb.g, { label: L('Moly otunu topraktan çek', 'Pull the moly from the earth') });
         nod.pause();
         ctx.audio.sfx('thud');
         const pull = st.timeline();

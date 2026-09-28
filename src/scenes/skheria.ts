@@ -25,6 +25,7 @@ import { greekText } from '../art/letters';
 import { trident, breakableRaft, ball, clothOnStone, oliveBranch, kithara, throne, stool, feastTable, krater, falcon } from './skheria.art';
 import { stage } from './tools';
 import type { SceneFactory } from '../story/types';
+import { L } from '../i18n';
 
 const SEA_A = 42; // storm sea crest top
 const GROUND = 94; // shore and hall ground line
@@ -649,7 +650,7 @@ export const scene: SceneFactory = (ctx) => {
           .call(() => ctx.atlas.setMood('day'), [], 1.2);
         await st.play(intro);
         // The ball game. Tap the ball: Nausicaa throws, the maiden misses, it drops in the river.
-        await ctx.tap(ballHit, { label: 'Topa dokun: at' });
+        await ctx.tap(ballHit, { label: L('Topa dokun: at', 'Touch the ball: throw it') });
         const tl = st.timeline();
         tl.add(nausicaa.to({ armF: [60, 10], lean: 12, head: 0 }, { duration: 0.25, ease: 'power2.in' }), 0);
         tl.call(() => void (ballPos.held = false), [], 0.18);

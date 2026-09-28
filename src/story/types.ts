@@ -1,5 +1,6 @@
 /** Story data model: a story is a list of chapters; a chapter is a list of beats. */
 import type { LonLat } from '../map/projection';
+import type { Loc, Text } from '../i18n';
 
 export type Mood = 'day' | 'night' | 'storm' | 'underworld' | 'dawn';
 export type VesselKind = 'fleet' | 'ship' | 'raft' | 'wreck' | 'phaeacian';
@@ -16,30 +17,31 @@ export interface Leg {
   vessel?: VesselKind;
   /** Voyage duration in seconds (auto from length when omitted). */
   duration?: number;
-  /** Caption shown over the map while sailing this leg. */
-  caption?: { tr: string; greek?: string };
+  /** Caption shown over the map while sailing this leg (Greek stays untranslated). */
+  caption?: { text: Loc; greek?: string };
 }
 
 export interface Quote {
   greek: string;
-  tr: string;
-  ref: string;
+  /** The line rendered in each reading language. */
+  text: Loc;
+  ref: Loc;
 }
 
 export interface Aside {
-  title: string;
-  text: string;
+  title: Loc;
+  text: Loc;
 }
 
 export type Gate =
-  | { kind: 'tap'; prompt: string }
-  | { kind: 'hold'; prompt: string }
-  | { kind: 'drag'; prompt: string }
-  | { kind: 'choice'; prompt: string };
+  | { kind: 'tap'; prompt: Loc }
+  | { kind: 'hold'; prompt: Loc }
+  | { kind: 'drag'; prompt: Loc }
+  | { kind: 'choice'; prompt: Loc };
 
 export interface Beat {
   /** A short note. May contain <em> and <strong>. */
-  text: string;
+  text: Loc;
   /** The beat waits for this interaction before the story may continue. */
   gate?: Gate;
   quote?: Quote;
@@ -50,24 +52,24 @@ export type PartId = 'cagri' | 'savas' | 'donus' | 'ithaka';
 
 export interface Part {
   id: PartId;
-  title: string;
+  title: Loc;
   greek: string;
 }
 
 export interface Chapter {
   id: string;
   part: PartId;
-  title: string;
+  title: Loc;
   /** Greek name in capitals (drawn with the inscription letters). */
   greek: string;
   /** Where tradition places it today. */
-  place: string;
+  place: Loc;
   at: LonLat;
   /** Where the ships moor, if not at the marker itself. */
   harbor?: LonLat;
   labelSide?: 'right' | 'left' | 'top' | 'bottom';
   /** Short label for the map marker (defaults to title). */
-  label?: string;
+  label?: Loc;
   /** Reuse another chapter's map marker instead of adding one (same place, later visit). */
   marker?: string;
   year: number;
@@ -101,9 +103,9 @@ export interface Pictogram {
 
 export interface Story {
   id: string;
-  title: string;
+  title: Loc;
   greekTitle: string;
-  subtitle: string;
+  subtitle: Loc;
   parts: Part[];
   chapters: Chapter[];
   startYear: number;
@@ -143,20 +145,22 @@ export interface AudioApi {
 }
 
 export interface TapOptions {
-  label: string;
+  /** What the tap does, for screen readers (e.g. L('Halatı kes', 'Cut the rope')). */
+  label: Text;
   /** Show a pulsing ring on the target. */
   pulse?: boolean;
 }
 
 export interface HoldOptions {
-  label: string;
+  /** Shown on the hold button. */
+  label: Text;
   seconds: number;
   target?: SVGGraphicsElement;
   onProgress?(p: number): void;
 }
 
 export interface DragOptions {
-  label: string;
+  label: Text;
   /** Called with a 0..1 progress; resolve when it reaches 1. */
   axis: 'x' | 'y' | 'xy';
   /** Distance (scene units) of a complete drag along the axis; negative drags left/up. */
@@ -168,7 +172,7 @@ export interface DragOptions {
 
 export interface ChoiceOption {
   id: string;
-  label: string;
+  label: Text;
 }
 
 export interface SceneContext {
@@ -187,7 +191,7 @@ export interface SceneContext {
   drag(target: SVGGraphicsElement, opts: DragOptions): Promise<void>;
   choose(options: ChoiceOption[]): Promise<string>;
   /** Replace the panel's gate prompt text (e.g. after a wrong choice). */
-  say(text: string): void;
+  say(text: Text): void;
 }
 
 export interface Scene {

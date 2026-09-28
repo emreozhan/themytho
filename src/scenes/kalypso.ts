@@ -17,6 +17,7 @@ import type { SceneFactory } from '../story/types';
 import { Actor, shimmer } from './kirke.rig';
 import { makeHermes, swoop, soar, flyingPose } from './kirke.hermes';
 import { hill, loom, blackPoplar, log, doubleAxe, shoreRock, flyingBird, starPath, HILL, PLEIADES, BEAR } from './kalypso.art';
+import { L } from '../i18n';
 
 const GROUND = 84;
 const K = 1.24;
@@ -272,7 +273,7 @@ export const scene: SceneFactory = (ctx) => {
         let last = -1;
         gsap.set(lm.web, { scaleY: 0.35, transformOrigin: '50% 0%' });
         await ctx.hold({
-          label: 'Yılları geçir',
+          label: L('Yılları geçir', 'Let the years pass'),
           seconds: 6,
           onProgress: (p) => {
             setTime(START + p * 7);
@@ -317,8 +318,8 @@ export const scene: SceneFactory = (ctx) => {
         // Gate: four logs, each lashed into the raft with a tap.
         for (let k = 0; k < 4; k++) {
           const l = logs[3 - k];
-          if (k > 0) ctx.say(`Salı kur: kütüklere dokun (${k}/4).`);
-          await ctx.tap(l, { label: 'Salı kur: kütüklere dokun' });
+          if (k > 0) ctx.say(L(`Salı kur: kütüklere dokun (${k}/4).`, `Build the raft: touch the logs (${k}/4).`));
+          await ctx.tap(l, { label: L('Salı kur: kütüklere dokun', 'Build the raft: touch the logs') });
           const [x0, y0] = pile[3 - k];
           const [sx, sy] = slot(k);
           const tx = RAFT_X + sx * RAFT_K, ty = RAFT_Y + sy * RAFT_K;

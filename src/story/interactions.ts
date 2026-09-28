@@ -6,6 +6,7 @@
 import { s } from '../lib/dom';
 import { gsap } from '../lib/motion';
 import { clamp } from '../lib/geometry';
+import { bind } from '../i18n';
 import type { Panel } from '../ui/panel';
 import type { Medallion } from '../ui/medallion';
 import type { ChoiceOption, DragOptions, HoldOptions, TapOptions } from './types';
@@ -56,7 +57,7 @@ export function interactions(medallion: Medallion, panel: Panel, signal: AbortSi
         target.classList.add('hotspot');
         target.setAttribute('tabindex', '0');
         target.setAttribute('role', 'button');
-        target.setAttribute('aria-label', opts.label);
+        const unbind = bind(target, opts.label, 'aria-label');
         const halo = opts.pulse === false ? null : ring(target);
         const finish = () => {
           cleanup();
@@ -70,9 +71,11 @@ export function interactions(medallion: Medallion, panel: Panel, signal: AbortSi
           }
         };
         const cleanup = () => {
+          unbind();
           target.classList.remove('hotspot');
           target.removeAttribute('tabindex');
           target.removeAttribute('role');
+          target.removeAttribute('aria-label');
           target.removeEventListener('click', finish);
           target.removeEventListener('keydown', onKey);
           halo?.remove();
@@ -160,7 +163,7 @@ export function interactions(medallion: Medallion, panel: Panel, signal: AbortSi
         target.classList.add('hotspot', 'hotspot--drag');
         target.setAttribute('tabindex', '0');
         target.setAttribute('role', 'slider');
-        target.setAttribute('aria-label', opts.label);
+        const unbind = bind(target, opts.label, 'aria-label');
         target.setAttribute('aria-valuemin', '0');
         target.setAttribute('aria-valuemax', '100');
         const halo = ring(target);
@@ -219,6 +222,7 @@ export function interactions(medallion: Medallion, panel: Panel, signal: AbortSi
           complete();
         };
         const cleanup = () => {
+          unbind();
           target.classList.remove('hotspot', 'hotspot--drag', 'is-dragging');
           ['tabindex', 'role', 'aria-label', 'aria-valuemin', 'aria-valuemax', 'aria-valuenow'].forEach((a) => target.removeAttribute(a));
           target.removeEventListener('pointerdown', down);

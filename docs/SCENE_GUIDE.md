@@ -85,6 +85,20 @@ scene decides *what* to touch:
 
 Use `ctx.say(text)` to change the prompt line (e.g. hints after a wrong choice).
 
+**Two languages.** The atlas reads in Turkish or English and the reader can
+switch at any moment. Every string a scene shows — tap/hold/drag labels, choice
+labels, `ctx.say` hints — is a pair made with `L()`:
+
+```ts
+import { L } from '../i18n';
+await ctx.tap(rope, { label: L('Halatı kes', 'Cut the rope') });
+ctx.say(L('Başka bir ad dene…', 'Try another name…'));
+```
+
+Greek is never translated: `inscription()` names, Homer's lines and Greek
+titles stay as they are in both languages. Plain strings (a proper name such as
+`'Odysseus'`) are shown as is.
+
 ## 4. Talking to the map and HUD
 
 `ctx.atlas`:

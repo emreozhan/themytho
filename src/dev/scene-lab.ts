@@ -23,6 +23,7 @@ import '../styles/scenes.css';
 import { meanderTileURI } from '../art/ornaments';
 import { App } from '../app';
 import type { Chapter, Story } from '../story/types';
+import { odyssey } from '../stories/odyssey';
 
 const params = new URLSearchParams(location.search);
 const id = params.get('ch') ?? 'ithaka';
@@ -39,15 +40,10 @@ const mod = (await entry[1]()) as Record<string, Chapter>;
 const chapter = Object.values(mod)[0];
 const story: Story = {
   id: 'lab',
-  title: 'Sahne Laboratuvarı',
+  title: { tr: 'Sahne Laboratuvarı', en: 'Scene Lab' },
   greekTitle: 'ΜΥΘΟΙ',
   subtitle: chapter.title,
-  parts: [
-    { id: 'cagri', title: 'Çağrı', greek: 'ΚΛΗΣΙΣ' },
-    { id: 'savas', title: 'Troya Savaşı', greek: 'ΠΟΛΕΜΟΣ' },
-    { id: 'donus', title: 'Dönüş', greek: 'ΝΟΣΤΟΣ' },
-    { id: 'ithaka', title: 'İthaka', greek: 'ΙΘΑΚΗ' },
-  ],
+  parts: odyssey.parts,
   chapters: [{ ...chapter, marker: undefined, arrival: undefined }],
   startYear: chapter.year,
   totalYears: 20,

@@ -8,6 +8,7 @@ import { s, h, nextId } from '../lib/dom';
 import { gsap, t as dur, prefersReducedMotion } from '../lib/motion';
 import { meanderRing } from '../art/ornaments';
 import { CLAY, INK } from '../art/figure';
+import { L, bind } from '../i18n';
 
 export const RADIUS = 166;
 
@@ -23,7 +24,8 @@ export class Medallion {
   constructor(host: HTMLElement) {
     // A labelled group: the painting itself is decoration, but the things you can
     // touch inside it are real buttons/sliders for keyboards and screen readers.
-    this.el = h('div', { class: 'medallion', role: 'group', 'aria-roledescription': 'sahne' });
+    this.el = h('div', { class: 'medallion', role: 'group' });
+    bind(this.el, L('sahne', 'scene'), 'aria-roledescription');
     this.svg = s('svg', { class: 'medallion__svg', viewBox: '-200 -200 400 400', focusable: 'false' });
     this.defs = s('defs');
     const clipId = nextId('tondo');

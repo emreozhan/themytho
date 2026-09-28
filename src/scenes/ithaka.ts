@@ -11,6 +11,7 @@ import { Beast } from '../art/animals';
 import { exergue, oliveTree, inscription, fillers, cypress } from '../art/kit';
 import { stage } from './tools';
 import type { SceneFactory } from '../story/types';
+import { L } from '../i18n';
 
 const GROUND = 92;
 
@@ -151,7 +152,7 @@ export const scene: SceneFactory = (ctx) => {
         const cut = st.timeline();
         cut.to(t1, { opacity: 0, x: 40, duration: 0.7, ease: 'power2.in' }).set(t1, { display: 'none' }).fromTo(t2, { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.9, ease: 'power3.out' });
         await st.play(cut);
-        await ctx.tap(ox.g, { label: 'Öküze dokun: sabanı sür' });
+        await ctx.tap(ox.g, { label: L('Öküze dokun: sabanı sür', 'Touch the ox: drive the plough') });
         ctx.audio.sfx('thud');
         walkOx = st.loop(ox.walk(0.9));
         walkDonkey = st.loop(donkey.walk(0.9));
@@ -193,7 +194,7 @@ export const scene: SceneFactory = (ctx) => {
         walkOx?.play();
         walkDonkey?.play();
         creep = st.to(teamPos, { x: 30, duration: 7, ease: 'none', onUpdate: placeTeam });
-        await ctx.tap(odysseus.g, { label: 'Odysseus’a dokun: sabanı durdur' });
+        await ctx.tap(odysseus.g, { label: L('Odysseus’a dokun: sabanı durdur', 'Touch Odysseus: stop the plough') });
         creep.kill();
         walkOx?.pause();
         walkDonkey?.pause();

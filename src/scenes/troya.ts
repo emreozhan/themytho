@@ -18,6 +18,7 @@ import { stage } from './tools';
 import { troyWalls } from './troya.walls';
 import { Hoplite, aspis, spearShape, arrowShape, mixPose, poseTo, down } from './troya.art';
 import type { SceneFactory } from '../story/types';
+import { L } from '../i18n';
 
 /** The plain where the heroes fight (feet on this line). */
 const GROUND = 100;
@@ -288,7 +289,7 @@ export const scene: SceneFactory = (ctx) => {
         // (standing in for nine years), the duel swings to and fro.
         let year = 1;
         await ctx.hold({
-          label: 'Yılları geçir',
+          label: L('Yılları geçir', 'Let the years pass'),
           seconds: 4,
           onProgress: (p) => {
             heavens.theta = THETA0 + p * Math.PI * 2 * 4;

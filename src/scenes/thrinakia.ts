@@ -21,6 +21,7 @@ import { stage } from './tools';
 import type { SceneFactory } from '../story/types';
 import { nimbus, moonPath, spit, fork, fish, windStreaks, crag, wreckage, planks, stormCloud } from './thrinakia.art';
 import { Actor, poseTo } from './kyklop.rig';
+import { L } from '../i18n';
 
 const GROUND = 96;
 const SHIP_K = 2.1;
@@ -393,7 +394,7 @@ export const scene: SceneFactory = (ctx) => {
         st.loop(gsap.to(waves2.crests, { x: -SEA_TILE, duration: 2.2, ease: 'none', repeat: -1 }));
         st.loop(gsap.to(shipPos, { rot: 0.8, y: 81, duration: 1.6, ease: 'sine.inOut', yoyo: true, repeat: -1, onUpdate: placeShip }));
         if (ctx.signal.aborted) return;
-        await ctx.tap(shipHit, { label: 'Yelkeni aç ve denize çık' });
+        await ctx.tap(shipHit, { label: L('Yelkeni aç ve denize çık', 'Raise the sail and put to sea') });
         if (ctx.signal.aborted) return;
         shipPad.remove();
         ctx.audio.sfx('depart');

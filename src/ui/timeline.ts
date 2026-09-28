@@ -2,6 +2,7 @@
 import { h } from '../lib/dom';
 import { gsap } from '../lib/motion';
 import { greekSvg, greekNumeral } from '../art/letters';
+import { L, bind, tx } from '../i18n';
 import type { Story } from '../story/types';
 
 export class Timeline {
@@ -22,17 +23,23 @@ export class Timeline {
       const idx = story.chapters.map((c, i) => (c.part === p.id ? i : -1)).filter((i) => i >= 0);
       if (!idx.length) return;
       const a = pos(idx[0]), b = pos(idx[idx.length - 1]);
-      parts.appendChild(h('span', { class: 'timeline__part', style: `left:${(a * 100).toFixed(2)}%;width:${((b - a) * 100).toFixed(2)}%` }, [p.title]));
+      const part = h('span', { class: 'timeline__part', style: `left:${(a * 100).toFixed(2)}%;width:${((b - a) * 100).toFixed(2)}%` });
+      bind(part, p.title);
+      parts.appendChild(part);
     });
     story.chapters.forEach((c, i) => {
       const btn = h('button', {
         class: 'timeline__node',
         type: 'button',
         style: `left:${(pos(i) * 100).toFixed(2)}%`,
-        'aria-label': `${i + 1}. ${c.title}`,
       });
+      bind(btn, () => `${i + 1}. ${tx(c.title)}`, 'aria-label');
       btn.appendChild(h('span', { class: 'timeline__dot' }));
-      const tip = h('span', { class: 'timeline__tip' }, [h('span', { class: 'timeline__tip-title' }, [c.title]), h('span', { class: 'timeline__tip-year' }, [`Yıl ${c.year}`])]);
+      const tipTitle = h('span', { class: 'timeline__tip-title' });
+      const tipYear = h('span', { class: 'timeline__tip-year' });
+      bind(tipTitle, c.title);
+      bind(tipYear, () => `${tx(L('Yıl', 'Year'))} ${c.year}`);
+      const tip = h('span', { class: 'timeline__tip' }, [tipTitle, tipYear]);
       tip.prepend(greekSvg(greekNumeral(i + 1), { size: 9, weight: 1.4, tracking: 1.2 }));
       btn.appendChild(tip);
       btn.addEventListener('click', () => this.onJump(i));
@@ -40,7 +47,8 @@ export class Timeline {
       nodes.appendChild(h('li', {}, [btn]));
     });
     this.label = h('div', { class: 'timeline__now', 'aria-live': 'polite' });
-    this.el = h('nav', { class: 'timeline', 'aria-label': 'Yolculuk zaman çizelgesi' }, [parts, h('div', { class: 'timeline__inner' }, [track, nodes]), this.label]);
+    this.el = h('nav', { class: 'timeline' }, [parts, h('div', { class: 'timeline__inner' }, [track, nodes]), this.label]);
+    bind(this.el, L('Yolculuk zaman çizelgesi', 'Voyage timeline'), 'aria-label');
     host.appendChild(this.el);
   }
 

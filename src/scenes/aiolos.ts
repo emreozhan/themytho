@@ -20,6 +20,7 @@ import { Galley, RollingSea, windPath, armTo, headFrame, puppet, tondoFlash, sha
 import { windGod, type WindName } from './malea.boreas';
 import { askos, rampart, floatingIsland, ithacaShore } from './aiolos.art';
 import type { SceneFactory } from '../story/types';
+import { L } from '../i18n';
 
 const f1 = (v: number) => (Math.round(v * 10) / 10).toString();
 
@@ -348,7 +349,7 @@ export const scene: SceneFactory = (ctx) => {
         move(mateB.f, { x: -10 / CK, lean: 20, head: -6, armF: [80, 30] }, { duration: 1.2, delay: 0.15 });
         creep.to({}, { duration: 1.35 });
         await st.play(creep);
-        await ctx.tap(bag2.knot, { label: 'Tulumun ipini çöz' });
+        await ctx.tap(bag2.knot, { label: L('Tulumun ipini çöz', 'Untie the cord of the bag') });
         // Out they come.
         ctx.audio.sfx('wind');
         ctx.audio.sfx('storm');

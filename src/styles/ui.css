@@ -95,6 +95,53 @@
   background: rgba(239, 226, 198, 0.08);
 }
 
+/* Reading language: TR · EN. The chosen one is gilded and underscored like an incision. */
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+}
+.lang-switch__btn {
+  position: relative;
+  border: 0;
+  background: transparent;
+  padding: 8px 7px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--t-fast);
+}
+.lang-switch__btn + .lang-switch__btn::before {
+  content: '·';
+  position: absolute;
+  left: -2px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.lang-switch__btn:hover {
+  color: var(--bone);
+}
+.lang-switch__btn[aria-pressed='true'] {
+  color: var(--gold);
+}
+.lang-switch__btn[aria-pressed='true']::after {
+  content: '';
+  position: absolute;
+  left: 7px;
+  right: calc(7px + 0.16em);
+  bottom: 3px;
+  height: 1px;
+  background: currentColor;
+}
+.lang-switch__btn:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
 /* ------------------------------------------------------------------ */
 /* HUD                                                                 */
 /* ------------------------------------------------------------------ */

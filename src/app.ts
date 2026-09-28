@@ -16,7 +16,10 @@ import { Cover } from './ui/cover';
 import { Finale } from './ui/finale';
 import { Engine } from './story/engine';
 import { Sound } from './audio/audio';
+import { L, lang, onLang, setLang, tx } from './i18n';
 import type { Story } from './story/types';
+
+const BRAND = L('Mitos Atlası', 'Atlas of Myths');
 
 export class App {
   readonly atlas: Atlas;
@@ -44,7 +47,7 @@ export class App {
     root.appendChild(h('div', { class: 'sheen', 'aria-hidden': 'true' }));
     const ui = h('div', { class: 'ui' });
     root.appendChild(ui);
-    this.hud = new Hud(ui, 'Mitos Atlası', `Cilt I · ${story.title}`, story.initialShips);
+    this.hud = new Hud(ui, BRAND, () => `${tx(L('Cilt I', 'Volume I'))} · ${tx(story.title)}`, story.initialShips);
     this.medallion = new Medallion(ui);
     this.panel = new Panel(ui);
     this.timeline = new Timeline(ui, story);
@@ -85,9 +88,11 @@ export class App {
     this.engine.onChapter = (i) => {
       const c = story.chapters[i];
       rewriteUrl(`#/${story.id}/${c.id}`);
-      live.textContent = `${i + 1}. bölüm: ${c.title}`;
-      document.title = `${c.title} · ${story.title} · Mitos Atlası`;
+      live.textContent = lang() === 'en' ? `Chapter ${i + 1}: ${tx(c.title)}` : `${i + 1}. bölüm: ${tx(c.title)}`;
+      this.retitle();
     };
+    onLang(() => this.retitle());
+    this.retitle();
     this.engine.onFinish = () => this.showFinale();
     const openFromMap = this.atlas.onMarkerClick;
     this.atlas.onMarkerClick = (id) => {
@@ -190,8 +195,14 @@ export class App {
     this.timeline.show(false);
     await this.panel.hide();
     rewriteUrl(location.pathname + location.search);
-    document.title = 'Odysseia · Mitos Atlası';
+    this.retitle();
     this.cover.show();
+  }
+
+  /** The browser tab names the open chapter, in the reading language. */
+  private retitle(): void {
+    const c = this.started ? this.story.chapters[this.engine.index] : undefined;
+    document.title = [c && tx(c.title), tx(this.story.title), tx(BRAND)].filter(Boolean).join(' · ');
   }
 
   private bindInput(): void {
@@ -200,6 +211,10 @@ export class App {
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
       if (this.drawer.opened) return;
+      if (e.key === 'l' || e.key === 'L') {
+        setLang(lang() === 'tr' ? 'en' : 'tr');
+        return;
+      }
       if (this.cover.visible) {
         if (e.key === 'Enter' && document.activeElement === document.body) this.begin();
         return;

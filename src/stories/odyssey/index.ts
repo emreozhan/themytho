@@ -3,7 +3,7 @@
  * The journey of Odysseus from Ithaca to Troy and home again, in eighteen stops.
  * Sources: Homer's Iliad and Odyssey (8th c. BC); a few pre-war episodes
  * (Palamedes, Achilles on Skyros, Iphigeneia) come from the later Epic Cycle.
- * Greek lines are Homer's; the Turkish renderings are our own.
+ * Greek lines are Homer's; the Turkish and English renderings are our own.
  */
 import type { Story } from '../../story/types';
 import { ithaka } from './chapters/01-ithaka';
@@ -28,14 +28,17 @@ import { PICTOGRAMS } from './pictograms';
 
 export const odyssey: Story = {
   id: 'odysseia',
-  title: 'Odysseia',
+  title: { tr: 'Odysseia', en: 'Odyssey' },
   greekTitle: 'ΟΔΥΣΣΕΙΑ',
-  subtitle: 'İthaka’dan Troya’ya, Troya’dan yeniden İthaka’ya: yirmi yıllık bir yolculuk.',
+  subtitle: {
+    tr: 'İthaka’dan Troya’ya, Troya’dan yeniden İthaka’ya: yirmi yıllık bir yolculuk.',
+    en: 'From Ithaca to Troy, and from Troy back to Ithaca: a voyage of twenty years.',
+  },
   parts: [
-    { id: 'cagri', title: 'Çağrı', greek: 'ΚΛΗΣΙΣ' },
-    { id: 'savas', title: 'Troya Savaşı', greek: 'ΠΟΛΕΜΟΣ' },
-    { id: 'donus', title: 'Dönüş', greek: 'ΝΟΣΤΟΣ' },
-    { id: 'ithaka', title: 'İthaka', greek: 'ΙΘΑΚΗ' },
+    { id: 'cagri', title: { tr: 'Çağrı', en: 'The Call' }, greek: 'ΚΛΗΣΙΣ' },
+    { id: 'savas', title: { tr: 'Troya Savaşı', en: 'The Trojan War' }, greek: 'ΠΟΛΕΜΟΣ' },
+    { id: 'donus', title: { tr: 'Dönüş', en: 'The Return' }, greek: 'ΝΟΣΤΟΣ' },
+    { id: 'ithaka', title: { tr: 'İthaka', en: 'Ithaca' }, greek: 'ΙΘΑΚΗ' },
   ],
   chapters: [
     ithaka, avlis, troya, tahtaAt, kikonlar, malea, lotofaglar, kyklop, aiolos,
